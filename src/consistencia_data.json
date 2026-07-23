@@ -1,0 +1,50 @@
+[
+  {
+    "tipo": "General",
+    "problema": "¿De qué manera influye el Sistema Predictivo con Deep Learning en la Gestión de Riesgos en Proyectos de Infraestructura Pública en el Perú?",
+    "objetivo": "Determinar de qué manera influye el Sistema Predictivo con Deep Learning en la Gestión de Riesgos en Proyectos de Infraestructura Pública en el Perú.",
+    "hipotesis": "El Sistema Predictivo con Deep Learning influye significativa y positivamente en la Gestión de Riesgos en Proyectos de Infraestructura Pública en el Perú.",
+    "variables": "VI: Sistema Predictivo con Deep Learning.\nVD: Gestión de Riesgos en Proyectos de Infraestructura Pública.",
+    "tecnica": "Técnica: Experimentación Computacional, Simulación de Backtesting Histórico y Análisis Cuasiexperimental.\nInstrumentos:\n1. Scripts y Logs de Validación Algorítmica (MLOps).\n2. Dashboards y Reportes de Simulación Predictiva."
+  },
+  {
+    "tipo": "Específico 1",
+    "problema": "¿De qué manera impacta la Ingeniería de Datos y Features en la Identificación Proactiva de Riesgos en la infraestructura pública?",
+    "objetivo": "Establecer de qué manera impacta la Ingeniería de Datos y Features en la Identificación Proactiva de Riesgos.",
+    "hipotesis": "La Ingeniería de Datos y Features impacta de manera significativa en la Identificación Proactiva de Riesgos.",
+    "variables": "Dimensión VI-1: Ingeniería de Datos y Features.\nDimensión VD-1: Identificación Proactiva de Riesgos.",
+    "tecnica": "Técnica: Revisión Documental e Inspección Algorítmica.\nInstrumento: Scripts de Extracción y Diccionario de Datos (Data Lake)."
+  },
+  {
+    "tipo": "Específico 2",
+    "problema": "¿De qué forma optimiza la Configuración Algorítmica la Eficiencia Analítica y Operativa para la evaluación de proyectos públicos?",
+    "objetivo": "Identificar de qué forma optimiza la Configuración Algorítmica la Eficiencia Analítica y Operativa para la evaluación de proyectos.",
+    "hipotesis": "La Configuración Algorítmica optimiza de forma directa y positiva la Eficiencia Analítica y Operativa de la supervisión.",
+    "variables": "Dimensión VI-2: Configuración Algorítmica.\nDimensión VD-2: Eficiencia Analítica y Operativa.",
+    "tecnica": "Técnica: Simulación de Procesos (BPS) y Benchmarking Computacional.\nInstrumento: Reporte de Rendimiento de Servidor y Modelo de Flujos (To-Be)."
+  },
+  {
+    "tipo": "Específico 3",
+    "problema": "¿En qué medida el Rendimiento Predictivo beneficia el Impacto Financiero y Operativo previniendo sobrecostos y retrasos en los proyectos?",
+    "objetivo": "Determinar en qué medida el Rendimiento Predictivo beneficia el Impacto Financiero y Operativo previniendo sobrecostos y retrasos.",
+    "hipotesis": "El Rendimiento Predictivo beneficia de manera muy significativa el Impacto Financiero y Operativo salvaguardando fondos públicos y plazos.",
+    "variables": "Dimensión VI-3: Rendimiento Predictivo.\nDimensión VD-3: Impacto Financiero y Operativo.",
+    "tecnica": "Técnica: Experimentación Computacional y Simulación Económica Cuasiexperimental.\nInstrumento: Ficha de Rendimiento (VI) y Dashboard de Retorno de Inversión Simulado (VD)."
+  },
+  {
+    "tipo": "Específico 4",
+    "problema": "¿De qué manera la Interpretabilidad (XAI) promueve una mejor Toma de Decisiones y Mitigación por parte de los inspectores y auditores?",
+    "objetivo": "Evaluar de qué manera la Interpretabilidad (XAI) promueve una mejor Toma de Decisiones y Mitigación por parte de los auditores.",
+    "hipotesis": "La Interpretabilidad (XAI) promueve activamente una mejor Toma de Decisiones y Mitigación al brindar sustento técnico documentado.",
+    "variables": "Dimensión VI-4: Interpretabilidad (XAI).\nDimensión VD-4: Toma de Decisiones y Mitigación.",
+    "tecnica": "Técnica: Simulación de Escenarios y Análisis Algorítmico de Flujos de Decisión.\nInstrumento: Reporte SHAP Global/Local (VI) y Logs de Trazabilidad del Sistema (VD)."
+  },
+  {
+    "tipo": "Específico 5",
+    "problema": "¿En qué medida la Robustez y Escalabilidad del sistema impulsa la Modernización del Control Gubernamental a largo plazo?",
+    "objetivo": "Comprobar en qué medida la Robustez y Escalabilidad del sistema impulsa la Modernización del Control Gubernamental a largo plazo.",
+    "hipotesis": "La Robustez y Escalabilidad del sistema impulsa de forma significativa la Modernización del Control Gubernamental asegurando agilidad y transparencia.",
+    "variables": "Dimensión VI-5: Robustez y Escalabilidad.\nDimensión VD-5: Modernización del Control Gubernamental.",
+    "tecnica": "Técnica: Pruebas de Estrés Computacional y Auditoría de Base de Datos.\nInstrumento: Fichas de Monitoreo de Latencia (VI) y Reporte de Integridad Relacional (VD)."
+  }
+]

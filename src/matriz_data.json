@@ -1,0 +1,256 @@
+{
+  "VI": [
+    {
+      "dimension": "1.1. Ingeniería de Datos y Features",
+      "indicadores": [
+        {
+          "codigo": "1.1.1",
+          "nombre": "Integración de Repositorios Gubernamentales",
+          "definicion": "Cantidad de bases de datos estatales (ej. INFOBRAS, SEACE, MEF, INDECI) estructuradas e integradas dentro del repositorio central (Data Warehouse).",
+          "sustento": "PMBOK 8va Ed. (PMI, 2025), Data Governance for Analytics (Sarkar, 2024).",
+          "validez": "Se valida al comprobar empíricamente que la consolidación de tablas en el Data Warehouse refleja la totalidad de los expedientes, sustentando la integridad del insumo de datos.",
+          "tecnica": "Proceso ETL (Extract, Transform, Load)",
+          "instrumento": "Log de Ingesta y Diccionario de Datos",
+          "escala": "Cuantitativa discreta (Número de repositorios)"
+        },
+        {
+          "codigo": "1.1.2",
+          "nombre": "Variables (Features) finales",
+          "definicion": "Cantidad final de variables predictoras seleccionadas matemáticamente tras el preprocesamiento de datos para alimentar la red neuronal.",
+          "sustento": "Feature Engineering for Machine Learning (Zheng & Casari, 2023).",
+          "validez": "Su validez se sustenta mediante técnicas estadísticas formales (ej. Análisis de Correlación) que garantizan matemáticamente que los predictores elegidos explican la varianza del riesgo.",
+          "tecnica": "Análisis de Correlación y Feature Selection",
+          "instrumento": "Matriz de Correlación y Ranking de Atributos",
+          "escala": "Cuantitativa discreta (Número de variables)"
+        }
+      ]
+    },
+    {
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicadores": [
+        {
+          "codigo": "1.2.1",
+          "nombre": "Algoritmo implementado",
+          "definicion": "Cantidad exacta de parámetros entrenables (pesos y sesgos) y capas ocultas que componen la red neuronal profunda.",
+          "sustento": "Deep Learning (Goodfellow, Bengio & Courville, MIT Press).",
+          "validez": "Se fundamenta en la capacidad matemática comprobada de las arquitecturas profundas para modelar relaciones no lineales complejas en conjuntos masivos de datos (Big Data).",
+          "tecnica": "Configuración de Red Neuronal Profunda",
+          "instrumento": "Bitácora MLOps y Resumen de Arquitectura",
+          "escala": "Cuantitativa discreta (Número de capas/parámetros)"
+        },
+        {
+          "codigo": "1.2.2",
+          "nombre": "Hiperparámetros estructurales",
+          "definicion": "Valores numéricos asignados a los hiperparámetros clave del modelo (ej. tasa de aprendizaje, funciones de activación, épocas).",
+          "sustento": "Hyperparameter Optimization in Machine Learning (Bischl et al., 2023).",
+          "validez": "Se garantiza mediante curvas de aprendizaje (Learning Curves) que demuestran la convergencia estadística del modelo, evitando empíricamente el sobreajuste (overfitting).",
+          "tecnica": "Optimización de Hiperparámetros (Grid/Random Search)",
+          "instrumento": "Registro de Experimentos y Curvas de Aprendizaje",
+          "escala": "Cuantitativa continua / discreta"
+        }
+      ]
+    },
+    {
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicadores": [
+        {
+          "codigo": "1.3.1",
+          "nombre": "Exactitud Global (Accuracy)",
+          "definicion": "Proporción de predicciones correctas (verdaderos positivos y negativos) sobre el total de casos en el conjunto de prueba.",
+          "sustento": "Applied Predictive Modeling (Kuhn & Johnson, 2024).",
+          "validez": "La validez de esta métrica reside en su capacidad estandarizada para evaluar el desempeño general de clasificación, asegurada rigurosamente mediante validación cruzada.",
+          "tecnica": "Validación Cruzada (K-Fold Cross-Validation)",
+          "instrumento": "Matriz de Confusión",
+          "escala": "Cuantitativa continua (%)"
+        },
+        {
+          "codigo": "1.3.2",
+          "nombre": "ROC-AUC y F1-Score",
+          "definicion": "Métricas estadísticas que evalúan la precisión armónica (F1) y la capacidad discriminatoria frente a datos desbalanceados (AUC).",
+          "sustento": "Evaluation Methods for Machine Learning (Flach, Cambridge University Press).",
+          "validez": "Constituyen constructos estadísticos válidos y robustos porque penalizan matemáticamente los falsos positivos y falsos negativos en datasets desbalanceados.",
+          "tecnica": "Validación Cruzada en Datasets Desbalanceados",
+          "instrumento": "Reporte de Métricas y Curva ROC-AUC",
+          "escala": "Cuantitativa continua (0 a 1 / %)"
+        }
+      ]
+    },
+    {
+      "dimension": "1.4. Interpretabilidad de Modelos (XAI)",
+      "indicadores": [
+        {
+          "codigo": "1.4.1",
+          "nombre": "Ranking de Importancia (Global SHAP)",
+          "definicion": "Valor absoluto medio (Mean SHAP Value) que mide numéricamente cuánto contribuye cada variable al desempeño global del modelo.",
+          "sustento": "A Unified Approach to Interpreting Model Predictions (Lundberg & Lee, NeurIPS).",
+          "validez": "Su validez teórica se fundamenta en la Teoría de Juegos Cooperativos (Valores de Shapley), ofreciendo una explicación matemática unificada y exacta.",
+          "tecnica": "Explicabilidad Algorítmica con Valores de Shapley",
+          "instrumento": "Gráfico Summary Plot SHAP",
+          "escala": "Cuantitativa continua (Valor absoluto SHAP)"
+        },
+        {
+          "codigo": "1.4.2",
+          "nombre": "Trazabilidad Causal por Proyecto (Local SHAP)",
+          "definicion": "Cálculo numérico exacto que demuestra qué variable detonó la alerta de riesgo en un proyecto específico de obra pública.",
+          "sustento": "Interpretable Machine Learning (Christoph Molnar, 2024).",
+          "validez": "Se valida al proporcionar una descomposición matemática exacta de la predicción individual, asegurando que cada alerta sea auditable y libre del sesgo de caja negra.",
+          "tecnica": "Atribución Causal Local",
+          "instrumento": "Gráfico Force Plot SHAP",
+          "escala": "Cuantitativa continua (Valor de atribución SHAP)"
+        }
+      ]
+    },
+    {
+      "dimension": "1.5. Robustez y Escalabilidad Computacional",
+      "indicadores": [
+        {
+          "codigo": "1.5.1",
+          "nombre": "Tiempo de Inferencia (Latencia)",
+          "definicion": "Tiempo exacto en milisegundos (ms) que demora el algoritmo desde que recibe los datos de la obra hasta emitir la predicción de riesgo.",
+          "sustento": "MLOps and Production Systems Design (Pramod Singh, 2024).",
+          "validez": "La medición empírica en milisegundos es un constructo de ingeniería de software universal para validar la escalabilidad y eficiencia en producción.",
+          "tecnica": "Benchmarking de Servidor y Carga",
+          "instrumento": "Log de Latencia de Servidor",
+          "escala": "Cuantitativa continua (ms)"
+        },
+        {
+          "codigo": "1.5.2",
+          "nombre": "Sensibilidad al Ruido (Data Drift)",
+          "definicion": "Variación porcentual en la métrica F1-Score cuando se introduce intencionalmente ruido estadístico en los datos de entrada.",
+          "sustento": "Robust Machine Learning and Data Drift Monitoring (Hynes et al., 2023).",
+          "validez": "Se valida mediante pruebas de estrés que demuestran la resiliencia del algoritmo ante la degradación de datos en sistemas del Estado.",
+          "tecnica": "Pruebas de Estrés Computacional (Noise Injection)",
+          "instrumento": "Reporte de Robustez Algorítmica",
+          "escala": "Cuantitativa continua (%)"
+        }
+      ]
+    }
+  ],
+  "VD": [
+    {
+      "dimension": "2.1. Identificación Proactiva de Riesgos",
+      "indicadores": [
+        {
+          "codigo": "2.1.1",
+          "nombre": "Detección Temprana (Anticipación Simulada)",
+          "definicion": "Cantidad de días calendario de diferencia entre la alerta del modelo predictivo y la fecha real en que la obra se paralizó.",
+          "sustento": "PMBOK 8va Ed. (PMI, 2025), Risk Management in Portfolios (PMI, 2024).",
+          "validez": "Su validez radica en la simulación histórica contrafactual (Backtesting), demostrando la ventaja cronológica que el Estado habría obtenido.",
+          "tecnica": "Backtesting Histórico",
+          "instrumento": "Registro de Línea de Tiempo de Alertas",
+          "escala": "Cuantitativa discreta (Días)"
+        },
+        {
+          "codigo": "2.1.2",
+          "nombre": "Focalización Algorítmica de Críticos",
+          "definicion": "Tasa porcentual de disminución de alertas erróneas (Falsos Positivos) lograda por el modelo predictivo.",
+          "sustento": "Predictive Analytics for Public Project Control (Stevens, 2024).",
+          "validez": "Se fundamenta en la métrica de Precisión (Precision), garantizando que los recursos de auditoría se dirijan exclusivamente a verdaderos positivos.",
+          "tecnica": "Benchmarking Simulado",
+          "instrumento": "Matriz de Confusión Comparativa",
+          "escala": "Cuantitativa continua (%)"
+        }
+      ]
+    },
+    {
+      "dimension": "2.2. Eficiencia Analítica y Operativa",
+      "indicadores": [
+        {
+          "codigo": "2.2.1",
+          "nombre": "Optimización de Tiempos de Análisis",
+          "definicion": "Reducción neta (en horas) entre el tiempo promedio de una auditoría manual y el tiempo de procesamiento automatizado por la IA.",
+          "sustento": "Cost and Value Management in Projects (Venkataraman & Pinto, 2023).",
+          "validez": "Se sustenta en la diferencia cuantificable entre las Horas-Hombre tradicionales frente a la latencia computacional del servidor.",
+          "tecnica": "Time Tracking Analítico",
+          "instrumento": "Cuadro Comparativo de Latencia Operativa",
+          "escala": "Cuantitativa continua (Horas)"
+        },
+        {
+          "codigo": "2.2.2",
+          "nombre": "Cobertura de Supervisión Automatizada",
+          "definicion": "Proporción porcentual del total de obras públicas registradas en INFOBRAS que el modelo analiza de forma continua.",
+          "sustento": "Digital Transformation in Public Sector Auditing (INTOSAI Guidelines).",
+          "validez": "Se demuestra al contabilizar el volumen total de expedientes procesados por la IA en comparación con los límites del control manual.",
+          "tecnica": "Monitoreo de Procesamiento Masivo",
+          "instrumento": "Log de Cobertura de Infraestructura",
+          "escala": "Cuantitativa continua (%)"
+        }
+      ]
+    },
+    {
+      "dimension": "2.3. Impacto Financiero y Operativo",
+      "indicadores": [
+        {
+          "codigo": "2.3.1",
+          "nombre": "Sobrecostos Evitados (Cost Avoidance Simulado)",
+          "definicion": "Monto en Soles (S/) que el Estado habría protegido si hubiera actuado sobre las obras alertadas por la IA a tiempo.",
+          "sustento": "Valuation and Risk Models (FRM Part 1, Fabozzi et al., 2025).",
+          "validez": "El constructo es válido al utilizar los presupuestos y adendas históricas oficiales de obras paralizadas para proyectar el ahorro.",
+          "tecnica": "Simulación Financiera",
+          "instrumento": "Dashboard de Retorno de Inversión (ROI)",
+          "escala": "Cuantitativa continua (Soles S/)"
+        },
+        {
+          "codigo": "2.3.2",
+          "nombre": "Prevención de Retrasos Contractuales",
+          "definicion": "Total de días calendario de sobretiempo de obra que matemáticamente se habrían evitado gestionando a tiempo el riesgo.",
+          "sustento": "Project Schedule Risk Analysis (PMI Practice Standard).",
+          "validez": "Se valida al contrastar las fechas de término contractuales originales contra las fechas reales de retraso reportadas en INFOBRAS.",
+          "tecnica": "Simulación de Cronogramas",
+          "instrumento": "Reporte de Tiempos Evitados",
+          "escala": "Cuantitativa discreta (Días)"
+        }
+      ]
+    },
+    {
+      "dimension": "2.4. Toma de Decisiones y Mitigación",
+      "indicadores": [
+        {
+          "codigo": "2.4.1",
+          "nombre": "Viabilidad de Planes de Acción Automáticos",
+          "definicion": "Tasa porcentual de alertas de riesgo que activan la recomendación de un plan de contingencia pre-programado.",
+          "sustento": "Foundations of Risk Management (Fabozzi, 2025).",
+          "validez": "Se asienta en la correlación lógica entre los factores de riesgo identificados y los protocolos de mitigación normados.",
+          "tecnica": "Análisis de Flujos de Decisión",
+          "instrumento": "Log de Ejecución de Tareas Automáticas",
+          "escala": "Cuantitativa continua (%)"
+        },
+        {
+          "codigo": "2.4.2",
+          "nombre": "Tasa de Sustento Documental (XAI)",
+          "definicion": "Porcentaje de predicciones de riesgo que generan y anexan exitosamente su respectivo reporte matemático explicativo (SHAP).",
+          "sustento": "Machine Learning for Tabular Data: XGBoost and Deep Learning (Ryan, 2025).",
+          "validez": "Se valida midiendo la disponibilidad ininterrumpida de reportes matemáticos trazables (Local SHAP) cumpliendo con auditoría algorítmica.",
+          "tecnica": "Validación de Explicabilidad (XAI)",
+          "instrumento": "Registro de Reportes SHAP Auditables",
+          "escala": "Cuantitativa continua (%)"
+        }
+      ]
+    },
+    {
+      "dimension": "2.5. Modernización del Control Gubernamental",
+      "indicadores": [
+        {
+          "codigo": "2.5.1",
+          "nombre": "Agilidad Institucional (Latencia Operativa)",
+          "definicion": "Tiempo total en milisegundos que demora el pipeline desde la ingesta de datos hasta la visualización del riesgo.",
+          "sustento": "Big Data Systems and Agile Governance (Valverde, 2023).",
+          "validez": "Reside en la medición estricta del tiempo de ciclo computacional, demostrando la transformación hacia un control concurrente.",
+          "tecnica": "Pruebas de Estrés (Load Testing)",
+          "instrumento": "Monitor de Respuesta del Pipeline",
+          "escala": "Cuantitativa continua (ms)"
+        },
+        {
+          "codigo": "2.5.2",
+          "nombre": "Trazabilidad Fiscal Inmutable",
+          "definicion": "Proporción de transacciones que se registran y bloquean exitosamente en la base de datos, impidiendo su alteración.",
+          "sustento": "Machine Learning System Design (Babushkin & Kravchenko, 2025).",
+          "validez": "Se fundamenta en los principios de integridad de bases de datos relacionales (ACID), garantizando evidencia inmutable.",
+          "tecnica": "Auditoría de Seguridad de Base de Datos",
+          "instrumento": "Log de Integridad Relacional",
+          "escala": "Cuantitativa continua (%)"
+        }
+      ]
+    }
+  ]
+}

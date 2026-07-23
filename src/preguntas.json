@@ -1,0 +1,806 @@
+{
+  "VI": [
+    {
+      "id": "VI_1",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.1. Integración de Repositorios Gubernamentales",
+      "descripcion": "Evalúa si la cantidad y el origen de los datos del Estado peruano son suficientes e idóneos para entrenar a la Inteligencia Artificial",
+      "texto": "1. ¿Considera que la decisión metodológica de interconectar las bases de datos de ejecución presupuestal (MEF), procesos de contratación (SEACE), gestión de riesgos por desastres (INDECI) y avance físico (INFOBRAS), asegura que el sistema predictivo se alimente de un entorno de información oficial, multidimensional y verificable?"
+    },
+    {
+      "id": "VI_2",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.1. Integración de Repositorios Gubernamentales",
+      "descripcion": "Evalúa si la cantidad y el origen de los datos del Estado peruano son suficientes e idóneos para entrenar a la Inteligencia Artificial",
+      "texto": "2. Dado que el éxito predictivo depende directamente de sus datos de entrada, ¿Considera que la información alojada en los repositorios gubernamentales (MEF, SEACE, INDECI e INFOBRAS) posee la suficiencia, completitud y veracidad necesarias para garantizar un entrenamiento algorítmico robusto y libre de sesgos?"
+    },
+    {
+      "id": "VI_3",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.1. Integración de Repositorios Gubernamentales",
+      "descripcion": "Evalúa si la cantidad y el origen de los datos del Estado peruano son suficientes e idóneos para entrenar a la Inteligencia Artificial",
+      "texto": "3. ¿Considera que la integración centralizada de repositorios financieros y técnicos (MEF, SEACE, INFOBRAS e INDECI) en un único 'Data Warehouse' resulta indispensable para romper los silos de información del Estado y mitigar drásticamente el sesgo analítico al diagnosticar el estado real de la obra?"
+    },
+    {
+      "id": "VI_4",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.1. Integración de Repositorios Gubernamentales",
+      "descripcion": "Evalúa si la cantidad y el origen de los datos del Estado peruano son suficientes e idóneos para entrenar a la Inteligencia Artificial",
+      "texto": "4. ¿Considera que fundamentar el entrenamiento algorítmico exclusivamente en plataformas gubernamentales oficiales (MEF, SEACE, INDECI e INFOBRAS) dota a las predicciones de la Inteligencia Artificial del sustento legal y la validez probatoria indispensables para respaldar las acciones de los órganos de control?"
+    },
+    {
+      "id": "VI_5",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.1. Integración de Repositorios Gubernamentales",
+      "descripcion": "Evalúa si la cantidad y el origen de los datos del Estado peruano son suficientes e idóneos para entrenar a la Inteligencia Artificial",
+      "texto": "5. ¿Considera que la interoperabilidad y extracción sistemática de datos desde los repositorios oficiales garantiza un flujo continuo de información, asegurando que el modelo predictivo mantenga su vigencia operativa (y evite la obsolescencia) frente al dinamismo y los constantes cambios normativos de las contrataciones públicas?"
+    },
+    {
+      "id": "VI_6",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.2  Variables (Features) finales",
+      "descripcion": "Evalúa si los factores elegidos como presupuesto y plazos, logran representar los riesgos reales de las obras",
+      "texto": "1. ¿Considera que el conjunto de 'features' seleccionadas (como variaciones presupuestales, plazos y ubicación) logra traducir a parámetros matemáticos medibles la complejidad estructural y operativa de las obras del Estado?"
+    },
+    {
+      "id": "VI_7",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.2  Variables (Features) finales",
+      "descripcion": "Evalúa si los factores elegidos como presupuesto y plazos, logran representar los riesgos reales de las obras",
+      "texto": "2. ¿Considera metodológicamente riguroso aplicar técnicas de selección de variables (Feature Selection) para descartar atributos irrelevantes, reduciendo la dimensionalidad de los datos y mitigando el ruido estadístico (información distorsionada o sin valor predictivo) que podría confundir a la Inteligencia Artificial?"
+    },
+    {
+      "id": "VI_8",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.2  Variables (Features) finales",
+      "descripcion": "Evalúa si los factores elegidos como presupuesto y plazos, logran representar los riesgos reales de las obras",
+      "texto": "3. ¿Considera que hacer converger los indicadores de ejecución financiera (MEF) con el avance físico de la obra (INFOBRAS) provee la visión multidimensional indispensable para un perfilamiento de riesgo certero?"
+    },
+    {
+      "id": "VI_9",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.2  Variables (Features) finales",
+      "descripcion": "Evalúa si los factores elegidos como presupuesto y plazos, logran representar los riesgos reales de las obras",
+      "texto": "4. ¿Considera que las variables predictoras elegidas (tales como las desviaciones de presupuesto y plazo, la ubicación geográfica y el tipo de contratista) logran capturar integralmente los detonantes sistémicos y las causas subyacentes que históricamente han conducido a la paralización de obras en el Perú?"
+    },
+    {
+      "id": "VI_10",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.1. Ingeniería de Datos",
+      "indicador": "1.1.2  Variables (Features) finales",
+      "descripcion": "Evalúa si los factores elegidos como presupuesto y plazos, logran representar los riesgos reales de las obras",
+      "texto": "5. ¿Considera que la correcta extracción de factores clave (como el avance financiero, las adendas de plazo y el tipo de contratista) permite la parametrización de los expedientes técnicos, traduciendo toda su casuística legal hacia un entorno puramente procesable por algoritmos de Machine Learning?"
+    },
+    {
+      "id": "VI_11",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.1. Algoritmo implementado",
+      "descripcion": "Descripción para el revisor: Evalúa si la técnica matemática elegida es la más idónea para resolver este problema predictivo",
+      "texto": "1. ¿Considera que la selección de algoritmos basados en la optimización del gradiente (específicamente XGBoost y LightGBM) constituye el enfoque de aprendizaje supervisado más idóneo para predecir probabilísticamente la paralización de una obra pública?"
+    },
+    {
+      "id": "VI_12",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.1. Algoritmo implementado",
+      "descripcion": "Descripción para el revisor: Evalúa si la técnica matemática elegida es la más idónea para resolver este problema predictivo",
+      "texto": "2. Dado que las obras públicas combinan datos financieros, contractuales y geográficos, ¿Considera que utilizar modelos de 'Gradient Boosting' es el enfoque indicado para procesar la compleja naturaleza tabular de la información gubernamental?"
+    },
+    {
+      "id": "VI_13",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.1. Algoritmo implementado",
+      "descripcion": "Descripción para el revisor: Evalúa si la técnica matemática elegida es la más idónea para resolver este problema predictivo",
+      "texto": "3. ¿Considera que la implementación de algoritmos ensamblados (es decir, sistemas que combinan matemáticamente varios árboles de decisión para lograr un diagnóstico más exacto) ofrece una ventaja analítica abismal frente a la alta subjetividad de las matrices de riesgo tradicionales?"
+    },
+    {
+      "id": "VI_14",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.1. Algoritmo implementado",
+      "descripcion": "Descripción para el revisor: Evalúa si la técnica matemática elegida es la más idónea para resolver este problema predictivo",
+      "texto": "4. ¿Considera que utilizar metodologías de exploración sistemática (como la técnica de Grid Search) para hallar la configuración algorítmica perfecta demuestra un alto rigor en el diseño experimental de la investigación?"
+    },
+    {
+      "id": "VI_15",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.1. Algoritmo implementado",
+      "descripcion": "Descripción para el revisor: Evalúa si la técnica matemática elegida es la más idónea para resolver este problema predictivo",
+      "texto": "5. ¿Considera que la correcta sintonización de los hiperparámetros resulta ser la medida metodológica definitiva para resolver el dilema del 'Trade-off entre Sesgo y Varianza', garantizando que el modelo no peque de excesiva simpleza (Underfitting) ni de memorización extrema (Overfitting)?"
+    },
+    {
+      "id": "VI_16",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.2.   Hiperparámetros estructurales",
+      "descripcion": "Evalúa si el ajuste de los parámetros internos del modelo evita que la IA solo \"memorice\" datos antiguos",
+      "texto": "1. ¿Considera que el conjunto definitivo de variables predictoras seleccionadas (tales como variaciones presupuestales, plazos y ubicación geográfica) logra representar paramétricamente la complejidad operativa de las obras del Estado?"
+    },
+    {
+      "id": "VI_17",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.2.   Hiperparámetros estructurales",
+      "descripcion": "Evalúa si el ajuste de los parámetros internos del modelo evita que la IA solo \"memorice\" datos antiguos",
+      "texto": "2. ¿Considera metodológicamente imperativo aplicar técnicas de Ingeniería de Variables (Feature Engineering) para descartar información irrelevante y mitigar el ruido estadístico que degrada el modelo predictivo?"
+    },
+    {
+      "id": "VI_18",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.2.   Hiperparámetros estructurales",
+      "descripcion": "Evalúa si el ajuste de los parámetros internos del modelo evita que la IA solo \"memorice\" datos antiguos",
+      "texto": "3. ¿Considera que la integración simultánea de variables de ejecución financiera y avance físico dota al modelo algorítmico de una visión multidimensional indispensable para el análisis predictivo?"
+    },
+    {
+      "id": "VI_19",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.2.   Hiperparámetros estructurales",
+      "descripcion": "Evalúa si el ajuste de los parámetros internos del modelo evita que la IA solo \"memorice\" datos antiguos",
+      "texto": "4. ¿Considera que las variables predictoras seleccionadas (features) logran capturar los detonantes sistémicos y las causas subyacentes que históricamente conducen a la paralización de la obra pública?"
+    },
+    {
+      "id": "VI_20",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.2. Configuración Algorítmica",
+      "indicador": "1.2.2.   Hiperparámetros estructurales",
+      "descripcion": "Evalúa si el ajuste de los parámetros internos del modelo evita que la IA solo \"memorice\" datos antiguos",
+      "texto": "5 ¿Considera que factores predictivos tempranos, como el recuento de dependencias, los días de retraso en el inicio y los scores de restricción logística, otorgan un margen de tiempo necesario para ejercer un Project Management preventivo y evitar la paralización de la obra?"
+    },
+    {
+      "id": "VI_21",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.1. Exactitud Global (Accuracy)",
+      "descripcion": "Evalúa la utilidad de medir el porcentaje total de aciertos básicos del modelo como un indicador de inicio",
+      "texto": "1. ¿Considera metodológicamente útil medir la Exactitud Global (Accuracy) como un primer indicador general para evaluar el porcentaje total de aciertos que alcanza el algoritmo al discriminar entre obras exitosas y proyectos paralizados?"
+    },
+    {
+      "id": "VI_22",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.1. Exactitud Global (Accuracy)",
+      "descripcion": "Evalúa la utilidad de medir el porcentaje total de aciertos básicos del modelo como un indicador de inicio",
+      "texto": "2. ¿Considera científicamente válido utilizar el Accuracy como una 'línea base' (baseline) de rendimiento, proporcionando una interpretación rápida para los tomadores de decisiones antes de someter el modelo a métricas estadísticas más rigurosas?"
+    },
+    {
+      "id": "VI_23",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.1. Exactitud Global (Accuracy)",
+      "descripcion": "Evalúa la utilidad de medir el porcentaje total de aciertos básicos del modelo como un indicador de inicio",
+      "texto": "3. ¿Considera metodológicamente correcto reportar la Exactitud (Accuracy) del modelo, siempre y cuando se acompañe de otras métricas estadísticas para evitar conclusiones sesgadas?"
+    },
+    {
+      "id": "VI_24",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.1. Exactitud Global (Accuracy)",
+      "descripcion": "Evalúa la utilidad de medir el porcentaje total de aciertos básicos del modelo como un indicador de inicio",
+      "texto": "4. Considera que calcular el Accuracy estrictamente sobre el conjunto de datos de prueba (Test Set) aporta una validación objetiva de su capacidad predictiva, demostrando que la Inteligencia Artificial logró aprender los patrones de riesgo en lugar de simplemente memorizar la información histórica?"
+    },
+    {
+      "id": "VI_25",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.1. Exactitud Global (Accuracy)",
+      "descripcion": "Evalúa la utilidad de medir el porcentaje total de aciertos básicos del modelo como un indicador de inicio",
+      "texto": "5. ¿Considera apropiado incluir la Exactitud Global (Accuracy) en el reporte, siempre y cuando se precise metodológicamente que, en escenarios desbalanceados (muchas obras exitosas y pocos fracasos), esta métrica puede sobreestimar el verdadero rendimiento predictivo si el modelo simplemente opta por clasificar a favor de la clase mayoritaria?"
+    },
+    {
+      "id": "VI_26",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.2. ROC-AUC y F1-Score",
+      "descripcion": "Evalúa el uso de métricas estrictas para medir la precisión en escenarios reales donde existen muchas más obras normales que paralizadas",
+      "texto": "1. Dado el fuerte desbalance de clases (abundancia de obras concluidas frente a escasas obras paralizadas), ¿Considera que exigir métricas estrictas como el F1-Score y el ROC-AUC garantiza una evaluación objetiva sobre el verdadero rendimiento predictivo del modelo?"
+    },
+    {
+      "id": "VI_27",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.2. ROC-AUC y F1-Score",
+      "descripcion": "Evalúa el uso de métricas estrictas para medir la precisión en escenarios reales donde existen muchas más obras normales que paralizadas",
+      "texto": "2.¿Considera adecuado evaluar el modelo con el F1-Score, ya que esta métrica penaliza por igual dos errores graves: generar falsas alarmas (falsos positivos) y dejar pasar riesgos reales (falsos negativos)?"
+    },
+    {
+      "id": "VI_28",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.2. ROC-AUC y F1-Score",
+      "descripcion": "Evalúa el uso de métricas estrictas para medir la precisión en escenarios reales donde existen muchas más obras normales que paralizadas",
+      "texto": "3. Dado que la curva ROC-AUC evalúa la capacidad de clasificación, ¿Considera que obtener un puntaje alto en esta métrica garantiza que la Inteligencia Artificial realmente aprendió a distinguir entre una obra riesgosa y una exitosa?"
+    },
+    {
+      "id": "VI_29",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.2. ROC-AUC y F1-Score",
+      "descripcion": "Evalúa el uso de métricas estrictas para medir la precisión en escenarios reales donde existen muchas más obras normales que paralizadas",
+      "texto": "4. ¿Considera que fundamentar el desempeño del algoritmo en métricas de evaluación robustas (F1-Score y ROC-AUC) dota a la investigación del rigor científico necesario para respaldar su viabilidad ante las entidades de control gubernamental?"
+    },
+    {
+      "id": "VI_30",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.3. Rendimiento Predictivo",
+      "indicador": "1.3.2. ROC-AUC y F1-Score",
+      "descripcion": "Evalúa el uso de métricas estrictas para medir la precisión en escenarios reales donde existen muchas más obras normales que paralizadas",
+      "texto": "5. ¿Considera metodológicamente imperativo priorizar el F1-Score y el ROC-AUC por encima de la Exactitud Global, considerando que el objetivo central del sistema es identificar proactivamente el reducido pero crítico porcentaje de proyectos que terminan en paralización?"
+    },
+    {
+      "id": "VI_31",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "4.1.1.  Ranking de Importancia (SHAP)",
+      "descripcion": "Evalúa si es necesario que la IA explique a nivel general qué factores tienen más peso al generar alertas de riesgo",
+      "texto": "1. ¿Considera útil que el sistema genere un ranking (usando la técnica matemática SHAP) para explicar claramente qué variables como las variaciones presupuestales, las ampliaciones de plazo o el avance físico tienen mayor impacto en el riesgo de paralización?"
+    },
+    {
+      "id": "VI_32",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "4.1.1.  Ranking de Importancia (SHAP)",
+      "descripcion": "Evalúa si es necesario que la IA explique a nivel general qué factores tienen más peso al generar alertas de riesgo",
+      "texto": "2. A partir de la jerarquización de estas variables, ¿Considera que el modelo predictivo propuesto ayuda a mitigar la opacidad algorítmica, dándole al Estado la transparencia y trazabilidad que necesita para confiar en la Inteligencia Artificial?"
+    },
+    {
+      "id": "VI_33",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "4.1.1.  Ranking de Importancia (SHAP)",
+      "descripcion": "Evalúa si es necesario que la IA explique a nivel general qué factores tienen más peso al generar alertas de riesgo",
+      "texto": "3. Además de mitigar la opacidad algorítmica, ¿Considera que explicar matemáticamente el peso de los factores de riesgo detectados permite a los expertos validar si el sistema de Inteligencia Artificial realmente está razonando con los mismos criterios técnicos y operativos del sector construcción?"
+    },
+    {
+      "id": "VI_34",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "4.1.1.  Ranking de Importancia (SHAP)",
+      "descripcion": "Evalúa si es necesario que la IA explique a nivel general qué factores tienen más peso al generar alertas de riesgo",
+      "texto": "4. Una vez validada la lógica operativa del modelo predictivo propuesto, ¿Considera que la identificación explícita de los factores críticos de riesgo facilita que las instituciones públicas diseñen mejores políticas para prevenir la paralización de obras?"
+    },
+    {
+      "id": "VI_35",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "4.1.1.  Ranking de Importancia (SHAP)",
+      "descripcion": "Evalúa si es necesario que la IA explique a nivel general qué factores tienen más peso al generar alertas de riesgo",
+      "texto": "5. Finalmente, como respaldo a estas políticas de prevención, ¿Considera que el enfoque de Inteligencia Artificial Explicable (XAI) transforma los complejos cálculos predictivos en reportes justificados que pueden utilizarse como sustento técnico en una auditoría gubernamental?"
+    },
+    {
+      "id": "VI_36",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "1.4.2. Trazabilidad Causal a Nivel de Proyecto (Local SHAP)",
+      "descripcion": "Evalúa la necesidad de que la Inteligencia Artificial justifique detalladamente el motivo de riesgo de manera individual para cada obra",
+      "texto": "1. Para dotar al gestor público de fundamentos técnicos precisos, ¿Considera indispensable que el modelo predictivo justifique sus predicciones entregando un desglose detallado de por qué alertó a una obra en particular?"
+    },
+    {
+      "id": "VI_37",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "1.4.2. Trazabilidad Causal a Nivel de Proyecto (Local SHAP)",
+      "descripcion": "Evalúa la necesidad de que la Inteligencia Artificial justifique detalladamente el motivo de riesgo de manera individual para cada obra",
+      "texto": "2. Con base en esta justificación individual (SHAP Local), ¿Considera que visualizar gráficamente el peso de las variables permite a los ingenieros corroborar de inmediato si la predicción algorítmica es coherente con la situación técnica del expediente?"
+    },
+    {
+      "id": "VI_38",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "1.4.2. Trazabilidad Causal a Nivel de Proyecto (Local SHAP)",
+      "descripcion": "Evalúa la necesidad de que la Inteligencia Artificial justifique detalladamente el motivo de riesgo de manera individual para cada obra",
+      "texto": "3. Una vez que los especialistas corroboran que la predicción del modelo coincide con la realidad de la obra, ¿Considera que transparentar los motivos matemáticos de cada alerta a nivel individual mitiga drásticamente la desconfianza institucional y la resistencia al cambio tecnológico en el sector público?"
+    },
+    {
+      "id": "VI_39",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "1.4.2. Trazabilidad Causal a Nivel de Proyecto (Local SHAP)",
+      "descripcion": "Evalúa la necesidad de que la Inteligencia Artificial justifique detalladamente el motivo de riesgo de manera individual para cada obra",
+      "texto": "4. uperada la natural resistencia institucional al cambio tecnológico, ¿Considera que conocer las causas matemáticas exactas detectadas en un proyecto específico resulta vital para que la unidad ejecutora diseñe un plan de mitigación correctivo altamente focalizado?"
+    },
+    {
+      "id": "VI_40",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.4. Interpretabilidad (XAI)",
+      "indicador": "1.4.2. Trazabilidad Causal a Nivel de Proyecto (Local SHAP)",
+      "descripcion": "Evalúa la necesidad de que la Inteligencia Artificial justifique detalladamente el motivo de riesgo de manera individual para cada obra",
+      "texto": "5. Finalmente, más allá de solucionar los problemas de la obra, ¿Considera que la explicabilidad algorítmica individualizada provee a los expedientes del sustento documental técnico indispensable para enfrentar con éxito las acciones de control concurrente de la Contraloría General de la República?"
+    },
+    {
+      "id": "VI_41",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.1. Tiempo de inferencia (Latencia)",
+      "descripcion": "Evalúa si medir los milisegundos que tarda la IA en responder garantiza que la plataforma no colapse ante el uso de múltiples inspectores",
+      "texto": "1. ¿Considera que medir estrictamente el tiempo de respuesta en milisegundos (latencia) del servidor backend es una prueba técnica esencial para validar la solidez de la infraestructura computacional del sistema propuesto?"
+    },
+    {
+      "id": "VI_42",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.1. Tiempo de inferencia (Latencia)",
+      "descripcion": "Evalúa si medir los milisegundos que tarda la IA en responder garantiza que la plataforma no colapse ante el uso de múltiples inspectores",
+      "texto": "2. Con base en los resultados de velocidad del servidor backend, ¿Considera que mantener una latencia extremadamente baja resulta indispensable para brindar una experiencia de consulta ágil y fluida a los gestores públicos que interactúan con el Dashboard?"
+    },
+    {
+      "id": "VI_43",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.1. Tiempo de inferencia (Latencia)",
+      "descripcion": "Evalúa si medir los milisegundos que tarda la IA en responder garantiza que la plataforma no colapse ante el uso de múltiples inspectores",
+      "texto": "3. Habiendo validado la latencia mínima en peticiones unitarias, ¿Considera que la medición técnica de los tiempos de procesamiento certifica la escalabilidad de la arquitectura computacional para soportar una concurrencia masiva a nivel nacional?"
+    },
+    {
+      "id": "VI_44",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.1. Tiempo de inferencia (Latencia)",
+      "descripcion": "Evalúa si medir los milisegundos que tarda la IA en responder garantiza que la plataforma no colapse ante el uso de múltiples inspectores",
+      "texto": "4. Al alcanzar esta escalabilidad nacional, ¿Considera que la entrega de predicciones de riesgo casi en tiempo real faculta a las entidades gubernamentales con una agilidad analítica inalcanzable mediante los procesos de revisión manuales convencionales?"
+    },
+    {
+      "id": "VI_45",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.1. Tiempo de inferencia (Latencia)",
+      "descripcion": "Evalúa si medir los milisegundos que tarda la IA en responder garantiza que la plataforma no colapse ante el uso de múltiples inspectores",
+      "texto": "5. Como corolario de estos óptimos resultados de latencia y escalabilidad, ¿Considera que la velocidad de inferencia demostrada ratifica la viabilidad operativa del sistema predictivo propuesto para ser implementado de manera definitiva como política de modernización en la gestión pública?"
+    },
+    {
+      "id": "VI_46",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.2. Sensibilidad al Ruido (Data Drift)",
+      "descripcion": "Evalúa la solidez del sistema simulando la inyección de datos con errores, reflejando así los problemas de digitación típicos del Estado",
+      "texto": "1. Para garantizar el máximo rigor tecnológico, ¿Considera válido diseñar pruebas de estrés (inyectando intencionalmente ruido estadístico y valores nulos) para medir la sensibilidad del sistema predictivo propuesto?"
+    },
+    {
+      "id": "VI_47",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.2. Sensibilidad al Ruido (Data Drift)",
+      "descripcion": "Evalúa la solidez del sistema simulando la inyección de datos con errores, reflejando así los problemas de digitación típicos del Estado",
+      "texto": "2. Para evaluar la resiliencia del modelo ante datos corruptos, ¿Considera válido diseñar pruebas de estrés (inyectando intencionalmente ruido estadístico y valores nulos) para medir la sensibilidad del sistema predictivo propuesto?"
+    },
+    {
+      "id": "VI_48",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.2. Sensibilidad al Ruido (Data Drift)",
+      "descripcion": "Evalúa la solidez del sistema simulando la inyección de datos con errores, reflejando así los problemas de digitación típicos del Estado",
+      "texto": "3. Frente a este escenario deliberado de registros nulos en parámetros críticos (como los plazos y modificaciones presupuestales), ¿Considera que medir la caída en el rendimiento del F1-Score ante dicha inyección de ruido estadístico permite certificar si la arquitectura algorítmica es verdaderamente sólida?"
+    },
+    {
+      "id": "VI_49",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.2. Sensibilidad al Ruido (Data Drift)",
+      "descripcion": "Evalúa la solidez del sistema simulando la inyección de datos con errores, reflejando así los problemas de digitación típicos del Estado",
+      "texto": "4. Al mantener un alto rendimiento tras estas pruebas de estrés, ¿Considera que un modelo capaz de predecir correctamente el riesgo a pesar de recibir parámetros vacíos demuestra una estabilidad tecnológica indispensable para el sector público?"
+    },
+    {
+      "id": "VI_50",
+      "variable": "Variable Independiente: Sistema Predictivo con Deep Learning",
+      "dimension": "1.5. Robustez y Escalabilidad",
+      "indicador": "1.5.2. Sensibilidad al Ruido (Data Drift)",
+      "descripcion": "Evalúa la solidez del sistema simulando la inyección de datos con errores, reflejando así los problemas de digitación típicos del Estado",
+      "texto": "5. Finalmente, para garantizar que el modelo mantenga su alta precisión predictiva con el paso de los años, ¿Considera que planificar pruebas periódicas de Data Drift resulta estrictamente necesario para asegurar la confiabilidad a largo plazo de las predicciones en futuras auditorías?"
+    }
+  ],
+  "VD": [
+    {
+      "id": "VD_1",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.1. Detección Temprana de Vulnerabilidades.",
+      "descripcion": "Evalúa si el sistema predictivo proporciona la antelación temporal suficiente para detectar amenazas latentes antes de que ocurra la paralización física o financiera de la obra",
+      "texto": "1. ¿En qué medida considera que el modelo predictivo supera al enfoque de supervisión tradicional al lograr detectar amenazas estructurales antes de que se concrete la paralización física de la obra?"
+    },
+    {
+      "id": "VD_2",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.1. Detección Temprana de Vulnerabilidades.",
+      "descripcion": "Evalúa si el sistema predictivo proporciona la antelación temporal suficiente para detectar amenazas latentes antes de que ocurra la paralización física o financiera de la obra",
+      "texto": "2. ¿Considera que el tiempo de anticipación brindado por las alertas algorítmicas es suficiente para que la entidad gubernamental logre diseñar e implementar una estrategia correctiva viable?"
+    },
+    {
+      "id": "VD_3",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.1. Detección Temprana de Vulnerabilidades.",
+      "descripcion": "Evalúa si el sistema predictivo proporciona la antelación temporal suficiente para detectar amenazas latentes antes de que ocurra la paralización física o financiera de la obra",
+      "texto": "3. ¿Cómo evalúa la capacidad matemática del sistema para discriminar eficazmente los riesgos reales, evitando saturar operativamente a los supervisores con \"falsas alarmas\"?"
+    },
+    {
+      "id": "VD_4",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.1. Detección Temprana de Vulnerabilidades.",
+      "descripcion": "Evalúa si el sistema predictivo proporciona la antelación temporal suficiente para detectar amenazas latentes antes de que ocurra la paralización física o financiera de la obra",
+      "texto": "4. ¿En qué grado cree que esta reducción de falsas alarmas permite a las entidades focalizar sus recursos (presupuesto e inspectores físicos) exclusivamente en el núcleo de proyectos críticos?"
+    },
+    {
+      "id": "VD_5",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.1. Detección Temprana de Vulnerabilidades.",
+      "descripcion": "Evalúa si el sistema predictivo proporciona la antelación temporal suficiente para detectar amenazas latentes antes de que ocurra la paralización física o financiera de la obra",
+      "texto": "5. ¿Considera que la combinación sistemática de detección temprana y focalización de recursos logrará disminuir estadísticamente el índice nacional de obras públicas paralizadas?"
+    },
+    {
+      "id": "VD_6",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.2 Focalización de Proyectos Críticos.",
+      "descripcion": "Evalúa la capacidad del modelo matemático para filtrar el ruido operativo y reducir las falsas alarmas, permitiendo a la entidad concentrar sus recursos únicamente en las obras con riesgo real",
+      "texto": "1. ¿Considera que la arquitectura predictiva discrimina con precisión entre desviaciones críticas que llevarán a la paralización y aquellas variaciones tolerables propias de la holgura del proyecto, reduciendo así la emisión de falsas alarmas?"
+    },
+    {
+      "id": "VD_7",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.2 Focalización de Proyectos Críticos.",
+      "descripcion": "Evalúa la capacidad del modelo matemático para filtrar el ruido operativo y reducir las falsas alarmas, permitiendo a la entidad concentrar sus recursos únicamente en las obras con riesgo real",
+      "texto": "2. ¿En qué medida cree que esta priorización basada en datos evita la sobrecarga operativa de los inspectores, al dirigir sus esfuerzos de supervisión únicamente hacia las obras con riesgo Alto y Crítico?"
+    },
+    {
+      "id": "VD_8",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.2 Focalización de Proyectos Críticos.",
+      "descripcion": "Evalúa la capacidad del modelo matemático para filtrar el ruido operativo y reducir las falsas alarmas, permitiendo a la entidad concentrar sus recursos únicamente en las obras con riesgo real",
+      "texto": "3. ¿Cómo califica la utilidad del sistema predictivo para ayudar a los directivos a priorizar la asignación presupuestal y de inspectores físicos sobre un portafolio masivo de infraestructura nacional?"
+    },
+    {
+      "id": "VD_9",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.2 Focalización de Proyectos Críticos.",
+      "descripcion": "Evalúa la capacidad del modelo matemático para filtrar el ruido operativo y reducir las falsas alarmas, permitiendo a la entidad concentrar sus recursos únicamente en las obras con riesgo real",
+      "texto": "4. ¿Considera que el sistema logra depurar eficientemente el exceso de información rutinaria de las obras, permitiendo a la entidad concentrar su esfuerzo técnico únicamente donde existe un riesgo inminente de paralización?"
+    },
+    {
+      "id": "VD_10",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.1.  Identificación Proactiva de Riesgos",
+      "indicador": "1.1.2 Focalización de Proyectos Críticos.",
+      "descripcion": "Evalúa la capacidad del modelo matemático para filtrar el ruido operativo y reducir las falsas alarmas, permitiendo a la entidad concentrar sus recursos únicamente en las obras con riesgo real",
+      "texto": "5.  ¿Considera que el clasificador predictivo filtra eficientemente el \"ruido operativo\", permitiendo concentrar el esfuerzo técnico de la entidad donde existe un riesgo material inminente?"
+    },
+    {
+      "id": "VD_11",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.1. Optimización de Tiempos de Análisis.",
+      "descripcion": "Evalúa la capacidad del sistema predictivo para reducir las horas-hombre requeridas en auditorías manuales y acelerar el procesamiento de expedientes",
+      "texto": "1.  ¿Cómo califica la capacidad del sistema automatizado para reducir drásticamente las horas-hombre que un auditor requeriría para perfilar el riesgo de un proyecto de forma manual?"
+    },
+    {
+      "id": "VD_12",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.1. Optimización de Tiempos de Análisis.",
+      "descripcion": "Evalúa la capacidad del sistema predictivo para reducir las horas-hombre requeridas en auditorías manuales y acelerar el procesamiento de expedientes",
+      "texto": "2. ¿En qué medida la velocidad de procesamiento del Sistema Predictivo con Deep Learning elimina el cuello de botella burocrático asociado a la revisión manual de expedientes?"
+    },
+    {
+      "id": "VD_13",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.1. Optimización de Tiempos de Análisis.",
+      "descripcion": "Evalúa la capacidad del sistema predictivo para reducir las horas-hombre requeridas en auditorías manuales y acelerar el procesamiento de expedientes",
+      "texto": "3. ¿En qué grado el procesamiento continuo de datos mediante Deep Learning permite realizar un monitoreo ininterrumpido del proyecto, superando las limitaciones de las auditorías físicas trimestrales?"
+    },
+    {
+      "id": "VD_14",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.1. Optimización de Tiempos de Análisis.",
+      "descripcion": "Evalúa la capacidad del sistema predictivo para reducir las horas-hombre requeridas en auditorías manuales y acelerar el procesamiento de expedientes",
+      "texto": "4. ¿La arquitectura predictiva optimiza eficazmente el tiempo operativo al relevar a los inspectores de la recolección manual de datos, permitiéndoles priorizar la toma de decisiones estratégicas?"
+    },
+    {
+      "id": "VD_15",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.1. Optimización de Tiempos de Análisis.",
+      "descripcion": "Evalúa la capacidad del sistema predictivo para reducir las horas-hombre requeridas en auditorías manuales y acelerar el procesamiento de expedientes",
+      "texto": "5. ¿La inmediatez algorítmica en la detección del riesgo acorta significativamente los tiempos de reacción administrativa y legal de la entidad frente a posibles incumplimientos del contratista?"
+    },
+    {
+      "id": "VD_16",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.2.    Ampliación de la Cobertura de Supervisión.",
+      "descripcion": "Evalúa la capacidad del modelo para auditar simultáneamente todo el portafolio de obras a nivel nacional, superando el límite físico del recurso humano",
+      "texto": "1. ¿El procesamiento masivo mediante Deep Learning permite a la institución auditar simultáneamente un portafolio masivo de obras a nivel nacional, superando las limitaciones del control muestral manual?"
+    },
+    {
+      "id": "VD_17",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.2.    Ampliación de la Cobertura de Supervisión.",
+      "descripcion": "Evalúa la capacidad del modelo para auditar simultáneamente todo el portafolio de obras a nivel nacional, superando el límite físico del recurso humano",
+      "texto": "2.¿La evaluación computarizada de los registros de INFOBRAS elimina las barreras geográficas, garantizando una vigilancia estricta sobre proyectos ubicados en zonas remotas o de difícil acceso?"
+    },
+    {
+      "id": "VD_18",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.2.    Ampliación de la Cobertura de Supervisión.",
+      "descripcion": "Evalúa la capacidad del modelo para auditar simultáneamente todo el portafolio de obras a nivel nacional, superando el límite físico del recurso humano",
+      "texto": "3. ¿El uso de este modelo de Deep Learning logra expandir la capacidad de supervisión del Estado sin requerir un incremento proporcional en la contratación de personal o presupuesto?"
+    },
+    {
+      "id": "VD_19",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.2.    Ampliación de la Cobertura de Supervisión.",
+      "descripcion": "Evalúa la capacidad del modelo para auditar simultáneamente todo el portafolio de obras a nivel nacional, superando el límite físico del recurso humano",
+      "texto": "4. ¿El análisis automatizado garantiza que ningún proyecto de la cartera nacional quede excluido de la evaluación de riesgos por falta de inspectores humanos disponibles?"
+    },
+    {
+      "id": "VD_20",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.2. Eficiencia Analítica y Operativa",
+      "indicador": "1.2.2.    Ampliación de la Cobertura de Supervisión.",
+      "descripcion": "Evalúa la capacidad del modelo para auditar simultáneamente todo el portafolio de obras a nivel nacional, superando el límite físico del recurso humano",
+      "texto": "5. ¿La implementación del Sistema Predictivo con Deep Learning eleva estructuralmente la capacidad rectora del Estado para monitorear el 100% de la infraestructura pública nacional?"
+    },
+    {
+      "id": "VD_21",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.1. Sobrecostos Evitados (Cost Avoidance).",
+      "descripcion": "Evalúa si el uso del modelo tiene un impacto económico real al evitar que el Estado gaste dinero adicional en obras paralizadas o mal ejecutadas",
+      "texto": "1. ¿Las alertas tempranas del Sistema Predictivo con Deep Learning previenen eficazmente la necesidad de aprobar adendas financieras (sobrecostos) durante la ejecución física de la obra?"
+    },
+    {
+      "id": "VD_22",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.1. Sobrecostos Evitados (Cost Avoidance).",
+      "descripcion": "Evalúa si el uso del modelo tiene un impacto económico real al evitar que el Estado gaste dinero adicional en obras paralizadas o mal ejecutadas",
+      "texto": "2. ¿El uso continuo del Sistema Predictivo resguarda objetivamente los recursos públicos al anticipar los riesgos que encarecen drásticamente los proyectos?"
+    },
+    {
+      "id": "VD_23",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.1. Sobrecostos Evitados (Cost Avoidance).",
+      "descripcion": "Evalúa si el uso del modelo tiene un impacto económico real al evitar que el Estado gaste dinero adicional en obras paralizadas o mal ejecutadas",
+      "texto": "3. ¿La capacidad de anticipación del Sistema Predictivo evita que las desviaciones menores del cronograma se conviertan en sobrecostos financieros irreversibles?"
+    },
+    {
+      "id": "VD_24",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.1. Sobrecostos Evitados (Cost Avoidance).",
+      "descripcion": "Evalúa si el uso del modelo tiene un impacto económico real al evitar que el Estado gaste dinero adicional en obras paralizadas o mal ejecutadas",
+      "texto": "4. ¿El ahorro económico generado por la prevención de paralizaciones justifica de manera concluyente la implementación institucional del Sistema Predictivo con Deep Learning?"
+    },
+    {
+      "id": "VD_25",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.1. Sobrecostos Evitados (Cost Avoidance).",
+      "descripcion": "Evalúa si el uso del modelo tiene un impacto económico real al evitar que el Estado gaste dinero adicional en obras paralizadas o mal ejecutadas",
+      "texto": "5. ¿La adopción oficial del Sistema Predictivo en el aparato estatal promueve la sostenibilidad financiera a largo plazo de las carteras de inversión pública en infraestructura?"
+    },
+    {
+      "id": "VD_26",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.2. Prevención de Retrasos Contractuales.",
+      "descripcion": "Evalúa si el uso del modelo predictivo logra salvaguardar el cronograma de la obra, evitando multas, ampliaciones de plazo innecesarias y paralizaciones por tiempo",
+      "texto": "1. ¿El Sistema Predictivo con Deep Learning previene eficazmente la ruptura de la ruta crítica del proyecto al emitir alertas antes de que se consolide un retraso irreversible?"
+    },
+    {
+      "id": "VD_27",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.2. Prevención de Retrasos Contractuales.",
+      "descripcion": "Evalúa si el uso del modelo predictivo logra salvaguardar el cronograma de la obra, evitando multas, ampliaciones de plazo innecesarias y paralizaciones por tiempo",
+      "texto": "2. ¿La adopción del Sistema Predictivo con Deep Learning reduce sustancialmente la probabilidad de que la obra incurra en penalidades por mora derivadas de retrasos no gestionados?\""
+    },
+    {
+      "id": "VD_28",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.2. Prevención de Retrasos Contractuales.",
+      "descripcion": "Evalúa si el uso del modelo predictivo logra salvaguardar el cronograma de la obra, evitando multas, ampliaciones de plazo innecesarias y paralizaciones por tiempo",
+      "texto": "3. ¿La detección proactiva de riesgos generada por la Inteligencia Artificial salvaguarda la holgura del cronograma contractual durante toda la fase de ejecución física?"
+    },
+    {
+      "id": "VD_29",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.2. Prevención de Retrasos Contractuales.",
+      "descripcion": "Evalúa si el uso del modelo predictivo logra salvaguardar el cronograma de la obra, evitando multas, ampliaciones de plazo innecesarias y paralizaciones por tiempo",
+      "texto": "4. ¿El uso de este Sistema Predictivo minimiza el riesgo de que una acumulación de retrasos operativos termine derivando en el abandono del contratista o en un arbitraje legal?"
+    },
+    {
+      "id": "VD_30",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.3. Impacto Financiero y Operativo",
+      "indicador": "1.3.2. Prevención de Retrasos Contractuales.",
+      "descripcion": "Evalúa si el uso del modelo predictivo logra salvaguardar el cronograma de la obra, evitando multas, ampliaciones de plazo innecesarias y paralizaciones por tiempo",
+      "texto": "5. ¿La mitigación automatizada de los retrasos asegura que el Estado peruano entregue la infraestructura pública a la ciudadanía dentro de los plazos originalmente planificados?"
+    },
+    {
+      "id": "VD_31",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "4.1.1.  Tasa de Adopción de Planes de Contingencia.",
+      "descripcion": "Evalúa si los ingenieros, auditores y directivos confían lo suficiente en el sistema como para tomar decisiones reales y firmar planes de acción basados en las alertas de la IA",
+      "texto": "1. ¿Las alertas generadas por el Sistema Predictivo con Deep Learning proporcionan una ruta de acción lo suficientemente clara para que los directivos implementen planes de contingencia inmediatos?"
+    },
+    {
+      "id": "VD_32",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "4.1.1.  Tasa de Adopción de Planes de Contingencia.",
+      "descripcion": "Evalúa si los ingenieros, auditores y directivos confían lo suficiente en el sistema como para tomar decisiones reales y firmar planes de acción basados en las alertas de la IA",
+      "texto": "2. ¿El respaldo matemático del Sistema Predictivo con Deep Learning genera la confianza técnica necesaria para que las entidades estatales adopten formalmente sus recomendaciones de mitigación?"
+    },
+    {
+      "id": "VD_33",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "4.1.1.  Tasa de Adopción de Planes de Contingencia.",
+      "descripcion": "Evalúa si los ingenieros, auditores y directivos confían lo suficiente en el sistema como para tomar decisiones reales y firmar planes de acción basados en las alertas de la IA",
+      "texto": "3. ¿La evidencia provista por el Sistema Predictivo con Deep Learning logra destrabar la indecisión administrativa típica, facilitando la aprobación oportuna de intervenciones preventivas en la obra?"
+    },
+    {
+      "id": "VD_34",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "4.1.1.  Tasa de Adopción de Planes de Contingencia.",
+      "descripcion": "Evalúa si los ingenieros, auditores y directivos confían lo suficiente en el sistema como para tomar decisiones reales y firmar planes de acción basados en las alertas de la IA",
+      "texto": "4.  ¿El uso institucional del Sistema Predictivo con Deep Learning estandariza la toma de decisiones, garantizando que el Estado aplique los mismos planes de contingencia ante riesgos idénticos a nivel nacional?"
+    },
+    {
+      "id": "VD_35",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "4.1.1.  Tasa de Adopción de Planes de Contingencia.",
+      "descripcion": "Evalúa si los ingenieros, auditores y directivos confían lo suficiente en el sistema como para tomar decisiones reales y firmar planes de acción basados en las alertas de la IA",
+      "texto": "5. ¿La adopción del Sistema Predictivo con Deep Learning transforma el rol del Estado, pasando de ser un simple documentador de retrasos a un ejecutor activo de planes de mitigación temprana?"
+    },
+    {
+      "id": "VD_36",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "1.4.2. Tasa de Sustento Documental (XAI).",
+      "descripcion": "Evalúa si los reportes y justificaciones matemáticas generadas por la Inteligencia Artificial sirven como prueba documental válida y transparente para respaldar técnica y administrativamente la intervención en una obra",
+      "texto": "1. ¿La capacidad de explicabilidad algorítmica del Sistema Predictivo con Deep Learning traduce eficazmente los cálculos matemáticos complejos en evidencia documental comprensible para el gestor público?"
+    },
+    {
+      "id": "VD_37",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "1.4.2. Tasa de Sustento Documental (XAI).",
+      "descripcion": "Evalúa si los reportes y justificaciones matemáticas generadas por la Inteligencia Artificial sirven como prueba documental válida y transparente para respaldar técnica y administrativamente la intervención en una obra",
+      "texto": "2. ¿La fundamentación matemática provista por el Sistema Predictivo con Deep Learning posee la solidez técnica necesaria para proyectarse como sustento oficial en la toma de decisiones administrativas?"
+    },
+    {
+      "id": "VD_38",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "1.4.2. Tasa de Sustento Documental (XAI).",
+      "descripcion": "Evalúa si los reportes y justificaciones matemáticas generadas por la Inteligencia Artificial sirven como prueba documental válida y transparente para respaldar técnica y administrativamente la intervención en una obra",
+      "texto": "3. ¿El diseño del Sistema Predictivo con Deep Learning garantiza absoluta transparencia al permitir identificar matemáticamente qué variable específica de la obra origina la alerta de riesgo?"
+    },
+    {
+      "id": "VD_39",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "1.4.2. Tasa de Sustento Documental (XAI).",
+      "descripcion": "Evalúa si los reportes y justificaciones matemáticas generadas por la Inteligencia Artificial sirven como prueba documental válida y transparente para respaldar técnica y administrativamente la intervención en una obra",
+      "texto": "4. ¿La integración del concepto de explicabilidad (XAI) en el Sistema Predictivo con Deep Learning asegura la eliminación del sesgo subjetivo humano al diagnosticar un proyecto?"
+    },
+    {
+      "id": "VD_40",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.4. Toma de Decisiones y Mitigación",
+      "indicador": "1.4.2. Tasa de Sustento Documental (XAI).",
+      "descripcion": "Evalúa si los reportes y justificaciones matemáticas generadas por la Inteligencia Artificial sirven como prueba documental válida y transparente para respaldar técnica y administrativamente la intervención en una obra",
+      "texto": "5. ¿El nivel de precisión proyectado por el Sistema Predictivo con Deep Learning otorga la seguridad institucional requerida para autorizar, a futuro, la ejecución inmediata de planes de mitigación?"
+    },
+    {
+      "id": "VD_41",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.1. Agilidad Institucional de Respuesta",
+      "descripcion": "Evalúa si la implementación de la Inteligencia Artificial tiene el potencial de transformar la lenta burocracia estatal en un mecanismo rápido y eficiente ante los problemas de la obra",
+      "texto": "1. ¿El diseño arquitectónico del Sistema Predictivo con Deep Learning reduce sustancialmente el tiempo de reacción administrativa de las entidades frente a desviaciones críticas en la ejecución de la obra?"
+    },
+    {
+      "id": "VD_42",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.1. Agilidad Institucional de Respuesta",
+      "descripcion": "Evalúa si la implementación de la Inteligencia Artificial tiene el potencial de transformar la lenta burocracia estatal en un mecanismo rápido y eficiente ante los problemas de la obra",
+      "texto": "2. ¿La capacidad de procesamiento continuo del Sistema Predictivo con Deep Learning elimina la latencia burocrática históricamente asociada a la revisión manual y el traslado físico de expedientes?"
+    },
+    {
+      "id": "VD_43",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.1. Agilidad Institucional de Respuesta",
+      "descripcion": "Evalúa si la implementación de la Inteligencia Artificial tiene el potencial de transformar la lenta burocracia estatal en un mecanismo rápido y eficiente ante los problemas de la obra",
+      "texto": "3. ¿La velocidad en la aplicación de modelos estadísticos y matemáticos del Sistema Predictivo con Deep Learning transforma la pesada burocracia estatal en un mecanismo sumamente ágil de control concurrente?"
+    },
+    {
+      "id": "VD_44",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.1. Agilidad Institucional de Respuesta",
+      "descripcion": "Evalúa si la implementación de la Inteligencia Artificial tiene el potencial de transformar la lenta burocracia estatal en un mecanismo rápido y eficiente ante los problemas de la obra",
+      "texto": "¿La capacidad de predecir riesgos futuros del Sistema Predictivo con Deep Learning garantiza que la intervención técnica del Estado ocurra mucho antes de que el problema alcance un nivel de severidad crítica?"
+    },
+    {
+      "id": "VD_45",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.1. Agilidad Institucional de Respuesta",
+      "descripcion": "Evalúa si la implementación de la Inteligencia Artificial tiene el potencial de transformar la lenta burocracia estatal en un mecanismo rápido y eficiente ante los problemas de la obra",
+      "texto": "¿La potencial adopción institucional del Sistema Predictivo con Deep Learning moderniza estructuralmente la capacidad de respuesta inmediata de la Contraloría frente a las paralizaciones?"
+    },
+    {
+      "id": "VD_46",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.2. Cobertura de Trazabilidad Fiscal.",
+      "descripcion": "Evalúa si la arquitectura de datos masivos del modelo garantiza un historial digital inalterable de los riesgos, evitando la pérdida de información y combatiendo la corrupción operativa",
+      "texto": "1. ¿La arquitectura de base de datos relacional del Sistema Predictivo con Deep Learning garantiza un registro histórico centralizado que evita la pérdida de información típica de los expedientes de papel?"
+    },
+    {
+      "id": "VD_47",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.2. Cobertura de Trazabilidad Fiscal.",
+      "descripcion": "Evalúa si la arquitectura de datos masivos del modelo garantiza un historial digital inalterable de los riesgos, evitando la pérdida de información y combatiendo la corrupción operativa",
+      "texto": "2. ¿El protocolo de integridad de datos del Sistema Predictivo con Deep Learning asegura la inmutabilidad de las alertas, previniendo que la información sea alterada manualmente para ocultar negligencias en la obra?"
+    },
+    {
+      "id": "VD_48",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.2. Cobertura de Trazabilidad Fiscal.",
+      "descripcion": "Evalúa si la arquitectura de datos masivos del modelo garantiza un historial digital inalterable de los riesgos, evitando la pérdida de información y combatiendo la corrupción operativa",
+      "texto": "3. ¿La capacidad de análisis masivo (Big Data) del Sistema Predictivo con Deep Learning permite trazar la evolución cronológica exacta de los problemas técnicos que paralizaron una obra?"
+    },
+    {
+      "id": "VD_49",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.2. Cobertura de Trazabilidad Fiscal.",
+      "descripcion": "Evalúa si la arquitectura de datos masivos del modelo garantiza un historial digital inalterable de los riesgos, evitando la pérdida de información y combatiendo la corrupción operativa",
+      "texto": "4. ¿El registro automatizado del Sistema Predictivo con Deep Learning provee una pista de auditoría digital que agiliza enormemente las futuras investigaciones legales de la Contraloría?\""
+    },
+    {
+      "id": "VD_50",
+      "variable": "Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública",
+      "dimension": "1.5.  Modernización del Control Gubernamental",
+      "indicador": "1.5.2. Cobertura de Trazabilidad Fiscal.",
+      "descripcion": "Evalúa si la arquitectura de datos masivos del modelo garantiza un historial digital inalterable de los riesgos, evitando la pérdida de información y combatiendo la corrupción operativa",
+      "texto": "5.  ¿La transparencia técnica de los datos procesados por el Sistema Predictivo con Deep Learning eleva los estándares de fiscalización, reduciendo significativamente los espacios para la corrupción operativa?"
+    }
+  ]
+}

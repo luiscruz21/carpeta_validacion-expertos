@@ -1,0 +1,18 @@
+{
+  "EXP-1001": {
+    "codigo": "EXP-1001",
+    "nombreExperto": "Dr. Experto 1 - Sistemas",
+    "cargo": "Especialista en IA & Deep Learning",
+    "creadoEn": "2026-07-23T14:02:26.782Z",
+    "estado": "Pendiente",
+    "dni": ""
+  },
+  "EXP-1002": {
+    "codigo": "EXP-1002",
+    "nombreExperto": "Mg. Experto 2 - Gestión de Riesgos",
+    "cargo": "Especialista en Infraestructura Pública",
+    "creadoEn": "2026-07-23T14:02:26.782Z",
+    "estado": "Pendiente",
+    "dni": ""
+  }
+}
