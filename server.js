@@ -30,25 +30,7 @@ if (!fs.existsSync(EVAL_FILE)) {
 }
 
 if (!fs.existsSync(INVITE_FILE)) {
-  const defaultInvites = {
-    "EXP-1001": {
-      codigo: "EXP-1001",
-      nombreExperto: "Dr. Experto 1 - Sistemas",
-      cargo: "Especialista en IA & Deep Learning",
-      creadoEn: new Date().toISOString(),
-      estado: "Pendiente",
-      dni: ""
-    },
-    "EXP-1002": {
-      codigo: "EXP-1002",
-      nombreExperto: "Mg. Experto 2 - Gestión de Riesgos",
-      cargo: "Especialista en Infraestructura Pública",
-      creadoEn: new Date().toISOString(),
-      estado: "Pendiente",
-      dni: ""
-    }
-  }
-  fs.writeFileSync(INVITE_FILE, JSON.stringify(defaultInvites, null, 2))
+  fs.writeFileSync(INVITE_FILE, JSON.stringify({}, null, 2))
 }
 
 const readJson = (filePath) => {
@@ -185,16 +167,46 @@ app.post('/api/invitaciones/crear', (req, res) => {
   return res.json({ success: true, mensaje: 'Invitación creada con éxito', invitación: newInvite })
 })
 
-// DELETE Eliminar una invitación
+// DELETE Eliminar una invitación o evaluador registrado
 app.delete('/api/invitaciones/:codigo', (req, res) => {
   const { codigo } = req.params
+  const cleanCode = (codigo || '').trim().toUpperCase()
   const invites = readJson(INVITE_FILE) || {}
-  if (invites[codigo]) {
-    delete invites[codigo]
-    writeJson(INVITE_FILE, invites)
-    return res.json({ success: true, mensaje: 'Invitación eliminada' })
+  const evals = readJson(EVAL_FILE) || {}
+
+  let found = false
+
+  if (invites[cleanCode]) {
+    delete invites[cleanCode]
+    found = true
   }
-  return res.status(404).json({ success: false, mensaje: 'Código no encontrado' })
+
+  if (evals[cleanCode]) {
+    delete evals[cleanCode]
+    found = true
+  }
+
+  Object.keys(evals).forEach(k => {
+    if (k.toUpperCase() === cleanCode || (evals[k].dni && evals[k].dni.toUpperCase() === cleanCode)) {
+      delete evals[k]
+      found = true
+    }
+  })
+
+  Object.keys(invites).forEach(k => {
+    if (k.toUpperCase() === cleanCode || (invites[k].dni && invites[k].dni.toUpperCase() === cleanCode)) {
+      delete invites[k]
+      found = true
+    }
+  })
+
+  writeJson(INVITE_FILE, invites)
+  writeJson(EVAL_FILE, evals)
+
+  if (found) {
+    return res.json({ success: true, mensaje: 'Evaluador o invitación eliminada correctamente' })
+  }
+  return res.status(404).json({ success: false, mensaje: 'Registro no encontrado' })
 })
 
 // GENERADOR DE CÓDIGO PARA EXTRANJEROS

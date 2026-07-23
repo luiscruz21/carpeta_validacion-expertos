@@ -483,14 +483,19 @@ function App() {
     }
   }
 
-  // Eliminar Invitación
-  const handleEliminarInvitacion = async (codigo) => {
-    if (window.confirm(`¿Desea eliminar la invitación ${codigo}?`)) {
+  // Eliminar Invitación o Registro de Evaluador
+  const handleEliminarInvitacion = async (codigo, nombreExperto) => {
+    const label = nombreExperto ? `al evaluador "${nombreExperto}" (${codigo})` : `la invitación ${codigo}`
+    if (window.confirm(`¿Está seguro de eliminar ${label}? Esta acción borrará sus datos y respuestas del sistema.`)) {
       try {
-        await fetch(`/api/invitaciones/${codigo}`, { method: 'DELETE' })
-        fetchInvestigadorData()
+        const res = await fetch(`/api/invitaciones/${codigo}`, { method: 'DELETE' })
+        const data = await res.json()
+        if (data.success) {
+          alert(`¡Registro eliminado exitosamente!`)
+          fetchInvestigadorData()
+        }
       } catch (err) {
-        alert("Error al eliminar la invitación.")
+        alert("Error al eliminar el registro.")
       }
     }
   }
@@ -1333,9 +1338,9 @@ function App() {
                           </button>
 
                           <button
-                            onClick={() => handleEliminarInvitacion(inv.codigo)}
-                            className="text-red-600 hover:bg-red-50 p-1 rounded transition-all"
-                            title="Eliminar invitación"
+                            onClick={() => handleEliminarInvitacion(inv.codigo, inv.nombreExperto)}
+                            className="text-red-600 hover:bg-red-50 p-1.5 rounded transition-all"
+                            title="Eliminar registro de evaluador o invitación"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
