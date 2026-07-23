@@ -55,5 +55,29 @@
     "observaciones": "",
     "respuestas": {},
     "lastUpdated": "2026-07-23T01:26:12.033Z"
+  },
+  "save": {
+    "codigo": "09091855",
+    "payload": {
+      "nombre": "Dra. Zenaida Gálvez Montero",
+      "dni": "09091855",
+      "cargo": "Enfermera",
+      "gradoAcademico": "Licenciada",
+      "institucion": "UNSCH",
+      "experiencia": "",
+      "isExtranjero": false,
+      "firmaExpertoImg": "",
+      "ctiVitae": "",
+      "orcid": "",
+      "linkedin": "",
+      "cvFileName": "",
+      "resumenProfesional": "",
+      "valoracionGlobal": "Regular",
+      "dictamenFinal": "Aprobado",
+      "observaciones": "",
+      "respuestas": {},
+      "inviteCode": "09091855"
+    },
+    "lastUpdated": "2026-07-23T19:50:46.068Z"
   }
 }

@@ -116,16 +116,30 @@ app.get('/api/invitaciones', (req, res) => {
   const invites = readJson(INVITE_FILE) || {}
   const evals = readJson(EVAL_FILE) || {}
 
-  const updatedInvites = Object.values(invites).map(inv => {
-    const evalData = evals[inv.codigo] || (inv.dni ? evals[inv.dni] : null)
-    let estado = "Pendiente"
+  // Combinar invitaciones y evaluaciones para asegurar que todo evaluador aparezca
+  const allKeys = new Set([...Object.keys(invites), ...Object.keys(evals)])
+  const result = []
+
+  allKeys.forEach(key => {
+    const inv = invites[key] || {}
+    const evalData = evals[key] || (inv.dni ? evals[inv.dni] : null)
+    
+    let nombreExperto = inv.nombreExperto || (evalData ? evalData.nombre : "Experto Validador")
+    let cargo = inv.cargo || (evalData ? evalData.cargo : "Especialista Informante")
+    let dni = inv.dni || (evalData ? evalData.dni : "")
+    let creadoEn = inv.creadoEn || (evalData ? evalData.lastUpdated : new Date().toISOString())
+    let lastUpdated = evalData?.lastUpdated || creadoEn
+
     let respondidas = 0
-    let lastUpdated = inv.creadoEn
+    let estado = inv.estado || "Pendiente"
 
     if (evalData) {
-      const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => evalData.respuestas[k]?.likert).length
+      const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => {
+        const r = evalData.respuestas[k]
+        return r && r.likert && r.claridad && r.coherencia && r.relevancia && r.suficiencia
+      }).length
       respondidas = totalAnswered
-      lastUpdated = evalData.lastUpdated || inv.creadoEn
+
       if (evalData.finalizado || totalAnswered >= 100) {
         estado = "Completado"
       } else if (totalAnswered > 0) {
@@ -133,15 +147,19 @@ app.get('/api/invitaciones', (req, res) => {
       }
     }
 
-    return {
-      ...inv,
+    result.push({
+      codigo: key,
+      nombreExperto,
+      cargo,
+      dni,
+      creadoEn,
+      lastUpdated,
       estado,
-      respondidas,
-      lastUpdated
-    }
+      respondidas
+    })
   })
 
-  return res.json({ success: true, invitaciones: updatedInvites })
+  return res.json({ success: true, invitaciones: result })
 })
 
 // POST Crear una nueva invitación con código único
@@ -252,12 +270,23 @@ app.post('/api/evaluacion/save', (req, res) => {
     lastUpdated: new Date().toISOString()
   }
 
-  if (invites[cleanCode]) {
+  // Si la invitación no existía previamente para este evaluador, la registramos automáticamente
+  if (!invites[cleanCode]) {
+    invites[cleanCode] = {
+      codigo: cleanCode,
+      nombreExperto: payload.nombre || "Experto Validador",
+      cargo: payload.cargo || "Especialista Informante",
+      dni: payload.dni || "",
+      creadoEn: new Date().toISOString(),
+      estado: payload.finalizado ? "Completado" : "En Proceso"
+    }
+  } else {
     if (payload.dni) invites[cleanCode].dni = payload.dni
     if (payload.nombre) invites[cleanCode].nombreExperto = payload.nombre
     if (payload.cargo) invites[cleanCode].cargo = payload.cargo
-    writeJson(INVITE_FILE, invites)
+    if (payload.finalizado) invites[cleanCode].estado = "Completado"
   }
+  writeJson(INVITE_FILE, invites)
 
   writeJson(EVAL_FILE, evals)
 

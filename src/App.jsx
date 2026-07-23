@@ -612,16 +612,32 @@ function App() {
     }))
   }
 
-  const countAnswered = (list) => list.filter(p => respuestas[p.id]?.likert).length
+  const isQuestionComplete = (preguntaId) => {
+    const resp = respuestas[preguntaId]
+    return !!(resp && resp.likert && resp.claridad && resp.coherencia && resp.relevancia && resp.suficiencia)
+  }
+
+  const countAnswered = (list) => list.filter(p => isQuestionComplete(p.id)).length
   const viAnswered = countAnswered(preguntasData.VI || [])
   const vdAnswered = countAnswered(preguntasData.VD || [])
   const totalAnswered = viAnswered + vdAnswered
   const totalPreguntas = (preguntasData.VI?.length || 0) + (preguntasData.VD?.length || 0)
+  const totalMissing = totalPreguntas - totalAnswered
 
   const handleSubmitEvaluacion = () => {
     if (!nombre.trim() || !dni.trim()) {
       alert("Por favor, complete sus datos personales obligatorios antes de enviar su evaluación.")
       setShowRegistroModal(true)
+      return
+    }
+
+    if (totalAnswered < totalPreguntas) {
+      const missingVI = (preguntasData.VI?.length || 0) - viAnswered
+      const missingVD = (preguntasData.VD?.length || 0) - vdAnswered
+      alert(`⚠️ ATENCIÓN: Las preguntas de los instrumentos son estrictamente OBLIGATORIAS.\n\nAún faltan ${totalMissing} preguntas por completar obligatoriamente:\n- Variable Independiente (VI): Faltan ${missingVI} preguntas\n- Variable Dependiente (VD): Faltan ${missingVD} preguntas\n\nPor favor asegúrese de responder tanto la escala Likert (1-5) como los 4 criterios de calidad (Claridad, Coherencia, Relevancia, Suficiencia) en cada ítem.`)
+      setActiveTab('INSTRUMENTOS')
+      if (missingVI > 0) setInstrumentoSubTab('VI')
+      else if (missingVD > 0) setInstrumentoSubTab('VD')
       return
     }
 
@@ -1699,7 +1715,16 @@ function App() {
                       >
                         <td className="px-4 py-4 align-top">
                           <div className="flex justify-between items-start gap-2 mb-2">
-                            <p className="font-bold text-slate-900 leading-relaxed text-sm">{p.texto}</p>
+                            <div className="flex items-start gap-2">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 mt-0.5 ${
+                                isComplete 
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                  : 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
+                              }`}>
+                                {isComplete ? '✓ COMPLETO' : '⚠️ PENDIENTE'}
+                              </span>
+                              <p className="font-bold text-slate-900 leading-relaxed text-sm">{p.texto}</p>
+                            </div>
 
                             {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
                             {userRole === 'INVESTIGADOR' && (
