@@ -6,7 +6,7 @@ import {
   Download, CheckCircle2, Award, FileText, ChevronRight, ChevronLeft, 
   UserCheck, ShieldCheck, Table, HelpCircle, Layers, CheckSquare, Save, 
   Trash2, Cloud, RefreshCw, Upload, FileCheck, Briefcase, PenTool, Eraser, 
-  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye 
+  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye, LogOut 
 } from 'lucide-react'
 
 const LIKERT_MAP = {
@@ -789,13 +789,25 @@ function App() {
 
             {/* Datos del Evaluador registrado */}
             {userRole === 'EVALUADOR' && (
-              <button
-                onClick={() => setShowRegistroModal(true)}
-                className="flex items-center gap-1.5 text-xs text-emerald-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 hover:bg-slate-700"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{nombre ? `${nombre.split(' ')[0]} (${dni})` : 'Ingresar / Retomar mi Evaluación'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowRegistroModal(true)}
+                  className="flex items-center gap-1.5 text-xs text-emerald-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 hover:bg-slate-700"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{nombre ? `${nombre.split(' ')[0]} (${dni})` : 'Ingresar / Retomar mi Evaluación'}</span>
+                </button>
+
+                {nombre && (
+                  <button
+                    onClick={handleResetForm}
+                    title="Cerrar sesión activa y permitir el ingreso de un nuevo evaluador"
+                    className="px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-100 font-bold rounded-lg text-xs flex items-center gap-1.5 border border-red-700 transition-all shadow"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-red-200" /> Cerrar Sesión
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Botón Reiniciar */}
