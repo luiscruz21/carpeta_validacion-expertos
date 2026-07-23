@@ -281,6 +281,10 @@ if (fs.existsSync(DIST_DIR)) {
   })
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor listo para Nube / Local en http://0.0.0.0:${PORT}`)
-})
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor listo para Nube / Local en http://0.0.0.0:${PORT}`)
+  })
+}
+
+export default app
