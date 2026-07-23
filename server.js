@@ -274,10 +274,11 @@ app.post('/api/evaluacion/save', (req, res) => {
 const DIST_DIR = path.join(__dirname, 'dist')
 if (fs.existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR))
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(DIST_DIR, 'index.html'))
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      return res.sendFile(path.join(DIST_DIR, 'index.html'))
     }
+    next()
   })
 }
 
