@@ -1072,7 +1072,7 @@ function App() {
                 <div>
                   <input 
                     type="password" 
-                    placeholder="Ingrese PIN del Investigador (2026)"
+                    placeholder="Ingrese PIN de Seguridad"
                     className="w-full p-3 border-2 border-purple-300 rounded-xl text-center font-black text-slate-900 text-lg bg-slate-50 focus:outline-none focus:border-purple-600"
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
@@ -1083,9 +1083,6 @@ function App() {
                       <AlertCircle className="w-3.5 h-3.5" /> {pinError}
                     </p>
                   )}
-                  <p className="text-[11px] text-purple-700 font-semibold mt-1">
-                    * Clave PIN oficial predeterminada: <strong>2026</strong>
-                  </p>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
