@@ -1043,6 +1043,495 @@ function App() {
     setSubmittedModal(true)
   }
 
+  // DESCARGAR EXPEDIENTE COMPLETO CONSOLIDADO EN UN SOLO ARCHIVO WORD (.DOC)
+  const handleExportExpedienteCompletoWord = () => {
+    const expertName = nombre || "Experto Evaluador"
+    const expertDni = dni || "N/A"
+    const expertCargo = cargo || "Especialista Informante"
+    const expertGrado = gradoAcademico || "Magíster / Doctor"
+    const expertEstudios = estudios || "Universidad de procedencia"
+    const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+
+    const viList = preguntasData.VI || []
+    const vdList = preguntasData.VD || []
+
+    const renderQuestionRows = (list, offset) => {
+      return list.map((p, idx) => {
+        const itemNum = offset + idx + 1
+        const r = respuestas[p.id] || {}
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:bold;">${itemNum}</td>
+            <td>
+              <strong>${p.texto}</strong><br/>
+              <span style="font-size:8pt; color:#475569;">Dimensión: ${p.dimension} | Indicador: ${p.indicador}</span>
+              ${r.observacion ? `<br/><span style="color:#b45309; font-weight:bold;">Obs: ${r.observacion}</span>` : ''}
+            </td>
+            <td style="text-align:center; font-weight:bold; color:#0369a1;">${r.likert || '-'}</td>
+            <td style="text-align:center;">${r.claridad || '-'}</td>
+            <td style="text-align:center;">${r.coherencia || '-'}</td>
+            <td style="text-align:center;">${r.relevancia || '-'}</td>
+            <td style="text-align:center;">${r.suficiencia || '-'}</td>
+          </tr>
+        `
+      }).join('')
+    }
+
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <title>Expediente Completo de Evaluación por Juicio de Expertos</title>
+        <style>
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #0f172a; margin: 25px; }
+          h1 { font-size: 15pt; font-weight: bold; color: #0f172a; text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 6px; margin-top: 25px; text-transform: uppercase; }
+          h2 { font-size: 12pt; font-weight: bold; color: #0369a1; border-left: 4px solid #0284c7; padding-left: 8px; margin-top: 20px; }
+          p { margin-bottom: 10px; text-align: justify; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 9pt; }
+          th { background-color: #0f172a; color: #ffffff; padding: 6px; border: 1px solid #334155; text-align: center; font-weight: bold; }
+          td { padding: 6px; border: 1px solid #cbd5e1; vertical-align: top; }
+          .page-break { page-break-before: always; }
+          .box { background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+          .signature-container { text-align: center; margin-top: 35px; }
+          .signature-img { max-height: 90px; max-width: 250px; }
+        </style>
+      </head>
+      <body>
+
+        <!-- 1. CARTA DE PRESENTACIÓN -->
+        <h1>1. CARTA DE PRESENTACIÓN AL EXPERTO EVALUADOR</h1>
+        <div class="box">
+          <p><strong>FECHA:</strong> Lima, ${fecha}</p>
+          <p><strong>A:</strong> ${expertName} (${expertCargo})</p>
+          <p><strong>DNI / REGISTRO:</strong> ${expertDni}</p>
+          <p><strong>GRADO ACADÉMICO:</strong> ${expertGrado}</p>
+          <p><strong>DE:</strong> Dr. Luis Alfonso Cruz Gálvez - Investigador Principal</p>
+          <p><strong>TÍTULO DE LA TESIS:</strong> "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024"</p>
+        </div>
+        <p>Estimado(a) especialista, mediante el presente documento me dirijo a usted para solicitar su valiosa colaboración en la evaluación por Juicio de Expertos de los instrumentos de recolección de datos de la presente investigación. Su experiencia garantiza la validez técnica de la arquitectura predictiva y su aplicación práctica.</p>
+
+        <div class="page-break"></div>
+
+        <!-- 2. MATRIZ DE CONSISTENCIA -->
+        <h1>2. MATRIZ DE CONSISTENCIA METODOLÓGICA</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Nivel</th>
+              <th>Problemas de Investigación</th>
+              <th>Objetivos de Investigación</th>
+              <th>Hipótesis de Investigación</th>
+              <th>Variables y Dimensiones</th>
+              <th>Técnicas e Instrumentos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${consistenciaData.map(item => `
+              <tr>
+                <td style="font-weight:bold; text-align:center;">${item.tipo}</td>
+                <td>${item.problema}</td>
+                <td>${item.objetivo}</td>
+                <td>${item.hipotesis}</td>
+                <td>${item.variables.replace(/\n/g, '<br/>')}</td>
+                <td>${item.tecnica.replace(/\n/g, '<br/>')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 3. MATRIZ DE OPERACIONALIZACIÓN DE VARIABLES -->
+        <h1>3. MATRIZ DE OPERACIONALIZACIÓN DE VARIABLES</h1>
+        <h2>VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva Deep Learning</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimensión</th>
+              <th>Indicador</th>
+              <th>Definición Operacional</th>
+              <th>Sustento Teórico</th>
+              <th>Validez del Constructo</th>
+              <th>Escala</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(matrizData.VI || []).map(dim => dim.indicadores.map((ind, iIdx) => `
+              <tr>
+                ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
+                <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
+                <td>${ind.definicionOperacional}</td>
+                <td>${ind.sustentoTeorico}</td>
+                <td>${ind.validezConstructo}</td>
+                <td>${ind.escala}</td>
+              </tr>
+            `).join('')).join('')}
+          </tbody>
+        </table>
+
+        <h2>VARIABLE DEPENDIENTE (VD): Gestión de Riesgos en Infraestructura Pública</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimensión</th>
+              <th>Indicador</th>
+              <th>Definición Operacional</th>
+              <th>Sustento Teórico</th>
+              <th>Validez del Constructo</th>
+              <th>Escala</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(matrizData.VD || []).map(dim => dim.indicadores.map((ind, iIdx) => `
+              <tr>
+                ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
+                <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
+                <td>${ind.definicionOperacional}</td>
+                <td>${ind.sustentoTeorico}</td>
+                <td>${ind.validezConstructo}</td>
+                <td>${ind.escala}</td>
+              </tr>
+            `).join('')).join('')}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 4. MATRIZ DE VALIDACIÓN POR JUICIO DE EXPERTO -->
+        <h1>4. MATRIZ DE VALIDACIÓN POR JUICIO DE EXPERTO (EVALUACIÓN DE 100 ÍTEMS)</h1>
+        <h2>INSTRUMENTO 1: Variable Independiente (VI) - Ítems 1 al 50</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:5%;">Ítem</th>
+              <th style="width:45%;">Pregunta / Indicador</th>
+              <th style="width:10%;">Likert (1-5)</th>
+              <th style="width:10%;">Claridad</th>
+              <th style="width:10%;">Coherencia</th>
+              <th style="width:10%;">Relevancia</th>
+              <th style="width:10%;">Suficiencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQuestionRows(viList, 0)}
+          </tbody>
+        </table>
+
+        <h2>INSTRUMENTO 2: Variable Dependiente (VD) - Ítems 51 al 100</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:5%;">Ítem</th>
+              <th style="width:45%;">Pregunta / Indicador</th>
+              <th style="width:10%;">Likert (1-5)</th>
+              <th style="width:10%;">Claridad</th>
+              <th style="width:10%;">Coherencia</th>
+              <th style="width:10%;">Relevancia</th>
+              <th style="width:10%;">Suficiencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQuestionRows(vdList, 50)}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 5. CERTIFICADO DE VALIDACIÓN DEL INSTRUMENTO -->
+        <h1>5. CERTIFICADO DE VALIDACIÓN DEL INSTRUMENTO</h1>
+        <div class="box">
+          <p><strong>EVALUADOR INFORMANTE:</strong> ${expertName}</p>
+          <p><strong>DNI / CÓDIGO:</strong> ${expertDni}</p>
+          <p><strong>CARGO / ESPECIALIDAD:</strong> ${expertCargo}</p>
+          <p><strong>VALORACIÓN GLOBAL:</strong> ${valoracionGlobal || 'Excelente (100%)'}</p>
+          <p><strong>DICTAMEN FINAL:</strong> <strong style="color:#047857;">${dictamenFinal || 'Aprobado (Aplicable)'}</strong></p>
+          <p><strong>OBSERVACIONES GENERALES:</strong> ${observaciones || 'Ninguna observación adicional. Instrumentos aplicables.'}</p>
+        </div>
+
+        <div class="signature-container">
+          ${firmaExpertoImg ? `<img src="${firmaExpertoImg}" class="signature-img" alt="Firma del Experto"/><br/>` : ''}
+          <strong>____________________________________________</strong><br/>
+          <strong>Firma del Experto Informante</strong><br/>
+          <span>${expertName}</span><br/>
+          <span>DNI / Reg.: ${expertDni}</span>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- 6. HOJA DE VIDA DEL EVALUADOR -->
+        <h1>6. HOJA DE VIDA DEL EVALUADOR / EXPERTO</h1>
+        <div class="box">
+          <p><strong>1. Nombres y Apellidos:</strong> ${expertName}</p>
+          <p><strong>2. Correo Electrónico:</strong> ${email || 'No registrado'}</p>
+          <p><strong>3. Grado Académico Máximo:</strong> ${expertGrado}</p>
+          <p><strong>4. Estudios Realizados / Universidad:</strong> ${expertEstudios}</p>
+          <p><strong>5. Experiencia Profesional y Trayectoria:</strong> ${experienciaDetallada || experiencia || 'Experiencia docente y profesional en ingeniería.'}</p>
+          ${ctiVitae ? `<p><strong>Enlace CTI Vitae:</strong> ${ctiVitae}</p>` : ''}
+          ${orcid ? `<p><strong>Código ORCID:</strong> ${orcid}</p>` : ''}
+          ${linkedin ? `<p><strong>Perfil LinkedIn:</strong> ${linkedin}</p>` : ''}
+          ${cvFileName ? `<p><strong>Archivo de CV Adjunto:</strong> ${cvFileName}</p>` : ''}
+        </div>
+
+      </body>
+      </html>
+    `
+
+    const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Expediente_Completo_Juicio_Expertos_${expertName.replace(/\s+/g, '_')}.doc`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // IMPRIMIR / GUARDAR EXPEDIENTE COMPLETO EN PDF (6 SECCIONES)
+  const handleImprimirExpedienteCompletoPDF = () => {
+    const printWin = window.open('', '_blank')
+    if (!printWin) {
+      alert("Por favor permita las ventanas emergentes para generar el PDF.")
+      return
+    }
+
+    const expertName = nombre || "Experto Evaluador"
+    const expertDni = dni || "N/A"
+    const expertCargo = cargo || "Especialista Informante"
+    const expertGrado = gradoAcademico || "Magíster / Doctor"
+    const expertEstudios = estudios || "Universidad"
+    const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+
+    const viList = preguntasData.VI || []
+    const vdList = preguntasData.VD || []
+
+    const renderQuestionRows = (list, offset) => {
+      return list.map((p, idx) => {
+        const itemNum = offset + idx + 1
+        const r = respuestas[p.id] || {}
+        return `
+          <tr>
+            <td style="text-align:center; font-weight:bold;">${itemNum}</td>
+            <td>
+              <strong>${p.texto}</strong><br/>
+              <span style="font-size:7.5pt; color:#475569;">Dimensión: ${p.dimension} | Indicador: ${p.indicador}</span>
+              ${r.observacion ? `<br/><span style="color:#b45309; font-weight:bold;">Obs: ${r.observacion}</span>` : ''}
+            </td>
+            <td style="text-align:center; font-weight:bold; color:#0369a1;">${r.likert || '-'}</td>
+            <td style="text-align:center;">${r.claridad || '-'}</td>
+            <td style="text-align:center;">${r.coherencia || '-'}</td>
+            <td style="text-align:center;">${r.relevancia || '-'}</td>
+            <td style="text-align:center;">${r.suficiencia || '-'}</td>
+          </tr>
+        `
+      }).join('')
+    }
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Expediente Completo Juicio de Expertos - ${expertName}</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 9.5pt; line-height: 1.4; color: #0f172a; margin: 0; padding: 10px; }
+          h1 { font-size: 13pt; font-weight: bold; color: #0f172a; text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-top: 15px; text-transform: uppercase; page-break-after: avoid; }
+          h2 { font-size: 10.5pt; font-weight: bold; color: #0369a1; border-left: 4px solid #0284c7; padding-left: 6px; margin-top: 15px; page-break-after: avoid; }
+          p { margin-bottom: 6px; text-align: justify; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 15px; font-size: 8.5pt; page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          th { background-color: #0f172a !important; color: #ffffff !important; -webkit-print-color-adjust: exact; padding: 5px; border: 1px solid #334155; text-align: center; font-weight: bold; }
+          td { padding: 5px; border: 1px solid #cbd5e1; vertical-align: top; }
+          .page-break { page-break-before: always; }
+          .box { background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
+          .signature-container { text-align: center; margin-top: 30px; page-break-inside: avoid; }
+          .signature-img { max-height: 80px; max-width: 220px; }
+        </style>
+      </head>
+      <body>
+        <!-- 1. CARTA DE PRESENTACION -->
+        <h1>1. CARTA DE PRESENTACIÓN AL EXPERTO EVALUADOR</h1>
+        <div class="box">
+          <p><strong>FECHA:</strong> Lima, ${fecha}</p>
+          <p><strong>A:</strong> ${expertName} (${expertCargo})</p>
+          <p><strong>DNI / REGISTRO:</strong> ${expertDni}</p>
+          <p><strong>GRADO ACADÉMICO:</strong> ${expertGrado}</p>
+          <p><strong>DE:</strong> Dr. Luis Alfonso Cruz Gálvez - Investigador Principal</p>
+          <p><strong>TÍTULO DE LA TESIS:</strong> "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024"</p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- 2. MATRIZ DE CONSISTENCIA -->
+        <h1>2. MATRIZ DE CONSISTENCIA METODOLÓGICA</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Nivel</th>
+              <th>Problemas</th>
+              <th>Objetivos</th>
+              <th>Hipótesis</th>
+              <th>Variables / Dimensiones</th>
+              <th>Técnica e Instrumento</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${consistenciaData.map(item => `
+              <tr>
+                <td style="font-weight:bold; text-align:center;">${item.tipo}</td>
+                <td>${item.problema}</td>
+                <td>${item.objetivo}</td>
+                <td>${item.hipotesis}</td>
+                <td>${item.variables.replace(/\n/g, '<br/>')}</td>
+                <td>${item.tecnica.replace(/\n/g, '<br/>')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 3. MATRIZ DE OPERACIONALIZACION -->
+        <h1>3. MATRIZ DE OPERACIONALIZACIÓN DE VARIABLES</h1>
+        <h2>VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva Deep Learning</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimensión</th>
+              <th>Indicador</th>
+              <th>Definición Operacional</th>
+              <th>Sustento Teórico</th>
+              <th>Validez del Constructo</th>
+              <th>Escala</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(matrizData.VI || []).map(dim => dim.indicadores.map((ind, iIdx) => `
+              <tr>
+                ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
+                <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
+                <td>${ind.definicionOperacional}</td>
+                <td>${ind.sustentoTeorico}</td>
+                <td>${ind.validezConstructo}</td>
+                <td>${ind.escala}</td>
+              </tr>
+            `).join('')).join('')}
+          </tbody>
+        </table>
+
+        <h2>VARIABLE DEPENDIENTE (VD): Gestión de Riesgos en Infraestructura Pública</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimensión</th>
+              <th>Indicador</th>
+              <th>Definición Operacional</th>
+              <th>Sustento Teórico</th>
+              <th>Validez del Constructo</th>
+              <th>Escala</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(matrizData.VD || []).map(dim => dim.indicadores.map((ind, iIdx) => `
+              <tr>
+                ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
+                <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
+                <td>${ind.definicionOperacional}</td>
+                <td>${ind.sustentoTeorico}</td>
+                <td>${ind.validezConstructo}</td>
+                <td>${ind.escala}</td>
+              </tr>
+            `).join('')).join('')}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 4. MATRIZ DE VALIDACION -->
+        <h1>4. MATRIZ DE VALIDACIÓN POR JUICIO DE EXPERTO (EVALUACIÓN DE 100 ÍTEMS)</h1>
+        <h2>INSTRUMENTO 1: Variable Independiente (VI) - Ítems 1 al 50</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:5%;">Ítem</th>
+              <th style="width:45%;">Pregunta / Indicador</th>
+              <th style="width:10%;">Likert (1-5)</th>
+              <th style="width:10%;">Claridad</th>
+              <th style="width:10%;">Coherencia</th>
+              <th style="width:10%;">Relevancia</th>
+              <th style="width:10%;">Suficiencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQuestionRows(viList, 0)}
+          </tbody>
+        </table>
+
+        <h2>INSTRUMENTO 2: Variable Dependiente (VD) - Ítems 51 al 100</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:5%;">Ítem</th>
+              <th style="width:45%;">Pregunta / Indicador</th>
+              <th style="width:10%;">Likert (1-5)</th>
+              <th style="width:10%;">Claridad</th>
+              <th style="width:10%;">Coherencia</th>
+              <th style="width:10%;">Relevancia</th>
+              <th style="width:10%;">Suficiencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderQuestionRows(vdList, 50)}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <!-- 5. CERTIFICADO -->
+        <h1>5. CERTIFICADO DE VALIDACIÓN DEL INSTRUMENTO</h1>
+        <div class="box">
+          <p><strong>EVALUADOR INFORMANTE:</strong> ${expertName}</p>
+          <p><strong>DNI / CÓDIGO:</strong> ${expertDni}</p>
+          <p><strong>CARGO / ESPECIALIDAD:</strong> ${expertCargo}</p>
+          <p><strong>VALORACIÓN GLOBAL:</strong> ${valoracionGlobal || 'Excelente (100%)'}</p>
+          <p><strong>DICTAMEN FINAL:</strong> <strong style="color:#047857;">${dictamenFinal || 'Aprobado (Aplicable)'}</strong></p>
+          <p><strong>OBSERVACIONES:</strong> ${observaciones || 'Ninguna observación adicional. Instrumentos aplicables.'}</p>
+        </div>
+
+        <div class="signature-container">
+          ${firmaExpertoImg ? `<img src="${firmaExpertoImg}" class="signature-img" alt="Firma del Experto"/><br/>` : ''}
+          <strong>____________________________________________</strong><br/>
+          <strong>Firma del Experto Informante</strong><br/>
+          <span>${expertName}</span><br/>
+          <span>DNI / Reg.: ${expertDni}</span>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- 6. HOJA DE VIDA -->
+        <h1>6. HOJA DE VIDA DEL EVALUADOR / EXPERTO</h1>
+        <div class="box">
+          <p><strong>1. Nombres y Apellidos:</strong> ${expertName}</p>
+          <p><strong>2. Correo Electrónico:</strong> ${email || 'No registrado'}</p>
+          <p><strong>3. Grado Académico Máximo:</strong> ${expertGrado}</p>
+          <p><strong>4. Estudios Realizados / Universidad:</strong> ${expertEstudios}</p>
+          <p><strong>5. Experiencia Profesional y Trayectoria:</strong> ${experienciaDetallada || experiencia || 'Experiencia docente y profesional en ingeniería.'}</p>
+          ${ctiVitae ? `<p><strong>Enlace CTI Vitae:</strong> ${ctiVitae}</p>` : ''}
+          ${orcid ? `<p><strong>Código ORCID:</strong> ${orcid}</p>` : ''}
+          ${linkedin ? `<p><strong>Perfil LinkedIn:</strong> ${linkedin}</p>` : ''}
+          ${cvFileName ? `<p><strong>Archivo CV Adjunto:</strong> ${cvFileName}</p>` : ''}
+        </div>
+      </body>
+      </html>
+    `)
+
+    printWin.document.close()
+    printWin.focus()
+    setTimeout(() => {
+      printWin.print()
+    }, 500)
+  }
+
   // Exportar Consolidado Completo V de Aiken (Investigador)
   const handleExportConsolidadoInvestigador = () => {
     const evaluadoresList = Object.values(evaluacionesData)
@@ -1701,6 +2190,41 @@ function App() {
             >
               <ChevronLeft className="w-4 h-4" /> Volver al Panel del Investigador
             </button>
+          </div>
+        )}
+
+        {/* BANNER MODO LECTURA Y DESCARGA DE EXPEDIENTE COMPLETO PARA EL EVALUADOR */}
+        {isReadOnly && (
+          <div className="bg-slate-900 text-white p-4 rounded-2xl mb-6 shadow-xl border-l-8 border-l-emerald-500 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-emerald-400 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-sm md:text-base text-white flex items-center gap-2">
+                  ¡EVALUACIÓN FINALIZADA Y REGISTRADA EN MODO SOLO LECTURA!
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Todas sus 100 respuestas, dictamen final, observaciones y firma están resguardados sin posibilidad de edición. Puede descargar el expediente consolidado completo en 1 solo archivo a continuación:
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap justify-center shrink-0">
+              <button
+                onClick={handleExportExpedienteCompletoWord}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                title="Descargar expediente completo consolidado en un solo archivo Word (.doc)"
+              >
+                <Download className="w-4 h-4" /> DESCARGAR EXPEDIENTE EN WORD (.DOC)
+              </button>
+
+              <button
+                onClick={handleImprimirExpedienteCompletoPDF}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                title="Imprimir o guardar expediente completo consolidado en PDF"
+              >
+                <FileText className="w-4 h-4" /> DESCARGAR / IMPRIMIR EN PDF
+              </button>
+            </div>
           </div>
         )}
 
@@ -3126,11 +3650,27 @@ function App() {
               <p><strong>Fecha de Envío:</strong> {new Date().toLocaleDateString()}</p>
             </div>
 
+            <div className="space-y-2 mb-4">
+              <button 
+                onClick={handleExportExpedienteCompletoWord}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow"
+              >
+                <Download className="w-4 h-4" /> DESCARGAR EXPEDIENTE COMPLETO (WORD .DOC)
+              </button>
+
+              <button 
+                onClick={handleImprimirExpedienteCompletoPDF}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow"
+              >
+                <FileText className="w-4 h-4" /> DESCARGAR / IMPRIMIR COMPLETO (PDF)
+              </button>
+            </div>
+
             <button 
               onClick={() => setSubmittedModal(false)}
               className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all text-xs"
             >
-              Cerrar ventana
+              Cerrar e Inspeccionar en Modo Lectura
             </button>
           </div>
         </div>
@@ -3170,30 +3710,44 @@ function App() {
               </div>
             </div>
 
-            <button 
-              onClick={handleSubmitEvaluacion}
-              disabled={isReadOnly || totalComplete < totalPreguntas || !isCvRequirementMet}
-              className={`w-full sm:w-auto font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg ${
-                isReadOnly
-                  ? 'bg-slate-800 text-emerald-400 border border-slate-700 cursor-not-allowed shadow-none'
-                  : (totalComplete === totalPreguntas && isCvRequirementMet)
+            {isReadOnly ? (
+              <div className="flex items-center gap-2 flex-wrap justify-center w-full sm:w-auto">
+                <button
+                  onClick={handleExportExpedienteCompletoWord}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 px-5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                  title="Descargar expediente completo consolidado en un solo archivo Word (.doc)"
+                >
+                  <Download className="w-4 h-4" /> DESCARGAR EXPEDIENTE EN WORD (.DOC)
+                </button>
+
+                <button
+                  onClick={handleImprimirExpedienteCompletoPDF}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 px-5 rounded-xl text-xs flex items-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                  title="Imprimir o guardar expediente completo consolidado en PDF"
+                >
+                  <FileText className="w-4 h-4" /> DESCARGAR / IMPRIMIR EN PDF
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleSubmitEvaluacion}
+                disabled={totalComplete < totalPreguntas || !isCvRequirementMet}
+                className={`w-full sm:w-auto font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg ${
+                  (totalComplete === totalPreguntas && isCvRequirementMet)
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-emerald-600/30' 
                     : 'bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-400'
-              }`}
-            >
-              {isReadOnly 
-                ? <Lock className="w-4 h-4 text-emerald-400" /> 
-                : (totalComplete === totalPreguntas && isCvRequirementMet) 
+                }`}
+              >
+                {(totalComplete === totalPreguntas && isCvRequirementMet) 
                   ? <Send className="w-4 h-4" /> 
                   : <Lock className="w-4 h-4 text-slate-400" />}
-              {isReadOnly 
-                ? '✓ EVALUACIÓN ENVIADA (MODO SOLO LECTURA)' 
-                : totalComplete < totalPreguntas 
+                {totalComplete < totalPreguntas 
                   ? `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)` 
                   : !isCvRequirementMet
                     ? 'FINALIZAR Y ENVIAR (Falta Hoja de Vida)'
                     : 'FINALIZAR Y ENVIAR EVALUACIÓN'}
-            </button>
+              </button>
+            )}
           </div>
         </div>
       )}
