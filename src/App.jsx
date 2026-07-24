@@ -1093,7 +1093,7 @@ function App() {
           .page-break { page-break-before: always; }
           .box { background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
           .signature-container { text-align: center; margin-top: 35px; }
-          .signature-img { max-height: 90px; max-width: 250px; }
+          .signature-img { height: 45px; max-width: 160px; object-fit: contain; margin: 0 auto 5px auto; display: block; }
         </style>
       </head>
       <body>
@@ -1276,7 +1276,7 @@ function App() {
 
         ${cvTextContent ? `
           <h2>6.2. Contenido Extraído del Documento Adjunto (${cvFileName || 'Hoja de Vida CV'})</h2>
-          <div class="box" style="background:#ffffff; font-size:8.5pt; max-height:600px; overflow:hidden;">
+          <div class="box" style="background:#ffffff; font-size:9pt; line-height:1.4;">
             ${cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') 
               ? cvTextContent 
               : cvTextContent.replace(/\n/g, '<br/>')}
@@ -1361,7 +1361,7 @@ function App() {
           .page-break { page-break-before: always; }
           .box { background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
           .signature-container { text-align: center; margin-top: 30px; page-break-inside: avoid; }
-          .signature-img { max-height: 80px; max-width: 220px; }
+          .signature-img { height: 45px; max-width: 150px; object-fit: contain; margin: 0 auto 5px auto; display: block; }
         </style>
       </head>
       <body>
@@ -1542,7 +1542,7 @@ function App() {
 
         ${cvTextContent ? `
           <h2>6.2. Contenido Extraído del Documento Adjunto (${cvFileName || 'Hoja de Vida CV'})</h2>
-          <div class="box" style="background:#ffffff; font-size:8.5pt; max-height:600px; overflow:hidden;">
+          <div class="box" style="background:#ffffff; font-size:9pt; line-height:1.4;">
             ${cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') 
               ? cvTextContent 
               : cvTextContent.replace(/\n/g, '<br/>')}
