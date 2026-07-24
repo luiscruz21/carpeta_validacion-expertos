@@ -103,6 +103,7 @@ function App() {
   const [nuevoExpertoCargo, setNuevoExpertoCargo] = useState('')
 
   const [syncing, setSyncing] = useState(false)
+  const [showCvFullscreen, setShowCvFullscreen] = useState(false)
   const cvFileInputRef = useRef(null)
   const firmaFileInputRef = useRef(null)
   const canvasRef = useRef(null)
@@ -726,6 +727,28 @@ function App() {
     }
   }
 
+  const convertWordToHtml = async (arrayBuffer) => {
+    try {
+      if (!window.mammoth) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'
+          script.onload = resolve
+          script.onerror = reject
+          document.head.appendChild(script)
+        })
+      }
+
+      if (!window.mammoth) return null
+
+      const result = await window.mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+      return result.value || ''
+    } catch (err) {
+      console.warn("No se pudo convertir el archivo Word (.docx) a HTML:", err)
+      return null
+    }
+  }
+
   const extractTextFromPdf = async (arrayBuffer) => {
     try {
       if (!window.pdfjsLib) {
@@ -762,21 +785,39 @@ function App() {
     const file = e.target.files[0]
     if (file) {
       setCvFileName(file.name)
+      const fileNameLower = file.name.toLowerCase()
+      const isPdf = fileNameLower.endsWith('.pdf')
+      const isWord = fileNameLower.endsWith('.docx') || fileNameLower.endsWith('.doc')
 
-      // Leer DataURL para vista previa en vivo (PDF / Embed)
-      const readerData = new FileReader()
-      readerData.onload = (event) => {
-        setCvFileDataUrl(event.target.result)
-      }
-      readerData.readAsDataURL(file)
+      if (isPdf) {
+        // Leer DataURL para el visor iframe PDF
+        const readerData = new FileReader()
+        readerData.onload = (event) => {
+          setCvFileDataUrl(event.target.result)
+        }
+        readerData.readAsDataURL(file)
 
-      // Extraer texto si es un PDF o archivo de texto
-      if (file.name.toLowerCase().endsWith('.pdf')) {
         const arrayBufferReader = new FileReader()
         arrayBufferReader.onload = async (event) => {
           const pdfText = await extractTextFromPdf(event.target.result)
-          if (pdfText) {
-            setCvTextContent(pdfText)
+          if (pdfText) setCvTextContent(pdfText)
+        }
+        arrayBufferReader.readAsArrayBuffer(file)
+      } else if (isWord) {
+        // Para Word (.docx), convertimos el documento a HTML para visualizarlo en pantalla sin descargas ni iframes rotas
+        const arrayBufferReader = new FileReader()
+        arrayBufferReader.onload = async (event) => {
+          const wordHtml = await convertWordToHtml(event.target.result)
+          if (wordHtml) {
+            setCvTextContent(wordHtml)
+            setCvFileDataUrl('') // Limpia DataUrl para evitar iframe de descarga binaria
+          } else {
+            const textReader = new FileReader()
+            textReader.onload = (ev) => {
+              setCvTextContent(ev.target.result || '')
+              setCvFileDataUrl('')
+            }
+            textReader.readAsText(file)
           }
         }
         arrayBufferReader.readAsArrayBuffer(file)
@@ -785,6 +826,7 @@ function App() {
         readerText.onload = (event) => {
           if (typeof event.target.result === 'string' && event.target.result.trim()) {
             setCvTextContent(event.target.result)
+            setCvFileDataUrl('')
           }
         }
         readerText.readAsText(file)
@@ -2165,6 +2207,13 @@ function App() {
                                   {isLocked ? '🔒 BLOQUEADO' : isComplete ? '✓ COMPLETO' : '⚠️ PENDIENTE'}
                                 </span>
 
+                                {/* BADGE RESALTADO DE OBSERVACIÓN REGISTRADA PARA QUE SEA VISIBLE AL INSTANTE */}
+                                {currentResp.observacion && currentResp.observacion.trim() && (
+                                  <span className="bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded-md text-xs border-2 border-amber-500 shadow-md flex items-center gap-1 shrink-0 animate-bounce">
+                                    <MessageSquare className="w-3.5 h-3.5 text-slate-950" /> 💬 OBSERVACIÓN REGISTRADA
+                                  </span>
+                                )}
+
                                 {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
                                 {userRole === 'INVESTIGADOR' && (
                                   <div className="flex items-center gap-1 ml-auto shrink-0 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
@@ -2245,45 +2294,49 @@ function App() {
                                     [p.id]: !prev[p.id]
                                   }))
                                 }}
-                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all border-2 ${
                                   currentResp.observacion && currentResp.observacion.trim()
-                                    ? 'bg-amber-500 text-white border-amber-600 shadow-md hover:bg-amber-600'
+                                    ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-md hover:bg-amber-500 ring-2 ring-amber-400/40'
                                     : (openObsQuestions[p.id] || (evaluadorInspeccionado && currentResp.observacion))
                                       ? 'bg-slate-800 text-amber-300 border-slate-700 shadow-sm'
-                                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                                      : 'bg-slate-100 hover:bg-amber-50 text-slate-800 border-amber-300'
                                 }`}
                               >
-                                <MessageSquare className="w-3.5 h-3.5" />
+                                <MessageSquare className="w-4 h-4 text-slate-950" />
                                 <span>
                                   {currentResp.observacion && currentResp.observacion.trim()
-                                    ? '💬 Observación Registrada'
+                                    ? '💬 OBSERVACIÓN REGISTRADA (VER / EDITAR)'
                                     : (openObsQuestions[p.id] || (evaluadorInspeccionado && currentResp.observacion))
-                                      ? '▼ Ocultar Observación'
-                                      : '💬 Añadir Observación (Opcional)'}
+                                      ? '▼ Ocultar Cuadro de Observación'
+                                      : '💬 Añadir Observación u Sugerencia (Opcional)'}
                                 </span>
                               </button>
 
                               {(openObsQuestions[p.id] || (currentResp.observacion && currentResp.observacion.trim()) || evaluadorInspeccionado) && (
-                                <div className="mt-2 bg-amber-50/90 p-3 rounded-xl border-2 border-amber-300 shadow-sm transition-all">
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <label className="font-black text-xs text-amber-950 flex items-center gap-1.5">
-                                      <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
-                                      <span>Observación Sugerida / Recomendación Metodológica (Opcional):</span>
+                                <div className={`mt-3 p-4 rounded-xl border-2 shadow-md transition-all ${
+                                  currentResp.observacion && currentResp.observacion.trim()
+                                    ? 'bg-amber-100/90 border-amber-500 ring-4 ring-amber-400/30'
+                                    : 'bg-amber-50 border-amber-300'
+                                }`}>
+                                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                                    <label className="font-black text-xs text-amber-950 flex items-center gap-1.5 uppercase tracking-wider">
+                                      <MessageSquare className="w-4 h-4 text-amber-800 shrink-0" />
+                                      <span>💬 OBSERVACIÓN Y SUGERENCIA REGISTRADA DE LA PREGUNTA:</span>
                                     </label>
-                                    {evaluadorInspeccionado && (
-                                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
-                                        Expediente del Evaluador
+                                    {currentResp.observacion && currentResp.observacion.trim() && (
+                                      <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full uppercase shadow border border-amber-600">
+                                        ✓ VISIBLE Y RESALTADA
                                       </span>
                                     )}
                                   </div>
 
                                   <textarea
-                                    rows={2}
+                                    rows={3}
                                     disabled={isLocked || evaluadorInspeccionado !== null}
                                     value={currentResp.observacion || ''}
                                     onChange={(e) => handleObservacionChange(p.id, e.target.value)}
                                     placeholder="Escriba aquí sus observaciones o recomendaciones opcionales para este ítem..."
-                                    className="w-full text-xs p-2.5 rounded-lg border border-amber-300 bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-900 font-medium resize-y"
+                                    className="w-full text-xs md:text-sm p-3 rounded-lg border-2 border-amber-400 bg-white focus:ring-4 focus:ring-amber-500 focus:outline-none text-slate-950 font-bold resize-y shadow-inner leading-relaxed"
                                   />
                                 </div>
                               )}
@@ -2677,24 +2730,22 @@ function App() {
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
                     <div className="flex items-center gap-2 font-bold text-teal-200 text-xs">
                       <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
-                      <span>Documento de Hoja de Vida Cargado: <strong className="text-white">{cvFileName}</strong></span>
+                      <span>Documento PDF Cargado: <strong className="text-white">{cvFileName}</strong></span>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <a
-                        href={cvFileDataUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                      <button
+                        onClick={() => setShowCvFullscreen(true)}
+                        className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
                       >
-                        <Eye className="w-4 h-4" /> Ver Pantalla Completa
-                      </a>
+                        <Eye className="w-4 h-4" /> Ver en Pantalla Completa
+                      </button>
                       <a
                         href={cvFileDataUrl}
                         download={cvFileName || 'Curriculum_Vitae.pdf'}
                         className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
                       >
-                        <Download className="w-4 h-4" /> Descargar
+                        <Download className="w-4 h-4" /> Descargar PDF
                       </a>
                       <button
                         onClick={handleRemoveCvFile}
@@ -2706,13 +2757,49 @@ function App() {
                     </div>
                   </div>
 
-                  {/* VISTA EN VIVO IFRAME DEL DOCUMENTO PDF / ARCHIVO */}
+                  {/* VISTA EN VIVO IFRAME DEL DOCUMENTO PDF */}
                   <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
                     <iframe
                       src={cvFileDataUrl}
-                      title="Visor en vivo de la Hoja de Vida"
+                      title="Visor en vivo de la Hoja de Vida PDF"
                       className="w-full h-[600px] border-0"
                     />
+                  </div>
+                </div>
+              ) : (cvTextContent && cvFileName) ? (
+                <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-2 font-bold text-teal-200 text-xs">
+                      <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
+                      <span>Documento Word / Texto Cargado: <strong className="text-white">{cvFileName}</strong></span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => setShowCvFullscreen(true)}
+                        className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                      >
+                        <Eye className="w-4 h-4" /> Ver en Pantalla Completa
+                      </button>
+                      <button
+                        onClick={handleRemoveCvFile}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" /> Quitar Archivo
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* HOJA DE DOCUMENTO WORD RENDERIZADA DIRECTAMENTE EN PANTALLA */}
+                  <div className="bg-white p-6 md:p-10 rounded-xl border border-slate-300 text-slate-900 text-xs md:text-sm font-sans shadow-2xl max-h-[600px] overflow-y-auto leading-relaxed">
+                    {cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') ? (
+                      <div 
+                        className="prose prose-slate max-w-none text-slate-900 leading-relaxed font-sans"
+                        dangerouslySetInnerHTML={{ __html: cvTextContent }}
+                      />
+                    ) : (
+                      <div className="whitespace-pre-wrap font-serif text-slate-900 leading-relaxed">{cvTextContent}</div>
+                    )}
                   </div>
                 </div>
               ) : cvFileName ? (
@@ -2943,6 +3030,46 @@ function App() {
                 ? 'FINALIZAR Y ENVIAR EVALUACIÓN' 
                 : `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)`}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FULLSCREEN DE VISUALIZACIÓN DE HOJA DE VIDA (PDF Y WORD) */}
+      {showCvFullscreen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col p-4 md:p-8 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between bg-slate-900 p-4 rounded-t-2xl border border-slate-800 text-white shadow-lg">
+            <div className="flex items-center gap-3">
+              <Briefcase className="w-6 h-6 text-teal-400" />
+              <div>
+                <h3 className="font-black text-sm md:text-base text-white">Hoja de Vida en Pantalla Completa</h3>
+                <p className="text-xs text-teal-300">{cvFileName || 'Documento de Respaldo del Evaluador'}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCvFullscreen(false)}
+              className="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition-all cursor-pointer"
+            >
+              <X className="w-4 h-4" /> Cerrar Pantalla Completa
+            </button>
+          </div>
+
+          <div className="flex-1 bg-white rounded-b-2xl overflow-hidden shadow-2xl p-4 md:p-8 overflow-y-auto">
+            {cvFileDataUrl ? (
+              <iframe src={cvFileDataUrl} className="w-full h-full border-0 rounded-xl" title="CV Fullscreen" />
+            ) : cvTextContent ? (
+              <div className="max-w-4xl mx-auto py-6">
+                {cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') ? (
+                  <div 
+                    className="prose prose-slate max-w-none text-slate-900 leading-relaxed font-sans text-sm md:text-base"
+                    dangerouslySetInnerHTML={{ __html: cvTextContent }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap font-serif text-slate-900 text-sm leading-relaxed">{cvTextContent}</div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-slate-500 font-bold">No hay contenido de documento disponible para visualizar.</div>
+            )}
           </div>
         </div>
       )}
