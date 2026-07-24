@@ -525,9 +525,14 @@ function App() {
 
     if (!isExtranjero && !cleanDni.startsWith('EXT-')) {
       if (!/^\d{8}$/.test(cleanDni)) {
-        alert("El DNI peruano debe ser strictly numérico de 8 dígitos.")
+        alert("El DNI peruano debe ser estrictamente numérico de 8 dígitos.")
         return
       }
+    }
+
+    if (cleanDni === '09091855' && !combinedNombre.toLowerCase().includes('luis alfonso cruz')) {
+      alert("El DNI 09091855 pertenece al Investigador Principal (Dr. Luis Alfonso Cruz Gálvez). Por favor ingrese su propio DNI de evaluador o haga clic en 'Generar Código' si es extranjero.")
+      return
     }
 
     if (!cleanInstitucion) {

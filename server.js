@@ -417,6 +417,14 @@ app.post('/api/evaluacion/save', (req, res) => {
   let revocados = readJson(REVOCADOS_FILE) || []
 
   const cleanCode = codigo.trim().toUpperCase()
+
+  // Proteger DNI del Investigador Principal (09091855)
+  if (cleanCode === '09091855' && payload && payload.nombre && !payload.nombre.toLowerCase().includes('luis alfonso cruz')) {
+    return res.status(400).json({
+      success: false,
+      mensaje: 'El DNI 09091855 pertenece exclusivamente al Investigador Principal (Dr. Luis Alfonso Cruz Gálvez). Por favor utilice su propio DNI de evaluador o genere su código de acceso para extranjero.'
+    })
+  }
   const existingEval = evals[cleanCode] || (payload.dni ? evals[payload.dni.trim().toUpperCase()] : null) || {}
 
   // Determinar nombre, cargo y DNI sin sobrescribir datos reales con placeholders
