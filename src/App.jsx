@@ -208,6 +208,13 @@ function App() {
   }
 
   useEffect(() => {
+    const savedDni = localStorage.getItem(`${LOCAL_STORAGE_KEY}_dni`)
+    const savedNombre = localStorage.getItem(`${LOCAL_STORAGE_KEY}_nombre`)
+    if (savedDni === '09091855' && savedNombre && savedNombre.toLowerCase().includes('marco')) {
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_dni`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_nombre`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cargo`)
+    }
     fetchPreguntasBackend()
     fetchInvestigadorPerfil()
   }, [])

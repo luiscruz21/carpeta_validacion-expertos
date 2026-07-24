@@ -217,6 +217,12 @@ const getConsolidatedInvitations = (invites, evals) => {
 
       let estado = finalFinalizado || totalAnswered >= 100 ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
+      if (mainKey === '09091855') {
+        finalNombre = "Dr. Luis Alfonso Cruz Gálvez"
+        finalCargo = "Investigador Principal"
+        finalDni = "09091855"
+      }
+
       grouped[mainKey] = {
         codigo: mainKey,
         nombreExperto: finalNombre,
@@ -399,6 +405,11 @@ app.get('/api/evaluacion/:key', (req, res) => {
         revocado: true,
         mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
       })
+    }
+    if (cleanKey === '09091855' || found.dni === '09091855') {
+      found.nombre = "Dr. Luis Alfonso Cruz Gálvez"
+      found.cargo = "Investigador Principal"
+      found.dni = "09091855"
     }
     return res.json({ success: true, data: found })
   }
