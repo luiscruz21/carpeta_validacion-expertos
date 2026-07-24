@@ -175,6 +175,23 @@ function App() {
               if (ev.cargo) setCargo(ev.cargo)
               if (ev.dni) setDni(ev.dni)
               if (ev.respuestas) setRespuestas(ev.respuestas)
+              if (ev.firmaExpertoImg) setFirmaExpertoImg(ev.firmaExpertoImg)
+              if (ev.gradoAcademico) setGradoAcademico(ev.gradoAcademico)
+              if (ev.institucion) setInstitucion(ev.institucion)
+              if (ev.experiencia) setExperiencia(ev.experiencia)
+              if (ev.isExtranjero) setIsExtranjero(ev.isExtranjero)
+              if (ev.ctiVitae) setCtiVitae(ev.ctiVitae)
+              if (ev.orcid) setOrcid(ev.orcid)
+              if (ev.linkedin) setLinkedin(ev.linkedin)
+              if (ev.cvFileName) setCvFileName(ev.cvFileName)
+              if (ev.cvFileDataUrl) setCvFileDataUrl(ev.cvFileDataUrl)
+              if (ev.cvTextContent) setCvTextContent(ev.cvTextContent)
+              if (ev.email) setEmail(ev.email)
+              if (ev.estudios) setEstudios(ev.estudios)
+              if (ev.experienciaDetallada) setExperienciaDetallada(ev.experienciaDetallada)
+              if (ev.valoracionGlobal) setValoracionGlobal(ev.valoracionGlobal)
+              if (ev.dictamenFinal) setDictamenFinal(ev.dictamenFinal)
+              if (ev.observaciones) setObservaciones(ev.observaciones)
             }
           })
           .catch(() => {})
@@ -749,6 +766,19 @@ function App() {
       reader.readAsDataURL(file)
     }
   }
+
+  useEffect(() => {
+    if (firmaExpertoImg && canvasRef.current) {
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      }
+      img.src = firmaExpertoImg
+    }
+  }, [firmaExpertoImg, activeTab])
 
   const convertWordToHtml = async (arrayBuffer) => {
     try {
@@ -2869,18 +2899,44 @@ function App() {
               )}
 
               {/* FORMULARIO PARA ACTUALIZAR LOS DATOS PRINCIPALES DE LA HOJA DE VIDA */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
-                  Formulario de Registro / Actualización de Datos Principales del CV
-                </h4>
+              <div className={`border rounded-xl p-5 space-y-4 transition-all ${
+                hasCvFile 
+                  ? 'bg-slate-100/90 border-slate-300 opacity-80' 
+                  : 'bg-slate-50 border-slate-200'
+              }`}>
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2 flex-wrap gap-2">
+                  <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider">
+                    Formulario de Registro / Actualización de Datos Principales del CV (Ítems 1 al 5)
+                  </h4>
+
+                  {hasCvFile ? (
+                    <span className="bg-emerald-100 text-emerald-900 font-extrabold text-[11px] px-3 py-1 rounded-full border border-emerald-400 shadow-sm flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> ✓ Bloqueado (Cumplido con Archivo Adjunto)
+                    </span>
+                  ) : (
+                    <span className="bg-amber-100 text-amber-900 font-extrabold text-[11px] px-3 py-1 rounded-full border border-amber-300">
+                      ⚠️ Obligatorio si no adjunta archivo PDF / Word
+                    </span>
+                  )}
+                </div>
+
+                {hasCvFile && (
+                  <div className="bg-emerald-50 border border-emerald-300 p-3 rounded-lg text-xs text-emerald-950 font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>Ha cargado el archivo <strong>{cvFileName}</strong>. Los campos del formulario han sido bloqueados ya que el requisito de Hoja de Vida está satisfecho.</span>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
                     <label className="block font-bold text-slate-800 mb-1">1. Nombres y Apellidos Completos:</label>
                     <input 
                       type="text" 
+                      disabled={hasCvFile}
                       placeholder="Nombres y Apellidos del Evaluador"
-                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
+                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
                     />
@@ -2890,8 +2946,11 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">2. Correo Electrónico Oficial:</label>
                     <input 
                       type="email" 
+                      disabled={hasCvFile}
                       placeholder="ejemplo@institucion.edu.pe"
-                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
+                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -2901,8 +2960,11 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">3. Grado Académico Máximo:</label>
                     <input 
                       type="text" 
+                      disabled={hasCvFile}
                       placeholder="Doctor en Ingeniería / Magíster"
-                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
+                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={gradoAcademico}
                       onChange={(e) => setGradoAcademico(e.target.value)}
                     />
@@ -2912,8 +2974,11 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">4. Estudios Realizados / Universidad:</label>
                     <input 
                       type="text" 
+                      disabled={hasCvFile}
                       placeholder="Universidad de procedencia / Grados y Posgrados"
-                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
+                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={estudios}
                       onChange={(e) => setEstudios(e.target.value)}
                     />
@@ -2923,8 +2988,11 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">5. Experiencia Profesional y Resumen de Trayectoria:</label>
                     <textarea 
                       rows={3}
+                      disabled={hasCvFile}
                       placeholder="Describa sus años de experiencia docente, cargos desempeñados y publicaciones académicas..."
-                      className="w-full p-2.5 border rounded-lg text-slate-800 text-xs bg-white font-medium"
+                      className={`w-full p-2.5 border rounded-lg text-slate-800 text-xs font-medium ${
+                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={experienciaDetallada}
                       onChange={(e) => setExperienciaDetallada(e.target.value)}
                     />
