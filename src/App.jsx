@@ -237,6 +237,16 @@ function App() {
       const res = await fetch(`/api/evaluacion/${cleanKey}`)
       const data = await res.json()
 
+      if (data.revocado || res.status === 403) {
+        alert(data.mensaje || `Acceso Denegado: El registro o invitación para "${cleanKey}" fue retirado del sistema por el Investigador.`)
+        localStorage.clear()
+        setNombre('')
+        setDni('')
+        setCargo('')
+        setRespuestas({})
+        return
+      }
+
       if (data.success && data.data) {
         const ev = data.data
         if (ev.respuestas) setRespuestas(ev.respuestas)
@@ -2306,34 +2316,41 @@ function App() {
         </div>
       )}
 
-      {/* Floating Bottom Bar para el Experto */}
-      {userRole === 'EVALUADOR' && (
+      {/* Floating Bottom Bar para el Experto - Solo en Instrumentos y Hoja de Vida */}
+      {userRole === 'EVALUADOR' && (activeTab === 'INSTRUMENTOS' || activeTab === 'HOJA_VIDA') && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 p-4 shadow-[0_-8px_20px_rgba(0,0,0,0.08)] z-50">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              {totalAnswered === totalPreguntas ? (
+              {totalComplete === totalPreguntas ? (
                 <CheckCircle2 className="text-emerald-500 w-7 h-7 shrink-0" />
               ) : (
-                <div className="w-4 h-4 bg-sky-500 rounded-full animate-ping shrink-0" />
+                <div className="w-4 h-4 bg-amber-500 rounded-full animate-ping shrink-0" />
               )}
               <div>
                 <p className="font-bold text-slate-800 text-sm">
-                  Avance: {totalAnswered} / {totalPreguntas} preguntas evaluadas
+                  Avance Totalmente Completado: <span className="text-sky-700 font-extrabold">{totalComplete} / {totalPreguntas}</span> preguntas
                 </p>
                 <p className="text-xs text-slate-500">
-                  {totalAnswered === totalPreguntas 
-                    ? "¡Formulario completo! Listo para enviar su evaluación." 
-                    : "Por favor complete todas las preguntas requeridas."}
+                  {totalComplete === totalPreguntas 
+                    ? "¡Todas las preguntas completadas! Listo para enviar su evaluación." 
+                    : `Faltan ${totalMissing} preguntas por responder de forma obligatoria.`}
                 </p>
               </div>
             </div>
 
             <button 
               onClick={handleSubmitEvaluacion}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-600/30 transition-all text-sm"
+              disabled={totalComplete < totalPreguntas}
+              className={`w-full sm:w-auto font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg ${
+                totalComplete === totalPreguntas 
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-emerald-600/30' 
+                  : 'bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-400'
+              }`}
             >
-              <Send className="w-4 h-4" />
-              FINALIZAR Y ENVIAR EVALUACIÓN
+              {totalComplete === totalPreguntas ? <Send className="w-4 h-4" /> : <Lock className="w-4 h-4 text-slate-400" />}
+              {totalComplete === totalPreguntas 
+                ? 'FINALIZAR Y ENVIAR EVALUACIÓN' 
+                : `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)`}
             </button>
           </div>
         </div>

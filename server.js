@@ -25,12 +25,18 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
 }
 
+const REVOCADOS_FILE = path.join(DATA_DIR, 'revocados.json')
+
 if (!fs.existsSync(EVAL_FILE)) {
   fs.writeFileSync(EVAL_FILE, JSON.stringify({}, null, 2))
 }
 
 if (!fs.existsSync(INVITE_FILE)) {
   fs.writeFileSync(INVITE_FILE, JSON.stringify({}, null, 2))
+}
+
+if (!fs.existsSync(REVOCADOS_FILE)) {
+  fs.writeFileSync(REVOCADOS_FILE, JSON.stringify([], null, 2))
 }
 
 const readJson = (filePath) => {
@@ -173,21 +179,31 @@ app.delete('/api/invitaciones/:codigo', (req, res) => {
   const cleanCode = (codigo || '').trim().toUpperCase()
   const invites = readJson(INVITE_FILE) || {}
   const evals = readJson(EVAL_FILE) || {}
+  const revocados = readJson(REVOCADOS_FILE) || []
 
   let found = false
 
   if (invites[cleanCode]) {
+    if (invites[cleanCode].dni && !revocados.includes(invites[cleanCode].dni.trim().toUpperCase())) {
+      revocados.push(invites[cleanCode].dni.trim().toUpperCase())
+    }
     delete invites[cleanCode]
     found = true
   }
 
   if (evals[cleanCode]) {
+    if (evals[cleanCode].dni && !revocados.includes(evals[cleanCode].dni.trim().toUpperCase())) {
+      revocados.push(evals[cleanCode].dni.trim().toUpperCase())
+    }
     delete evals[cleanCode]
     found = true
   }
 
   Object.keys(evals).forEach(k => {
     if (k.toUpperCase() === cleanCode || (evals[k].dni && evals[k].dni.toUpperCase() === cleanCode)) {
+      if (evals[k].dni && !revocados.includes(evals[k].dni.trim().toUpperCase())) {
+        revocados.push(evals[k].dni.trim().toUpperCase())
+      }
       delete evals[k]
       found = true
     }
@@ -200,8 +216,13 @@ app.delete('/api/invitaciones/:codigo', (req, res) => {
     }
   })
 
+  if (!revocados.includes(cleanCode)) {
+    revocados.push(cleanCode)
+  }
+
   writeJson(INVITE_FILE, invites)
   writeJson(EVAL_FILE, evals)
+  writeJson(REVOCADOS_FILE, revocados)
 
   if (found) {
     return res.json({ success: true, mensaje: 'Evaluador o invitación eliminada correctamente' })
@@ -221,9 +242,18 @@ app.post('/api/evaluador/ingresar', (req, res) => {
   const { codigo, dni } = req.body
   const invites = readJson(INVITE_FILE) || {}
   const evals = readJson(EVAL_FILE) || {}
+  const revocados = readJson(REVOCADOS_FILE) || []
 
   const cleanCode = (codigo || '').trim().toUpperCase()
   const cleanDni = (dni || '').trim()
+
+  if (revocados.includes(cleanCode) || (cleanDni && revocados.includes(cleanDni.toUpperCase()))) {
+    return res.status(403).json({
+      success: false,
+      revocado: true,
+      mensaje: 'Acceso Denegado: Su registro o invitación ha sido retirado del sistema por el Investigador.'
+    })
+  }
 
   let invite = invites[cleanCode]
   
@@ -255,10 +285,28 @@ app.post('/api/evaluador/ingresar', (req, res) => {
 app.get('/api/evaluacion/:key', (req, res) => {
   const { key } = req.params
   const evals = readJson(EVAL_FILE) || {}
+  const revocados = readJson(REVOCADOS_FILE) || []
+
   const cleanKey = key.trim().toUpperCase()
+
+  if (revocados.includes(cleanKey)) {
+    return res.status(403).json({
+      success: false,
+      revocado: true,
+      mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
+    })
+  }
+
   const found = evals[cleanKey] || Object.values(evals).find(e => e.dni === key.trim())
   
   if (found) {
+    if (found.dni && revocados.includes(found.dni.trim().toUpperCase())) {
+      return res.status(403).json({
+        success: false,
+        revocado: true,
+        mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
+      })
+    }
     return res.json({ success: true, data: found })
   }
   return res.json({ success: false, message: 'No encontrado' })
