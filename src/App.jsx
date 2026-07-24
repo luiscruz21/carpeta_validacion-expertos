@@ -794,6 +794,19 @@ function App() {
     }
   }
 
+  const handleRemoveCvFile = () => {
+    if (window.confirm("¿Está seguro de quitar el archivo de Hoja de Vida cargado?")) {
+      setCvFileName('')
+      setCvFileDataUrl('')
+      setCvTextContent('')
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cv_filename`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cv_dataurl`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cv_text_content`)
+      if (cvFileInputRef.current) cvFileInputRef.current.value = ''
+      alert("El archivo de Hoja de Vida ha sido eliminado correctamente.")
+    }
+  }
+
   const handleResetForm = () => {
     if (window.confirm("¿Está seguro de reiniciar todas las respuestas y borrar los datos ingresados?")) {
       localStorage.clear()
@@ -2611,7 +2624,7 @@ function App() {
             </div>
 
             <div className="space-y-6 text-sm">
-              {/* BOTÓN Y ÁREA PRINCIPAL PARA ADJUNTAR ARCHIVO CV (PDF O WORD) */}
+              {/* UN ÚNICO MÓDULO PRINCIPAL PARA CARGAR, REEMPLAZAR Y QUITAR EL ARCHIVO DE CV (PDF / WORD) */}
               <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-teal-500 transition-all shadow-sm">
                 <input 
                   type="file" 
@@ -2620,21 +2633,33 @@ function App() {
                   className="hidden" 
                   onChange={handleCvFileUpload}
                 />
-                <FileCheck className="w-12 h-12 text-teal-600 mx-auto mb-2 animate-bounce" />
-                <h3 className="font-extrabold text-slate-900 text-base">Adjuntar o Cargar Archivo de Hoja de Vida (CV)</h3>
+                <FileCheck className="w-12 h-12 text-teal-600 mx-auto mb-2" />
+                <h3 className="font-extrabold text-slate-900 text-base">Adjuntar Archivo de Hoja de Vida (CV)</h3>
                 <p className="text-xs text-slate-500 mb-4">Formatos permitidos: PDF, Word (DOC, DOCX) o Texto (TXT)</p>
                 
                 {cvFileName ? (
-                  <div className="inline-flex flex-col items-center gap-2">
-                    <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-900 font-black px-5 py-2.5 rounded-xl text-xs border border-emerald-400 shadow">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" /> Archivo de CV Cargado: {cvFileName}
+                  <div className="inline-flex flex-col items-center gap-3">
+                    <div className="inline-flex items-center gap-3 bg-emerald-100 text-emerald-900 font-black px-5 py-2.5 rounded-xl text-xs border border-emerald-400 shadow flex-wrap justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                      <span>Archivo Cargado: <strong>{cvFileName}</strong></span>
                     </div>
-                    <button
-                      onClick={() => cvFileInputRef.current?.click()}
-                      className="text-xs text-teal-700 underline font-extrabold hover:text-teal-900 pt-1"
-                    >
-                      🔄 Reemplazar por otro archivo PDF o Word
-                    </button>
+
+                    <div className="flex items-center gap-3 flex-wrap justify-center pt-1">
+                      <button
+                        onClick={() => cvFileInputRef.current?.click()}
+                        className="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Reemplazar Archivo
+                      </button>
+
+                      <button
+                        onClick={handleRemoveCvFile}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
+                        title="Quitar y eliminar el archivo cargado"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Quitar Archivo Cargado
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
@@ -2646,189 +2671,75 @@ function App() {
                 )}
               </div>
 
-              {/* FICHA Y CONTENIDO EXTRAÍDO / VISUALIZADO DE LA HOJA DE VIDA DEL ARCHIVO */}
-              <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+              {/* VISUALIZADOR DEL ARCHIVO DE HOJA DE VIDA (PDF O WORD) */}
+              {cvFileDataUrl ? (
+                <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-2 font-bold text-teal-200 text-xs">
+                      <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
+                      <span>Documento de Hoja de Vida Cargado: <strong className="text-white">{cvFileName}</strong></span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={cvFileDataUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                      >
+                        <Eye className="w-4 h-4" /> Ver Pantalla Completa
+                      </a>
+                      <a
+                        href={cvFileDataUrl}
+                        download={cvFileName || 'Curriculum_Vitae.pdf'}
+                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                      >
+                        <Download className="w-4 h-4" /> Descargar
+                      </a>
+                      <button
+                        onClick={handleRemoveCvFile}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                        title="Quitar el archivo cargado"
+                      >
+                        <Trash2 className="w-4 h-4" /> Quitar Archivo
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* VISTA EN VIVO IFRAME DEL DOCUMENTO PDF / ARCHIVO */}
+                  <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+                    <iframe
+                      src={cvFileDataUrl}
+                      title="Visor en vivo de la Hoja de Vida"
+                      className="w-full h-[600px] border-0"
+                    />
+                  </div>
+                </div>
+              ) : cvFileName ? (
+                <div className="bg-emerald-950/90 text-white border-2 border-emerald-500/60 p-5 rounded-2xl flex items-center justify-between text-xs flex-wrap gap-3 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-teal-500/20 rounded-xl border border-teal-400/40 flex items-center justify-center text-teal-300 font-black text-xl shadow-inner shrink-0">
-                      {nombre ? nombre.charAt(0).toUpperCase() : 'E'}
-                    </div>
+                    <FileCheck className="w-8 h-8 text-emerald-400 shrink-0" />
                     <div>
-                      <h3 className="text-lg md:text-xl font-black text-white flex items-center gap-2">
-                        {nombre || 'Experto Validador'}
-                      </h3>
-                      <p className="text-xs text-teal-200 font-semibold">{cargo || 'Especialista Informante'}</p>
+                      <h4 className="font-extrabold text-white text-sm">Archivo de Hoja de Vida Registrado: {cvFileName}</h4>
+                      <p className="text-emerald-200 text-xs">El documento de respaldo ha sido guardado exitosamente.</p>
                     </div>
                   </div>
 
-                  {gradoAcademico && (
-                    <span className="bg-teal-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-full uppercase tracking-wider shadow shrink-0">
-                      {gradoAcademico}
-                    </span>
-                  )}
-                </div>
-
-                {/* VISUALIZADOR DIRECTO EN VIVO DEL ARCHIVO PDF / WORD */}
-                {cvFileDataUrl ? (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between bg-teal-900/60 p-3.5 rounded-xl border border-teal-500/40 text-xs flex-wrap gap-2">
-                      <div className="flex items-center gap-2 font-bold text-teal-200">
-                        <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
-                        <span>Documento de Hoja de Vida Cargado: <strong className="text-white">{cvFileName || 'Curriculum_Vitae.pdf'}</strong></span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={cvFileDataUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
-                        >
-                          <Eye className="w-4 h-4" /> Ver Documento Completo en Pantalla Completa
-                        </a>
-                        <a
-                          href={cvFileDataUrl}
-                          download={cvFileName || 'Curriculum_Vitae.pdf'}
-                          className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
-                        >
-                          <Download className="w-4 h-4" /> Descargar Archivo
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* EMBED PDF / DOCUMENT IFRAME VIEWER */}
-                    <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
-                      <iframe
-                        src={cvFileDataUrl}
-                        title="Visor en vivo de la Hoja de Vida Cargada"
-                        className="w-full h-[550px] border-0"
-                      />
-                    </div>
-                  </div>
-                ) : cvFileName ? (
-                  <div className="bg-emerald-950/80 border border-emerald-500/50 p-4 rounded-xl flex items-center justify-between text-xs text-emerald-200 flex-wrap gap-2">
-                    <div className="flex items-center gap-2 font-bold">
-                      <FileCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <span>Archivo Registrado: <strong className="text-white">{cvFileName}</strong></span>
-                    </div>
-                    <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-1 rounded-md shadow">
-                      ✓ DOCUMENTO CARGADO
-                    </span>
-                  </div>
-                ) : (
-                  <div className="bg-amber-950/60 border border-amber-500/40 p-4 rounded-xl flex items-center gap-3 text-xs text-amber-200">
-                    <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-                    <span>Por favor adjunte su archivo de Curriculum Vitae (PDF o Word) arriba para visualizar su contenido exacto aquí.</span>
-                  </div>
-                )}
-              </div>
-
-              {/* LECTURA DE TEXTO EXTRAÍDO DEL ARCHIVO O REGISTRO DEL EVALUADOR */}
-              {(cvTextContent || nombre || email || gradoAcademico || estudios || experienciaDetallada) && (
-                <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 space-y-4 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
-                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-teal-700" />
-                      Contenido Extraído / Registrado de la Hoja de Vida
-                    </h3>
-                    {cvFileName && (
-                      <span className="bg-teal-100 text-teal-900 font-extrabold text-[11px] px-2.5 py-1 rounded-md border border-teal-300">
-                        {cvFileName}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 text-slate-800 text-xs md:text-sm font-sans space-y-4 shadow-inner max-h-[500px] overflow-y-auto leading-relaxed">
-                    {cvTextContent ? (
-                      <div className="whitespace-pre-wrap font-serif leading-relaxed text-slate-900">{cvTextContent}</div>
-                    ) : (
-                      <div className="space-y-4">
-                        {nombre && (
-                          <div className="border-b border-slate-200 pb-3">
-                            <h4 className="font-black text-slate-900 text-base">{nombre}</h4>
-                            {cargo && <p className="text-teal-700 font-bold text-xs">{cargo}</p>}
-                            {dni && <p className="text-slate-500 text-xs">DNI / Registro: {dni}</p>}
-                            {institucion && <p className="text-slate-500 text-xs">Institución: {institucion}</p>}
-                            {email && <p className="text-slate-500 text-xs">Correo Electrónico: {email}</p>}
-                          </div>
-                        )}
-
-                        {(gradoAcademico || estudios) && (
-                          <div>
-                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">FORMACIÓN ACADÉMICA Y ESTUDIOS</h5>
-                            <ul className="list-disc pl-5 space-y-1 text-slate-700">
-                              {gradoAcademico && <li><strong>Grado Académico:</strong> {gradoAcademico}</li>}
-                              {estudios && <li><strong>Estudios Realizados / Universidad:</strong> {estudios}</li>}
-                            </ul>
-                          </div>
-                        )}
-
-                        {(experienciaDetallada || resumenProfesional || experiencia) && (
-                          <div>
-                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">EXPERIENCIA PROFESIONAL Y TRAYECTORIA</h5>
-                            <p className="text-slate-700 leading-relaxed">
-                              {experienciaDetallada || resumenProfesional || experiencia}
-                            </p>
-                          </div>
-                        )}
-
-                        {(ctiVitae || orcid || linkedin) && (
-                          <div>
-                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">ENLACES Y REGISTROS OFICIALES</h5>
-                            <div className="flex flex-wrap gap-2 pt-1">
-                              {ctiVitae && <span className="bg-sky-50 text-sky-800 font-bold px-2.5 py-1 rounded border border-sky-200">CTI Vitae: {ctiVitae}</span>}
-                              {orcid && <span className="bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">ORCID: {orcid}</span>}
-                              {linkedin && <span className="bg-indigo-50 text-indigo-800 font-bold px-2.5 py-1 rounded border border-indigo-200">LinkedIn: {linkedin}</span>}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-teal-50/60 border border-teal-200 rounded-lg p-4 text-xs text-teal-950">
-                <p className="font-bold">Estimado(a) Experto(a):</p>
-                <p className="mt-1">
-                  A fin de respaldar la validez metodológica ante el jurado de tesis y la Escuela de Posgrado, le solicitamos adjuntar su archivo de Curriculum Vitae (PDF o Word) o actualizar sus 5 datos principales y enlaces académicos oficiales (CTI Vitae / Concytec / ORCID / LinkedIn).
-                </p>
-              </div>
-
-              {/* Cargar / Actualizar Archivo de Hoja de Vida */}
-              <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-500 transition-all">
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx"
-                  ref={cvFileInputRef}
-                  className="hidden" 
-                  onChange={handleCvFileUpload}
-                />
-                <FileCheck className="w-10 h-10 text-teal-600 mx-auto mb-2" />
-                <h3 className="font-bold text-slate-900 text-sm">Adjuntar o Reemplazar Archivo de Hoja de Vida (CV PDF)</h3>
-                <p className="text-xs text-slate-500 mb-4">Formatos permitidos: PDF, DOC, DOCX</p>
-                
-                {cvFileName ? (
-                  <div className="inline-flex flex-col items-center gap-2">
-                    <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 font-bold px-4 py-2 rounded-lg text-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Archivo cargado: {cvFileName}
-                    </div>
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => cvFileInputRef.current?.click()}
-                      className="text-xs text-teal-700 underline font-bold hover:text-teal-900"
+                      onClick={handleRemoveCvFile}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
                     >
-                      Cambiar o subir un nuevo archivo PDF
+                      <Trash2 className="w-4 h-4" /> Quitar Archivo
                     </button>
                   </div>
-                ) : (
-                  <button
-                    onClick={() => cvFileInputRef.current?.click()}
-                    className="bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 px-6 rounded-lg text-xs shadow transition-all inline-flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" /> Seleccionar Archivo PDF desde su equipo
-                  </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="bg-amber-50 border border-amber-300 p-4 rounded-xl flex items-center gap-3 text-xs text-amber-900 font-medium">
+                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span>Por favor adjunte su archivo de Curriculum Vitae (PDF o Word) arriba para visualizarlo en vivo.</span>
+                </div>
+              )}
 
               {/* FORMULARIO PARA ACTUALIZAR LOS DATOS PRINCIPALES DE LA HOJA DE VIDA */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
