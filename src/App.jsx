@@ -134,6 +134,8 @@ function App() {
   const [investigadorGrado, setInvestigadorGrado] = useState('Doctor en Educación / Magíster en Ingeniería')
   const [investigadorTituloTesis, setInvestigadorTituloTesis] = useState('Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024')
   const [investigadorFirmaImg, setInvestigadorFirmaImg] = useState('')
+  const [pinInvestigadorActual, setPinInvestigadorActual] = useState('2026')
+  const [mostrarPinInvestigador, setMostrarPinInvestigador] = useState(false)
 
   const [syncing, setSyncing] = useState(false)
   const [showCvFullscreen, setShowCvFullscreen] = useState(false)
@@ -155,6 +157,7 @@ function App() {
         if (parsed.grado) setInvestigadorGrado(parsed.grado)
         if (parsed.tituloTesis) setInvestigadorTituloTesis(parsed.tituloTesis)
         if (parsed.firmaImg) setInvestigadorFirmaImg(parsed.firmaImg)
+        if (parsed.pin) setPinInvestigadorActual(parsed.pin)
       }
       const res = await fetch('/api/investigador/perfil')
       const contentType = res.headers.get('content-type') || ''
@@ -168,6 +171,7 @@ function App() {
           if (data.perfil.grado) setInvestigadorGrado(data.perfil.grado)
           if (data.perfil.tituloTesis) setInvestigadorTituloTesis(data.perfil.tituloTesis)
           if (data.perfil.firmaImg) setInvestigadorFirmaImg(data.perfil.firmaImg)
+          if (data.perfil.pin) setPinInvestigadorActual(data.perfil.pin)
         }
       }
     } catch (err) {
@@ -701,6 +705,7 @@ function App() {
       const data = await res.json()
       if (res.ok && data.success) {
         setPinSuccessMsg(`¡Clave PIN del Investigador actualizada con éxito a: "${nuevoPinInput.trim()}"!`)
+        setPinInvestigadorActual(nuevoPinInput.trim())
         setPinActualInput('')
         setNuevoPinInput('')
       } else {
@@ -2535,36 +2540,6 @@ function App() {
               <Briefcase className="w-4 h-4" /> Hoja de Vida Evaluador
             </button>
 
-            {userRole === 'EVALUADOR' && (
-              <button
-                onClick={() => {
-                  if (window.confirm("¿Desea registrar un nuevo evaluador o ingresar con otro código de acceso?")) {
-                    setNombre('')
-                    setNombresExperto('')
-                    setApellidosExperto('')
-                    setDni('')
-                    setCargo('')
-                    setGradoAcademico('')
-                    setInstitucion('')
-                    setEmail('')
-                    setRespuestas({})
-                    setFirmaExpertoImg('')
-                    setCvFileName('')
-                    setCvFileDataUrl('')
-                    setCvTextContent('')
-                    setIsFinalizado(false)
-                    setInviteCode('')
-                    localStorage.removeItem(`${LOCAL_STORAGE_KEY}_dni`)
-                    localStorage.removeItem(`${LOCAL_STORAGE_KEY}_nombre`)
-                    setShowRegistroModal(true)
-                  }
-                }}
-                className="px-3.5 py-2 rounded-lg font-bold text-xs bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                title="Registrar un nuevo evaluador o ingresar con otro DNI"
-              >
-                <UserPlus className="w-4 h-4 text-sky-600" /> Cambiar / Nuevo Evaluador
-              </button>
-            )}
 
             {userRole === 'INVESTIGADOR' && (
               <>
@@ -2862,14 +2837,67 @@ function App() {
               </button>
             </div>
 
-            {/* SECCIÓN CONFIGURACIÓN DE CLAVE PIN DE ACCESO DEL INVESTIGADOR */}
-            <div className="bg-slate-900 text-white rounded-xl p-5 mb-8 shadow-lg border border-slate-700">
-              <h3 className="text-sm font-extrabold text-amber-400 flex items-center gap-2 mb-2">
-                <Lock className="w-4 h-4 text-amber-400" /> Configuración de Clave de Acceso del Investigador (PIN)
-              </h3>
-              <p className="text-xs text-slate-300 mb-4">
-                Configure o cambie la clave de acceso privada que utiliza para ingresar al Panel de Control del Investigador.
-              </p>
+            {/* SECCIÓN REGISTRO Y GESTIÓN DE CLAVES DE ACCESO DE INVESTIGADORES */}
+            <div id="form-cambiar-pin" className="bg-slate-900 text-white rounded-xl p-5 mb-8 shadow-lg border border-slate-700">
+              <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <h3 className="text-sm font-extrabold text-amber-400 flex items-center gap-2">
+                  <Key className="w-4 h-4 text-amber-400" /> Registro Oficial de Claves de Acceso de Investigadores
+                </h3>
+                <span className="text-[10px] bg-amber-400/20 text-amber-300 font-bold px-2.5 py-1 rounded-full border border-amber-400/40">
+                  🔒 Seguridad de Credenciales
+                </span>
+              </div>
+
+              <div className="overflow-x-auto border border-slate-800 rounded-lg mb-6">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="p-3">Investigador Principal</th>
+                      <th className="p-3">DNI / Documento</th>
+                      <th className="p-3">Rol / Cargo</th>
+                      <th className="p-3 text-center">Clave PIN Activa</th>
+                      <th className="p-3 text-center">Estado</th>
+                      <th className="p-3 text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 font-medium">
+                    <tr className="bg-slate-900/60">
+                      <td className="p-3 font-extrabold text-white">Dr. Luis Alfonso Cruz Gálvez</td>
+                      <td className="p-3 font-mono text-sky-400 font-bold">09091855</td>
+                      <td className="p-3 text-slate-300">Investigador Principal (Autor de la Tesis)</td>
+                      <td className="p-3 text-center font-mono font-black text-amber-400 text-sm">
+                        {mostrarPinInvestigador ? (pinInvestigadorActual || '2026') : '••••••••'}
+                        <button
+                          type="button"
+                          onClick={() => setMostrarPinInvestigador(!mostrarPinInvestigador)}
+                          className="ml-2 text-slate-400 hover:text-white inline-flex items-center"
+                          title="Mostrar/Ocultar clave PIN"
+                        >
+                          {mostrarPinInvestigador ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5 text-amber-400" />}
+                        </button>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="bg-emerald-950 text-emerald-400 border border-emerald-500/50 px-2.5 py-1 rounded text-[10px] font-bold">
+                          ✓ Activo y Protegido
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setMostrarPinInvestigador(!mostrarPinInvestigador)}
+                          className="text-amber-400 hover:underline font-bold text-[11px]"
+                        >
+                          {mostrarPinInvestigador ? 'Ocultar PIN' : 'Ver PIN'}
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h4 className="text-xs font-extrabold text-slate-200 mb-2 uppercase tracking-wider">
+                Cambiar / Actualizar Clave PIN del Investigador:
+              </h4>
 
               {pinSuccessMsg && (
                 <div className="bg-emerald-950/80 border border-emerald-500 p-3 rounded-lg text-xs text-emerald-300 font-bold mb-3 flex items-center gap-2">
@@ -2969,10 +2997,11 @@ function App() {
                 <table className="w-full text-xs text-left border-collapse">
                   <thead className="bg-slate-800 text-white uppercase text-[11px]">
                     <tr>
-                      <th className="px-4 py-3 border-r border-slate-700">Código</th>
-                      <th className="px-4 py-3 border-r border-slate-700">Nombre del Experto</th>
+                      <th className="px-4 py-3 border-r border-slate-700">Código Invitación</th>
+                      <th className="px-4 py-3 border-r border-slate-700">Experto / Quién lo usa</th>
+                      <th className="px-4 py-3 border-r border-slate-700">DNI del Experto</th>
                       <th className="px-4 py-3 border-r border-slate-700">Especialidad / Cargo</th>
-                      <th className="px-4 py-3 border-r border-slate-700 text-center">Estado</th>
+                      <th className="px-4 py-3 border-r border-slate-700 text-center">Estado de Uso</th>
                       <th className="px-4 py-3 border-r border-slate-700 text-center">Avance (Preguntas)</th>
                       <th className="px-4 py-3 text-center">Acciones / Enlace</th>
                     </tr>
@@ -2991,11 +3020,12 @@ function App() {
 
                       const realAnswered = Math.max(inv.respondidas || 0, countFromEval)
                       const realEstado = (realAnswered >= 100 || inv.estado === 'Completado') ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : (inv.estado || 'Pendiente'))
+                      const displayDni = inv.dni || evalData?.dni || (inv.codigo.length === 8 ? inv.codigo : 'No registrado aún')
 
                       return (
                         <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                           <td className="px-4 py-3 font-black text-sky-900 border-r border-slate-200">
-                            <span className="bg-sky-100 text-sky-800 px-2 py-1 rounded font-mono text-xs">
+                            <span className="bg-sky-100 text-sky-800 px-2.5 py-1 rounded font-mono text-xs border border-sky-300">
                               {inv.codigo}
                             </span>
                           </td>
@@ -3007,6 +3037,9 @@ function App() {
                             >
                               <Eye className="w-3.5 h-3.5 text-purple-600 shrink-0" /> {inv.nombreExperto}
                             </button>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-slate-800 border-r border-slate-200">
+                            {displayDni}
                           </td>
                           <td className="px-4 py-3 text-slate-600 border-r border-slate-200">
                             {inv.cargo || 'No especificado'}
