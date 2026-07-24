@@ -82,6 +82,10 @@ function App() {
   const [linkedin, setLinkedin] = useState('')
   const [cvFileName, setCvFileName] = useState('')
   const [resumenProfesional, setResumenProfesional] = useState('')
+  const [email, setEmail] = useState('')
+  const [estudios, setEstudios] = useState('')
+  const [experienciaDetallada, setExperienciaDetallada] = useState('')
+  const [cvFileDataUrl, setCvFileDataUrl] = useState('')
 
   // Certificado Dictamen
   const [valoracionGlobal, setValoracionGlobal] = useState('')
@@ -205,6 +209,10 @@ function App() {
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_linkedin`, linkedin)
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_cv_filename`, cvFileName)
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_resumen_profesional`, resumenProfesional)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, email)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_estudios`, estudios)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_experiencia_detallada`, experienciaDetallada)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_cv_dataurl`, cvFileDataUrl)
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
       const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') || currentKey.startsWith('EXP-')
@@ -215,13 +223,14 @@ function App() {
           cargo,
           gradoAcademico, institucion, experiencia, isExtranjero,
           firmaExpertoImg, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional,
+          email, estudios, experienciaDetallada, cvFileDataUrl,
           valoracionGlobal, dictamenFinal, observaciones, respuestas, inviteCode: currentKey
         })
       }
     } catch (e) {
       console.error("Error al autoguardar:", e)
     }
-  }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, inviteCode, userRole])
+  }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, email, estudios, experienciaDetallada, cvFileDataUrl, inviteCode, userRole])
 
   // Cargar datos para el Panel del Investigador
   const fetchInvestigadorData = async () => {
@@ -344,6 +353,10 @@ function App() {
         setLinkedin(ev.linkedin || '')
         setCvFileName(ev.cvFileName || '')
         setResumenProfesional(ev.resumenProfesional || '')
+        setEmail(ev.email || '')
+        setEstudios(ev.estudios || '')
+        setExperienciaDetallada(ev.experienciaDetallada || '')
+        setCvFileDataUrl(ev.cvFileDataUrl || '')
         setValoracionGlobal(ev.valoracionGlobal || '')
         setDictamenFinal(ev.dictamenFinal || 'Aprobado')
         setObservaciones(ev.observaciones || '')
@@ -714,6 +727,11 @@ function App() {
     const file = e.target.files[0]
     if (file) {
       setCvFileName(file.name)
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setCvFileDataUrl(event.target.result)
+      }
+      reader.readAsDataURL(file)
       alert(`¡Archivo de Hoja de Vida "${file.name}" adjuntado con éxito!`)
     }
   }
@@ -2535,9 +2553,9 @@ function App() {
             </div>
 
             <div className="space-y-6 text-sm">
-              {/* FICHA CON LOS DATOS PRINCIPALES EXTRAÍDOS / REGISTRADOS DE LA HOJA DE VIDA */}
-              <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-teal-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 flex-wrap gap-2">
+              {/* FICHA RESUMEN CON LOS 5 DATOS CLAVE DEL CV / HOJA DE VIDA */}
+              <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-teal-500/20 rounded-xl border border-teal-400/40 flex items-center justify-center text-teal-300 font-black text-xl shadow-inner shrink-0">
                       {nombre ? nombre.charAt(0).toUpperCase() : 'E'}
@@ -2555,38 +2573,87 @@ function App() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-0.5">DNI / Identificación:</span>
-                    <span className="text-amber-300 font-extrabold text-sm">{dni || 'No especificado'}</span>
+                {/* TABLA VISUAL DE LOS 5 DATOS PRINCIPALES EXTRAÍDOS / INGRESADOS DE LA HOJA DE VIDA */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">1. Nombres y Apellidos:</span>
+                    <span className="text-white font-extrabold text-sm">{nombre || 'No especificado'}</span>
                   </div>
 
-                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-0.5">Institución / Filiación:</span>
-                    <span className="text-sky-200 font-extrabold text-sm">{institucion || 'No especificado'}</span>
+                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">2. Correo Electrónico:</span>
+                    <span className="text-amber-300 font-extrabold text-sm">{email || 'No especificado (ejemplo@institucion.edu.pe)'}</span>
                   </div>
 
-                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-0.5">Grado Máximo Obtenido:</span>
+                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">3. Grado Académico y Titulación:</span>
                     <span className="text-emerald-300 font-extrabold text-sm">{gradoAcademico || 'Doctor / Magíster'}</span>
+                  </div>
+
+                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">4. Estudios Realizados / Filiación:</span>
+                    <span className="text-sky-200 font-extrabold text-sm">{estudios || institucion || 'Universidad Nacional / Escuela Posgrado'}</span>
+                  </div>
+
+                  <div className="md:col-span-2 bg-white/10 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">5. Experiencia Profesional y Trayectoria:</span>
+                    <p className="text-slate-200 font-medium leading-relaxed text-xs">
+                      {experienciaDetallada || resumenProfesional || experiencia || 'Docencia universitaria y ejercicio profesional superior a 10 años en proyectos de infraestructura pública, ciencia de datos o gestión de riesgos.'}
+                    </p>
                   </div>
                 </div>
 
-                {/* ESTADO Y CONFIRMACIÓN DE ARCHIVO DE CV */}
-                {cvFileName ? (
+                {/* VISUALIZADOR INTEGRADO EN VIVO DEL ARCHIVO PDF DE LA HOJA DE VIDA */}
+                {cvFileDataUrl ? (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between bg-teal-900/60 p-3.5 rounded-xl border border-teal-500/40 text-xs flex-wrap gap-2">
+                      <div className="flex items-center gap-2 font-bold text-teal-200">
+                        <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
+                        <span>Documento PDF de Hoja de Vida: <strong className="text-white">{cvFileName || 'Hoja_de_Vida.pdf'}</strong></span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={cvFileDataUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                        >
+                          <Eye className="w-4 h-4" /> Visualizar PDF en Pantalla Completa
+                        </a>
+                        <a
+                          href={cvFileDataUrl}
+                          download={cvFileName || 'Hoja_de_Vida.pdf'}
+                          className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
+                        >
+                          <Download className="w-4 h-4" /> Descargar PDF
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* EMBED PDF IFRAME */}
+                    <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+                      <iframe
+                        src={cvFileDataUrl}
+                        title="Visor en vivo de la Hoja de Vida PDF"
+                        className="w-full h-[500px] border-0"
+                      />
+                    </div>
+                  </div>
+                ) : cvFileName ? (
                   <div className="bg-emerald-950/80 border border-emerald-500/50 p-3.5 rounded-xl flex items-center justify-between text-xs text-emerald-200 flex-wrap gap-2">
                     <div className="flex items-center gap-2 font-bold">
                       <FileCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <span>Documento de Hoja de Vida (CV) Adjuntado: <strong className="text-white">{cvFileName}</strong></span>
+                      <span>Documento de Hoja de Vida Adjuntado: <strong className="text-white">{cvFileName}</strong></span>
                     </div>
                     <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-md shadow">
-                      ✓ ARCHIVO REGISTRADO
+                      ✓ REGISTRADO
                     </span>
                   </div>
                 ) : (
                   <div className="bg-amber-950/60 border border-amber-500/40 p-3 rounded-xl flex items-center gap-2 text-xs text-amber-200">
                     <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Curriculum Vitae pendiente de adjuntar o ingresar enlace académico.</span>
+                    <span>Seleccione abajo su archivo de Curriculum Vitae (PDF) para visualizarlo en vivo.</span>
                   </div>
                 )}
               </div>
@@ -2594,11 +2661,11 @@ function App() {
               <div className="bg-teal-50/60 border border-teal-200 rounded-lg p-4 text-xs text-teal-950">
                 <p className="font-bold">Estimado(a) Experto(a):</p>
                 <p className="mt-1">
-                  A fin de respaldar la validez metodológica ante el jurado de tesis y la Escuela de Posgrado, le solicitamos adjuntar su archivo de Curriculum Vitae (PDF o Word) o ingresar sus enlaces académicos oficiales (CTI Vitae / Concytec / ORCID / LinkedIn).
+                  A fin de respaldar la validez metodológica ante el jurado de tesis y la Escuela de Posgrado, le solicitamos adjuntar su archivo de Curriculum Vitae (PDF o Word) o actualizar sus 5 datos principales y enlaces académicos oficiales (CTI Vitae / Concytec / ORCID / LinkedIn).
                 </p>
               </div>
 
-              {/* Cargar Archivo de Hoja de Vida */}
+              {/* Cargar / Actualizar Archivo de Hoja de Vida */}
               <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-500 transition-all">
                 <input 
                   type="file" 
@@ -2608,21 +2675,93 @@ function App() {
                   onChange={handleCvFileUpload}
                 />
                 <FileCheck className="w-10 h-10 text-teal-600 mx-auto mb-2" />
-                <h3 className="font-bold text-slate-900 text-sm">Adjuntar Archivo de Hoja de Vida (CV)</h3>
+                <h3 className="font-bold text-slate-900 text-sm">Adjuntar o Reemplazar Archivo de Hoja de Vida (CV PDF)</h3>
                 <p className="text-xs text-slate-500 mb-4">Formatos permitidos: PDF, DOC, DOCX</p>
                 
                 {cvFileName ? (
-                  <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 font-bold px-4 py-2 rounded-lg text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Archivo adjuntado: {cvFileName}
+                  <div className="inline-flex flex-col items-center gap-2">
+                    <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 font-bold px-4 py-2 rounded-lg text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Archivo cargado: {cvFileName}
+                    </div>
+                    <button
+                      onClick={() => cvFileInputRef.current?.click()}
+                      className="text-xs text-teal-700 underline font-bold hover:text-teal-900"
+                    >
+                      Cambiar o subir un nuevo archivo PDF
+                    </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => cvFileInputRef.current?.click()}
                     className="bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 px-6 rounded-lg text-xs shadow transition-all inline-flex items-center gap-2"
                   >
-                    <Upload className="w-4 h-4" /> Seleccionar Archivo CV desde su equipo
+                    <Upload className="w-4 h-4" /> Seleccionar Archivo PDF desde su equipo
                   </button>
                 )}
+              </div>
+
+              {/* FORMULARIO PARA ACTUALIZAR LOS DATOS PRINCIPALES DE LA HOJA DE VIDA */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                  Formulario de Registro / Actualización de Datos Principales del CV
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">1. Nombres y Apellidos Completos:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Nombres y Apellidos del Evaluador"
+                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">2. Correo Electrónico Oficial:</label>
+                    <input 
+                      type="email" 
+                      placeholder="ejemplo@institucion.edu.pe"
+                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">3. Grado Académico Máximo:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Doctor en Ingeniería / Magíster"
+                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      value={gradoAcademico}
+                      onChange={(e) => setGradoAcademico(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">4. Estudios Realizados / Universidad:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Universidad de procedencia / Grados y Posgrados"
+                      className="w-full p-2.5 border rounded-lg text-slate-800 bg-white font-semibold"
+                      value={estudios}
+                      onChange={(e) => setEstudios(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block font-bold text-slate-800 mb-1">5. Experiencia Profesional y Resumen de Trayectoria:</label>
+                    <textarea 
+                      rows={3}
+                      placeholder="Describa sus años de experiencia docente, cargos desempeñados y publicaciones académicas..."
+                      className="w-full p-2.5 border rounded-lg text-slate-800 text-xs bg-white font-medium"
+                      value={experienciaDetallada}
+                      onChange={(e) => setExperienciaDetallada(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Enlaces Académicos y Registro */}
