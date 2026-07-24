@@ -45,7 +45,7 @@ function App() {
   const [inviteCode, setInviteCode] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_inviteCode`) || '')
 
   // Modales
-  const [showRegistroModal, setShowRegistroModal] = useState(false)
+  const [showRegistroModal, setShowRegistroModal] = useState(() => !localStorage.getItem(`${LOCAL_STORAGE_KEY}_nombre`))
   const [showPinModal, setShowPinModal] = useState(false)
   const [submittedModal, setSubmittedModal] = useState(false)
   const [registroTab, setRegistroTab] = useState('NUEVO')
@@ -139,7 +139,7 @@ function App() {
     }
   }, [])
 
-  // Verificar al iniciar si el evaluador existe en el servidor o si su sesión fue eliminada/revocada
+  // Verificar al iniciar si el usuario está autenticado o forzar la pantalla de ingreso unificada
   useEffect(() => {
     if (userRole === 'EVALUADOR') {
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
@@ -181,8 +181,11 @@ function App() {
           setShowRegistroModal(true)
         }
       }
+    } else if (userRole === 'INVESTIGADOR' && !investigadorAutenticado) {
+      // Si el rol era investigador pero no ha ingresado el PIN en esta sesión
+      setShowPinModal(true)
     }
-  }, [userRole])
+  }, [userRole, investigadorAutenticado])
 
   // Guardado Local + Sincronización Automática
   useEffect(() => {
