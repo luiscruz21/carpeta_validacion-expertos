@@ -1260,17 +1260,33 @@ function App() {
 
         <!-- 6. HOJA DE VIDA DEL EVALUADOR -->
         <h1>6. HOJA DE VIDA DEL EVALUADOR / EXPERTO</h1>
+        <h2>6.1. Formulario de Registro / Datos Principales del CV</h2>
         <div class="box">
-          <p><strong>1. Nombres y Apellidos:</strong> ${expertName}</p>
+          <p><strong>1. Nombres y Apellidos del Evaluador:</strong> ${expertName}</p>
           <p><strong>2. Correo Electrónico:</strong> ${email || 'No registrado'}</p>
           <p><strong>3. Grado Académico Máximo:</strong> ${expertGrado}</p>
-          <p><strong>4. Estudios Realizados / Universidad:</strong> ${expertEstudios}</p>
-          <p><strong>5. Experiencia Profesional y Trayectoria:</strong> ${experienciaDetallada || experiencia || 'Experiencia docente y profesional en ingeniería.'}</p>
-          ${ctiVitae ? `<p><strong>Enlace CTI Vitae:</strong> ${ctiVitae}</p>` : ''}
-          ${orcid ? `<p><strong>Código ORCID:</strong> ${orcid}</p>` : ''}
-          ${linkedin ? `<p><strong>Perfil LinkedIn:</strong> ${linkedin}</p>` : ''}
+          <p><strong>4. Estudios Realizados / Universidad de Procedencia:</strong> ${expertEstudios}</p>
+          <p><strong>5. Experiencia Profesional y Trayectoria Detallada:</strong> ${experienciaDetallada || experiencia || 'Experiencia profesional y docente en ingeniería y gestión de proyectos.'}</p>
+          ${ctiVitae ? `<p><strong>Enlace CTI Vitae (Concytec):</strong> ${ctiVitae}</p>` : ''}
+          ${orcid ? `<p><strong>Código / Enlace ORCID:</strong> ${orcid}</p>` : ''}
+          ${linkedin ? `<p><strong>Perfil Profesional / LinkedIn:</strong> ${linkedin}</p>` : ''}
+          ${resumenProfesional ? `<p><strong>Resumen de Experiencia:</strong> ${resumenProfesional}</p>` : ''}
           ${cvFileName ? `<p><strong>Archivo de CV Adjunto:</strong> ${cvFileName}</p>` : ''}
         </div>
+
+        ${cvTextContent ? `
+          <h2>6.2. Contenido Extraído del Documento Adjunto (${cvFileName || 'Hoja de Vida CV'})</h2>
+          <div class="box" style="background:#ffffff; font-size:8.5pt; max-height:600px; overflow:hidden;">
+            ${cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') 
+              ? cvTextContent 
+              : cvTextContent.replace(/\n/g, '<br/>')}
+          </div>
+        ` : cvFileName ? `
+          <h2>6.2. Archivo Acreditado de Hoja de Vida</h2>
+          <div class="box">
+            <p>Se adjuntó digitalmente el archivo oficial <strong>${cvFileName}</strong> correspondiente a la Hoja de Vida acreditada del experto evaluador.</p>
+          </div>
+        ` : ''}
 
       </body>
       </html>
@@ -1510,6 +1526,7 @@ function App() {
 
         <!-- 6. HOJA DE VIDA -->
         <h1>6. HOJA DE VIDA DEL EVALUADOR / EXPERTO</h1>
+        <h2>6.1. Formulario de Registro / Datos Principales del CV</h2>
         <div class="box">
           <p><strong>1. Nombres y Apellidos:</strong> ${expertName}</p>
           <p><strong>2. Correo Electrónico:</strong> ${email || 'No registrado'}</p>
@@ -1519,8 +1536,23 @@ function App() {
           ${ctiVitae ? `<p><strong>Enlace CTI Vitae:</strong> ${ctiVitae}</p>` : ''}
           ${orcid ? `<p><strong>Código ORCID:</strong> ${orcid}</p>` : ''}
           ${linkedin ? `<p><strong>Perfil LinkedIn:</strong> ${linkedin}</p>` : ''}
+          ${resumenProfesional ? `<p><strong>Resumen de Trayectoria:</strong> ${resumenProfesional}</p>` : ''}
           ${cvFileName ? `<p><strong>Archivo CV Adjunto:</strong> ${cvFileName}</p>` : ''}
         </div>
+
+        ${cvTextContent ? `
+          <h2>6.2. Contenido Extraído del Documento Adjunto (${cvFileName || 'Hoja de Vida CV'})</h2>
+          <div class="box" style="background:#ffffff; font-size:8.5pt; max-height:600px; overflow:hidden;">
+            ${cvTextContent.includes('<p>') || cvTextContent.includes('<div>') || cvTextContent.includes('<h') 
+              ? cvTextContent 
+              : cvTextContent.replace(/\n/g, '<br/>')}
+          </div>
+        ` : cvFileName ? `
+          <h2>6.2. Archivo Acreditado de Hoja de Vida</h2>
+          <div class="box">
+            <p>Se adjuntó digitalmente el archivo oficial <strong>${cvFileName}</strong> correspondiente a la Hoja de Vida acreditada del experto evaluador.</p>
+          </div>
+        ` : ''}
       </body>
       </html>
     `)
