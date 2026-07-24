@@ -92,6 +92,10 @@ function App() {
   const [valoracionGlobal, setValoracionGlobal] = useState('')
   const [dictamenFinal, setDictamenFinal] = useState('Aprobado')
   const [observaciones, setObservaciones] = useState('')
+  const [isFinalizado, setIsFinalizado] = useState(() => {
+    return localStorage.getItem(`${LOCAL_STORAGE_KEY}_finalizado`) === 'true'
+  })
+  const isReadOnly = isFinalizado || (userRole === 'INVESTIGADOR' && evaluadorInspeccionado !== null)
 
   // ESTADOS DEL INVESTIGADOR
   const [pinInput, setPinInput] = useState('')
@@ -192,6 +196,7 @@ function App() {
               if (ev.valoracionGlobal) setValoracionGlobal(ev.valoracionGlobal)
               if (ev.dictamenFinal) setDictamenFinal(ev.dictamenFinal)
               if (ev.observaciones) setObservaciones(ev.observaciones)
+              if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
             }
           })
           .catch(() => {})
@@ -335,6 +340,7 @@ function App() {
         if (ev.dictamenFinal) setDictamenFinal(ev.dictamenFinal)
         if (ev.observaciones) setObservaciones(ev.observaciones)
         if (ev.inviteCode) setInviteCode(ev.inviteCode)
+        if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
 
         setShowRegistroModal(false)
         const count = Object.keys(ev.respuestas || {}).filter(k => ev.respuestas[k]?.likert).length
@@ -687,6 +693,7 @@ function App() {
 
   // Dibujo Canvas Firma
   const startDrawing = (e) => {
+    if (isReadOnly) return
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -699,7 +706,7 @@ function App() {
   }
 
   const draw = (e) => {
-    if (!isDrawing) return
+    if (isReadOnly || !isDrawing) return
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -835,6 +842,7 @@ function App() {
   }
 
   const handleCvFileUpload = async (e) => {
+    if (isReadOnly) return
     const file = e.target.files[0]
     if (file) {
       setCvFileName(file.name)
@@ -890,6 +898,7 @@ function App() {
   }
 
   const handleRemoveCvFile = () => {
+    if (isReadOnly) return
     if (window.confirm("¿Está seguro de quitar el archivo de Hoja de Vida cargado?")) {
       setCvFileName('')
       setCvFileDataUrl('')
@@ -1015,6 +1024,11 @@ function App() {
       setActiveTab('HOJA_VIDA')
       return
     }
+
+    setIsFinalizado(true)
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, 'true')
+    } catch (e) {}
 
     const currentKey = (inviteCode || dni || '').trim().toUpperCase()
     if (currentKey) {
@@ -2229,7 +2243,9 @@ function App() {
                       // El ítem N (idx > 0) requiere que el ítem N-1 esté 100% COMPLETO.
                       let isLocked = false
                       let prevItemNum = itemNum - 1
-                      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
+                      if (isReadOnly) {
+                        isLocked = true
+                      } else if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
                         const prevQuestion = currentList[idx - 1]
                         const prevResp = respuestas[prevQuestion?.id] || {}
                         const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
@@ -2583,11 +2599,16 @@ function App() {
                   {VALORACION_OPCIONES.map(opcion => (
                     <button
                       key={opcion}
-                      onClick={() => setValoracionGlobal(opcion)}
+                      disabled={isReadOnly}
+                      onClick={() => !isReadOnly && setValoracionGlobal(opcion)}
                       className={`p-3 rounded-lg text-xs font-bold transition-all text-center border ${
-                        valoracionGlobal === opcion
-                          ? 'bg-amber-600 text-white border-amber-700 shadow-md transform scale-105'
-                          : 'bg-white text-amber-900 border-amber-200 hover:bg-amber-100'
+                        isReadOnly 
+                          ? valoracionGlobal === opcion 
+                            ? 'bg-amber-600 text-white border-amber-700 font-black cursor-not-allowed opacity-90' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                          : valoracionGlobal === opcion
+                            ? 'bg-amber-600 text-white border-amber-700 shadow-md transform scale-105'
+                            : 'bg-white text-amber-900 border-amber-200 hover:bg-amber-100'
                       }`}
                     >
                       {opcion}
@@ -2601,13 +2622,17 @@ function App() {
                 <h3 className="font-extrabold text-slate-900 text-sm">DICTAMEN FINAL DEL EVALUADOR:</h3>
                 
                 <div className="flex flex-wrap gap-4">
-                  <label className={`flex-1 p-3 rounded-lg border cursor-pointer font-bold flex items-center justify-center gap-2 transition-all ${dictamenFinal === 'Aprobado' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300'}`}>
-                    <input type="radio" name="dictamen" value="Aprobado" checked={dictamenFinal === 'Aprobado'} onChange={() => setDictamenFinal('Aprobado')} className="sr-only" />
+                  <label className={`flex-1 p-3 rounded-lg border font-bold flex items-center justify-center gap-2 transition-all ${
+                    isReadOnly ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'
+                  } ${dictamenFinal === 'Aprobado' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300'}`}>
+                    <input type="radio" disabled={isReadOnly} name="dictamen" value="Aprobado" checked={dictamenFinal === 'Aprobado'} onChange={() => !isReadOnly && setDictamenFinal('Aprobado')} className="sr-only" />
                     <CheckCircle2 className="w-4 h-4" /> Instrumento Aprobado (Aplicable)
                   </label>
 
-                  <label className={`flex-1 p-3 rounded-lg border cursor-pointer font-bold flex items-center justify-center gap-2 transition-all ${dictamenFinal === 'Aprobado con Observaciones' ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-slate-700 border-slate-300'}`}>
-                    <input type="radio" name="dictamen" value="Aprobado con Observaciones" checked={dictamenFinal === 'Aprobado con Observaciones'} onChange={() => setDictamenFinal('Aprobado con Observaciones')} className="sr-only" />
+                  <label className={`flex-1 p-3 rounded-lg border font-bold flex items-center justify-center gap-2 transition-all ${
+                    isReadOnly ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'
+                  } ${dictamenFinal === 'Aprobado con Observaciones' ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-slate-700 border-slate-300'}`}>
+                    <input type="radio" disabled={isReadOnly} name="dictamen" value="Aprobado con Observaciones" checked={dictamenFinal === 'Aprobado con Observaciones'} onChange={() => !isReadOnly && setDictamenFinal('Aprobado con Observaciones')} className="sr-only" />
                     Aprobado con Observaciones
                   </label>
                 </div>
@@ -2616,8 +2641,11 @@ function App() {
                   <label className="block font-bold text-slate-800 mb-1">Observaciones / Recomendaciones del Experto:</label>
                   <textarea 
                     rows={3}
+                    disabled={isReadOnly}
                     placeholder="Ingrese cualquier sugerencia o recomendación metodológica aquí..."
-                    className="w-full p-2.5 border rounded-lg text-slate-800 text-xs focus:outline-none focus:border-sky-500 bg-white"
+                    className={`w-full p-2.5 border rounded-lg text-slate-800 text-xs focus:outline-none focus:border-sky-500 ${
+                      isReadOnly ? 'bg-slate-100 text-slate-600 cursor-not-allowed font-medium' : 'bg-white'
+                    }`}
                     value={observaciones}
                     onChange={(e) => setObservaciones(e.target.value)}
                   />
@@ -2630,29 +2658,37 @@ function App() {
                   <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
                     <PenTool className="w-4 h-4 text-sky-600" /> FIRMA DIGITAL DEL EXPERTO EVALUADOR
                   </h3>
-                  <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-2.5 py-0.5 rounded-full">Firma Oficial</span>
+                  <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-2.5 py-0.5 rounded-full">
+                    {isReadOnly ? '🔒 Firma Registrada (Lectura)' : 'Firma Oficial'}
+                  </span>
                 </div>
 
                 <p className="text-slate-600">
-                  Puede <strong>dibujar su firma en la pantalla</strong> (usando el mouse o con su dedo en celular/tablet) o <strong>adjuntar una imagen de su firma</strong> (PNG/JPG).
+                  {isReadOnly 
+                    ? "Su firma digital ha sido registrada e integrada oficialmente en el expediente." 
+                    : "Puede dibujar su firma en la pantalla (usando el mouse o con su dedo en celular/tablet) o adjuntar una imagen de su firma (PNG/JPG)."}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-slate-800">Opción 1: Dibujar firma en pantalla</span>
-                      <button 
-                        onClick={clearCanvas} 
-                        className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-[11px]"
-                      >
-                        <Eraser className="w-3.5 h-3.5" /> Limpiar firma
-                      </button>
+                      {!isReadOnly && (
+                        <button 
+                          onClick={clearCanvas} 
+                          className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-[11px]"
+                        >
+                          <Eraser className="w-3.5 h-3.5" /> Limpiar firma
+                        </button>
+                      )}
                     </div>
                     <canvas
                       ref={canvasRef}
                       width={340}
                       height={130}
-                      className="bg-white border-2 border-dashed border-slate-300 rounded-lg cursor-crosshair touch-none w-full shadow-inner"
+                      className={`bg-white border-2 border-dashed border-slate-300 rounded-lg touch-none w-full shadow-inner ${
+                        isReadOnly ? 'cursor-not-allowed opacity-90' : 'cursor-crosshair'
+                      }`}
                       onMouseDown={startDrawing}
                       onMouseMove={draw}
                       onMouseUp={stopDrawing}
@@ -2666,20 +2702,24 @@ function App() {
                   <div className="space-y-2 flex flex-col justify-center items-center bg-white p-4 rounded-lg border border-slate-200 text-center min-h-[140px]">
                     <span className="font-bold text-slate-800">Opción 2: Adjuntar imagen de firma</span>
                     
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      ref={firmaFileInputRef}
-                      className="hidden" 
-                      onChange={handleFirmaUpload}
-                    />
-                    
-                    <button
-                      onClick={() => firmaFileInputRef.current?.click()}
-                      className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded text-xs transition-all flex items-center gap-1.5"
-                    >
-                      <Upload className="w-3.5 h-3.5" /> Subir Imagen de Firma (PNG/JPG)
-                    </button>
+                    {!isReadOnly && (
+                      <>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          ref={firmaFileInputRef}
+                          className="hidden" 
+                          onChange={handleFirmaUpload}
+                        />
+                        
+                        <button
+                          onClick={() => firmaFileInputRef.current?.click()}
+                          className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded text-xs transition-all flex items-center gap-1.5"
+                        >
+                          <Upload className="w-3.5 h-3.5" /> Subir Imagen de Firma (PNG/JPG)
+                        </button>
+                      </>
+                    )}
 
                     {firmaExpertoImg && (
                       <div className="mt-2 text-center">
@@ -2770,30 +2810,36 @@ function App() {
                       <span>Archivo Cargado: <strong>{cvFileName}</strong></span>
                     </div>
 
-                    <div className="flex items-center gap-3 flex-wrap justify-center pt-1">
-                      <button
-                        onClick={() => cvFileInputRef.current?.click()}
-                        className="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" /> Reemplazar Archivo
-                      </button>
+                    {!isReadOnly && (
+                      <div className="flex items-center gap-3 flex-wrap justify-center pt-1">
+                        <button
+                          onClick={() => cvFileInputRef.current?.click()}
+                          className="bg-teal-700 hover:bg-teal-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" /> Reemplazar Archivo
+                        </button>
 
-                      <button
-                        onClick={handleRemoveCvFile}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
-                        title="Quitar y eliminar el archivo cargado"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Quitar Archivo Cargado
-                      </button>
-                    </div>
+                        <button
+                          onClick={handleRemoveCvFile}
+                          className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all inline-flex items-center gap-1.5"
+                          title="Quitar y eliminar el archivo cargado"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Quitar Archivo Cargado
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ) : (
+                ) : !isReadOnly ? (
                   <button
                     onClick={() => cvFileInputRef.current?.click()}
                     className="bg-teal-700 hover:bg-teal-800 text-white font-extrabold py-3 px-8 rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" /> Seleccionar Archivo CV (PDF / Word) desde su equipo
                   </button>
+                ) : (
+                  <div className="bg-slate-200 text-slate-700 p-3 rounded-lg text-xs font-bold">
+                    🔒 Modo Solo Lectura: No se registraron archivos de Hoja de Vida adjuntos.
+                  </div>
                 )}
               </div>
 
@@ -3009,8 +3055,9 @@ function App() {
                   <label className="block font-bold text-slate-800 mb-1">Enlace a CTI Vitae / Concytec (Opcional):</label>
                   <input 
                     type="url" 
+                    disabled={isReadOnly}
                     placeholder="https://ctivitae.concytec.gob.pe/..."
-                    className="w-full p-2.5 border rounded-lg text-slate-800 bg-white"
+                    className={`w-full p-2.5 border rounded-lg text-slate-800 ${isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'}`}
                     value={ctiVitae}
                     onChange={(e) => setCtiVitae(e.target.value)}
                   />
@@ -3020,8 +3067,9 @@ function App() {
                   <label className="block font-bold text-slate-800 mb-1">Código o Enlace ORCID (Opcional):</label>
                   <input 
                     type="text" 
+                    disabled={isReadOnly}
                     placeholder="0000-0002-XXXX-XXXX"
-                    className="w-full p-2.5 border rounded-lg text-slate-800 bg-white"
+                    className={`w-full p-2.5 border rounded-lg text-slate-800 ${isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'}`}
                     value={orcid}
                     onChange={(e) => setOrcid(e.target.value)}
                   />
@@ -3031,8 +3079,9 @@ function App() {
                   <label className="block font-bold text-slate-800 mb-1">Enlace a Perfil Profesional / LinkedIn (Opcional):</label>
                   <input 
                     type="url" 
+                    disabled={isReadOnly}
                     placeholder="https://www.linkedin.com/in/..."
-                    className="w-full p-2.5 border rounded-lg text-slate-800 bg-white"
+                    className={`w-full p-2.5 border rounded-lg text-slate-800 ${isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'}`}
                     value={linkedin}
                     onChange={(e) => setLinkedin(e.target.value)}
                   />
@@ -3042,8 +3091,9 @@ function App() {
                   <label className="block font-bold text-slate-800 mb-1">Resumen de Experiencia Profesional y Académica (Opcional):</label>
                   <textarea 
                     rows={4}
+                    disabled={isReadOnly}
                     placeholder="Describa brevemente sus años de experiencia en infraestructura pública, ciencia de datos o docencia universitaria..."
-                    className="w-full p-2.5 border rounded-lg text-slate-800 text-xs bg-white"
+                    className={`w-full p-2.5 border rounded-lg text-slate-800 text-xs ${isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'}`}
                     value={resumenProfesional}
                     onChange={(e) => setResumenProfesional(e.target.value)}
                   />
@@ -3086,12 +3136,14 @@ function App() {
         </div>
       )}
 
-      {/* Floating Bottom Bar para el Experto - Solo en Instrumentos y Hoja de Vida */}
-      {userRole === 'EVALUADOR' && (activeTab === 'INSTRUMENTOS' || activeTab === 'HOJA_VIDA') && (
+      {/* Floating Bottom Bar para el Experto - Solo en Instrumentos, Hoja de Vida y Certificado */}
+      {userRole === 'EVALUADOR' && (activeTab === 'INSTRUMENTOS' || activeTab === 'HOJA_VIDA' || activeTab === 'CERTIFICADO') && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 p-4 shadow-[0_-8px_20px_rgba(0,0,0,0.08)] z-50">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              {totalComplete === totalPreguntas ? (
+              {isReadOnly ? (
+                <Lock className="text-emerald-600 w-8 h-8 shrink-0 animate-pulse" />
+              ) : totalComplete === totalPreguntas ? (
                 <CheckCircle2 className="text-emerald-500 w-8 h-8 shrink-0 animate-bounce" />
               ) : (
                 <div className="w-4 h-4 bg-amber-500 rounded-full animate-ping shrink-0" />
@@ -3107,30 +3159,40 @@ function App() {
                   </p>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5 font-medium">
-                  {totalComplete < totalPreguntas 
-                    ? `⚠️ Faltan ${totalMissing} preguntas por completar (con escala Likert y los 4 criterios).` 
-                    : !isCvRequirementMet
-                      ? "⚠️ Las 100 preguntas están completas, pero falta adjuntar su Hoja de Vida (PDF/Word) o llenar sus datos en la pestaña HOJA DE VIDA."
-                      : "¡Todas las 100 preguntas y el requisito de Hoja de Vida están listos! Puede finalizar y enviar su evaluación."}
+                  {isReadOnly 
+                    ? "✓ EVALUACIÓN ENVIADA Y REGISTRADA. El expediente se encuentra en Modo Solo Lectura." 
+                    : totalComplete < totalPreguntas 
+                      ? `⚠️ Faltan ${totalMissing} preguntas por completar (con escala Likert y los 4 criterios).` 
+                      : !isCvRequirementMet
+                        ? "⚠️ Las 100 preguntas están completas, pero falta adjuntar su Hoja de Vida (PDF/Word) o llenar sus datos en la pestaña HOJA DE VIDA."
+                        : "¡Todas las 100 preguntas y el requisito de Hoja de Vida están listos! Puede finalizar y enviar su evaluación."}
                 </p>
               </div>
             </div>
 
             <button 
               onClick={handleSubmitEvaluacion}
-              disabled={totalComplete < totalPreguntas || !isCvRequirementMet}
+              disabled={isReadOnly || totalComplete < totalPreguntas || !isCvRequirementMet}
               className={`w-full sm:w-auto font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg ${
-                (totalComplete === totalPreguntas && isCvRequirementMet)
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-emerald-600/30' 
-                  : 'bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-400'
+                isReadOnly
+                  ? 'bg-slate-800 text-emerald-400 border border-slate-700 cursor-not-allowed shadow-none'
+                  : (totalComplete === totalPreguntas && isCvRequirementMet)
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-emerald-600/30' 
+                    : 'bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-400'
               }`}
             >
-              {(totalComplete === totalPreguntas && isCvRequirementMet) ? <Send className="w-4 h-4" /> : <Lock className="w-4 h-4 text-slate-400" />}
-              {totalComplete < totalPreguntas 
-                ? `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)` 
-                : !isCvRequirementMet
-                  ? 'FINALIZAR Y ENVIAR (Falta Hoja de Vida)'
-                  : 'FINALIZAR Y ENVIAR EVALUACIÓN'}
+              {isReadOnly 
+                ? <Lock className="w-4 h-4 text-emerald-400" /> 
+                : (totalComplete === totalPreguntas && isCvRequirementMet) 
+                  ? <Send className="w-4 h-4" /> 
+                  : <Lock className="w-4 h-4 text-slate-400" />}
+              {isReadOnly 
+                ? '✓ EVALUACIÓN ENVIADA (MODO SOLO LECTURA)' 
+                : totalComplete < totalPreguntas 
+                  ? `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)` 
+                  : !isCvRequirementMet
+                    ? 'FINALIZAR Y ENVIAR (Falta Hoja de Vida)'
+                    : 'FINALIZAR Y ENVIAR EVALUACIÓN'}
             </button>
           </div>
         </div>
