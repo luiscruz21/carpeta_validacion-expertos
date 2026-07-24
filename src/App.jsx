@@ -58,39 +58,34 @@ function App() {
   const [qDescripcion, setQDescripcion] = useState('')
   const [qTexto, setQTexto] = useState('')
 
-  // Datos del Experto Validador
-  const [nombre, setNombre] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_nombre`) || '')
-  const [dni, setDni] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_dni`) || '')
-  const [cargo, setCargo] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_cargo`) || '')
-  const [gradoAcademico, setGradoAcademico] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_grado`) || '')
-  const [institucion, setInstitucion] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_institucion`) || '')
-  const [experiencia, setExperiencia] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_experiencia`) || '')
-  const [isExtranjero, setIsExtranjero] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_isExtranjero`) === 'true')
+  // Datos del Experto Validador (INICIALIZAN 100% LIMPIOS EN BLANCO)
+  const [nombre, setNombre] = useState('')
+  const [dni, setDni] = useState('')
+  const [cargo, setCargo] = useState('')
+  const [gradoAcademico, setGradoAcademico] = useState('')
+  const [institucion, setInstitucion] = useState('')
+  const [experiencia, setExperiencia] = useState('')
+  const [isExtranjero, setIsExtranjero] = useState(false)
   const [recuperarKeyInput, setRecuperarKeyInput] = useState('')
   const [evaluadorInspeccionado, setEvaluadorInspeccionado] = useState(null)
 
-  // Respuestas del Evaluador
-  const [respuestas, setRespuestas] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}_respuestas`)
-      return saved ? JSON.parse(saved) : {}
-    } catch { return {} }
-  })
+  // Respuestas del Evaluador (INICIALIZAN VACÍAS)
+  const [respuestas, setRespuestas] = useState({})
 
   // Firma del Experto (Base64)
-  const [firmaExpertoImg, setFirmaExpertoImg] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_firma_img`) || '')
+  const [firmaExpertoImg, setFirmaExpertoImg] = useState('')
 
   // Hoja de Vida Datos
-  const [ctiVitae, setCtiVitae] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_cti`) || '')
-  const [orcid, setOrcid] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_orcid`) || '')
-  const [linkedin, setLinkedin] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_linkedin`) || '')
-  const [cvFileName, setCvFileName] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_cv_filename`) || '')
-  const [resumenProfesional, setResumenProfesional] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_resumen_profesional`) || '')
+  const [ctiVitae, setCtiVitae] = useState('')
+  const [orcid, setOrcid] = useState('')
+  const [linkedin, setLinkedin] = useState('')
+  const [cvFileName, setCvFileName] = useState('')
+  const [resumenProfesional, setResumenProfesional] = useState('')
 
   // Certificado Dictamen
-  const [valoracionGlobal, setValoracionGlobal] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_valoracion`) || '')
-  const [dictamenFinal, setDictamenFinal] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_dictamen`) || 'Aprobado')
-  const [observaciones, setObservaciones] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_observaciones`) || '')
+  const [valoracionGlobal, setValoracionGlobal] = useState('')
+  const [dictamenFinal, setDictamenFinal] = useState('Aprobado')
+  const [observaciones, setObservaciones] = useState('')
 
   // ESTADOS DEL INVESTIGADOR
   const [pinInput, setPinInput] = useState('')
