@@ -321,9 +321,15 @@ app.post('/api/evaluacion/save', (req, res) => {
 
   const evals = readJson(EVAL_FILE) || {}
   const invites = readJson(INVITE_FILE) || {}
+  let revocados = readJson(REVOCADOS_FILE) || []
 
   const cleanCode = codigo.trim().toUpperCase()
   
+  if (payload && payload.isNuevoRegistro) {
+    revocados = revocados.filter(k => k !== cleanCode && k !== (payload.dni || '').trim().toUpperCase())
+    writeJson(REVOCADOS_FILE, revocados)
+  }
+
   evals[cleanCode] = {
     ...payload,
     codigo: cleanCode,
@@ -346,8 +352,21 @@ app.post('/api/evaluacion/save', (req, res) => {
     if (payload.cargo) invites[cleanCode].cargo = payload.cargo
     if (payload.finalizado) invites[cleanCode].estado = "Completado"
   }
-  writeJson(INVITE_FILE, invites)
 
+  // Buscar también por DNI para actualizar sincronizadamente
+  if (payload.dni) {
+    const cleanDni = payload.dni.trim().toUpperCase()
+    if (invites[cleanDni]) {
+      invites[cleanDni].nombreExperto = payload.nombre
+      invites[cleanDni].cargo = payload.cargo
+    }
+    if (evals[cleanDni]) {
+      evals[cleanDni].nombre = payload.nombre
+      evals[cleanDni].cargo = payload.cargo
+    }
+  }
+
+  writeJson(INVITE_FILE, invites)
   writeJson(EVAL_FILE, evals)
 
   return res.json({ 

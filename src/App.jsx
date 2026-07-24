@@ -364,31 +364,61 @@ function App() {
   }
 
   // Guardar datos obligatorios iniciales del Evaluador
-  const handleCompletarRegistroEvaluador = (e) => {
+  const handleCompletarRegistroEvaluador = async (e) => {
     e.preventDefault()
-    if (!nombre.trim()) {
+    const cleanNombre = nombre.trim()
+    const cleanCargo = cargo.trim()
+    const cleanDni = dni.trim().toUpperCase()
+
+    if (!cleanNombre) {
       alert("El campo Nombres y Apellidos es obligatorio.")
       return
     }
-    if (!cargo.trim()) {
+    if (!cleanCargo) {
       alert("El campo Cargo / Especialidad es obligatorio.")
       return
     }
-    if (!dni.trim()) {
+    if (!cleanDni) {
       alert("Por favor ingrese su DNI (8 dígitos) o genere su código de acceso para extranjero.")
       return
     }
 
-    if (!isExtranjero && !dni.startsWith('EXT-')) {
-      const cleanDni = dni.trim()
+    if (!isExtranjero && !cleanDni.startsWith('EXT-')) {
       if (!/^\d{8}$/.test(cleanDni)) {
         alert("El DNI peruano debe ser estrictamente numérico de 8 dígitos.")
         return
       }
     }
 
+    setNombre(cleanNombre)
+    setCargo(cleanCargo)
+    setDni(cleanDni)
+
+    // Enviar inmediatamente al backend marcándolo como nuevo registro para que actualice invitaciones y evaluaciones
+    await saveEvaluationToBackend(cleanDni, {
+      nombre: cleanNombre,
+      dni: cleanDni,
+      cargo: cleanCargo,
+      gradoAcademico,
+      institucion,
+      experiencia,
+      isExtranjero,
+      firmaExpertoImg,
+      ctiVitae,
+      orcid,
+      linkedin,
+      cvFileName,
+      resumenProfesional,
+      valoracionGlobal,
+      dictamenFinal,
+      observaciones,
+      respuestas,
+      inviteCode: cleanDni,
+      isNuevoRegistro: true
+    })
+
     setShowRegistroModal(false)
-    alert(`¡Bienvenido(a) ${nombre}! Sus datos han sido registrados e integrados.`)
+    alert(`¡Bienvenido(a) ${cleanNombre}! Sus datos han sido registrados e integrados.`)
   }
 
   // Login del Investigador con PIN (2026)
@@ -1067,7 +1097,13 @@ function App() {
 
               <div className="flex bg-slate-100 p-1 rounded-xl mb-6 border border-slate-200">
                 <button
-                  onClick={() => setRegistroTab('NUEVO')}
+                  onClick={() => {
+                    setRegistroTab('NUEVO')
+                    setNombre('')
+                    setDni('')
+                    setCargo('')
+                    setRespuestas({})
+                  }}
                   className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 ${
                     registroTab === 'NUEVO' ? 'bg-white text-slate-900 shadow' : 'text-slate-600 hover:text-slate-900'
                   }`}
