@@ -2812,14 +2812,12 @@ function App() {
                       const itemNum = instrumentoSubTab === 'VI' ? (idx + 1) : (50 + idx + 1)
 
                       // REGLA DE BLOQUEO SECUENCIAL:
-                      // Solo aplica a Evaluadores (no a Investigadores ni en modo inspección).
+                      // Solo aplica a Evaluadores durante el llenado inicial (no a Investigadores ni en modo lectura).
                       // El ítem 0 de la pestaña activa siempre está desbloqueado.
                       // El ítem N (idx > 0) requiere que el ítem N-1 esté 100% COMPLETO.
                       let isLocked = false
                       let prevItemNum = itemNum - 1
-                      if (isReadOnly) {
-                        isLocked = true
-                      } else if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
+                      if (!isReadOnly && userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
                         const prevQuestion = currentList[idx - 1]
                         const prevResp = respuestas[prevQuestion?.id] || {}
                         const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
@@ -2995,11 +2993,13 @@ function App() {
 
                                   <textarea
                                     rows={3}
-                                    disabled={isLocked || evaluadorInspeccionado !== null}
+                                    disabled={isReadOnly || isLocked}
                                     value={currentResp.observacion || ''}
                                     onChange={(e) => handleObservacionChange(p.id, e.target.value)}
                                     placeholder="Escriba aquí sus observaciones o recomendaciones opcionales para este ítem..."
-                                    className="w-full text-xs md:text-sm p-3 rounded-lg border-2 border-amber-400 bg-white focus:ring-4 focus:ring-amber-500 focus:outline-none text-slate-950 font-bold resize-y shadow-inner leading-relaxed"
+                                    className={`w-full text-xs md:text-sm p-3 rounded-lg border-2 border-amber-400 font-bold resize-y shadow-inner leading-relaxed ${
+                                      isReadOnly ? 'bg-amber-100/90 text-slate-950 cursor-not-allowed' : 'bg-white text-slate-950 focus:ring-4 focus:ring-amber-500 focus:outline-none'
+                                    }`}
                                   />
                                 </div>
                               )}
@@ -3018,7 +3018,7 @@ function App() {
                                     isLocked 
                                       ? 'cursor-not-allowed text-slate-400' 
                                       : currentResp.likert === val 
-                                        ? 'bg-sky-600 text-white font-bold shadow' 
+                                        ? 'bg-sky-600 text-white font-black shadow-md border-2 border-sky-400 scale-105' 
                                         : 'hover:bg-white text-slate-700 cursor-pointer'
                                   }`}
                                 >
@@ -3026,10 +3026,10 @@ function App() {
                                     type="radio" 
                                     name={`likert_${p.id}`}
                                     value={val}
-                                    disabled={isLocked}
+                                    disabled={isReadOnly || isLocked}
                                     checked={currentResp.likert === val}
                                     className="sr-only"
-                                    onChange={() => !isLocked && handleLikertChange(p.id, val)}
+                                    onChange={() => !isReadOnly && !isLocked && handleLikertChange(p.id, val)}
                                   />
                                   <span className="text-sm font-semibold">{val}</span>
 
@@ -3053,16 +3053,16 @@ function App() {
                                       isLocked 
                                         ? 'cursor-not-allowed text-slate-400' 
                                         : currentResp[crit] === 'Si' 
-                                          ? 'bg-emerald-600 text-white font-bold' 
+                                          ? 'bg-emerald-600 text-white font-black shadow' 
                                           : 'hover:bg-slate-200 text-slate-700 cursor-pointer'
                                     }`}>
                                       <input 
                                         type="radio" 
                                         name={`${crit}_${p.id}`} 
-                                        disabled={isLocked}
+                                        disabled={isReadOnly || isLocked}
                                         checked={currentResp[crit] === 'Si'}
                                         className="sr-only" 
-                                        onChange={() => !isLocked && handleCriterioChange(p.id, crit, 'Si')} 
+                                        onChange={() => !isReadOnly && !isLocked && handleCriterioChange(p.id, crit, 'Si')} 
                                       />
                                       Sí
                                     </label>
@@ -3070,16 +3070,16 @@ function App() {
                                       isLocked 
                                         ? 'cursor-not-allowed text-slate-400' 
                                         : currentResp[crit] === 'No' 
-                                          ? 'bg-red-600 text-white font-bold' 
+                                          ? 'bg-red-600 text-white font-black shadow' 
                                           : 'hover:bg-slate-200 text-slate-700 cursor-pointer'
                                     }`}>
                                       <input 
                                         type="radio" 
                                         name={`${crit}_${p.id}`} 
-                                        disabled={isLocked}
+                                        disabled={isReadOnly || isLocked}
                                         checked={currentResp[crit] === 'No'}
                                         className="sr-only" 
-                                        onChange={() => !isLocked && handleCriterioChange(p.id, crit, 'No')} 
+                                        onChange={() => !isReadOnly && !isLocked && handleCriterioChange(p.id, crit, 'No')} 
                                       />
                                       No
                                     </label>
