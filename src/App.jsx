@@ -1553,39 +1553,53 @@ function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
-                    {invitacionesList.map((inv, idx) => (
-                      <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                        <td className="px-4 py-3 font-black text-sky-900 border-r border-slate-200">
-                          <span className="bg-sky-100 text-sky-800 px-2 py-1 rounded font-mono text-xs">
-                            {inv.codigo}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-bold text-slate-900 border-r border-slate-200">
-                          <button
-                            onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
-                            className="text-left hover:text-purple-700 hover:underline flex items-center gap-1.5 font-extrabold text-sky-900"
-                            title="Haz clic para ver la Carta, Instrumentos, Certificado y Hoja de Vida de este evaluador"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-purple-600 shrink-0" /> {inv.nombreExperto}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 border-r border-slate-200">
-                          {inv.cargo || 'No especificado'}
-                        </td>
-                        <td className="px-4 py-3 text-center border-r border-slate-200">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
-                            inv.estado === 'Completado' 
-                              ? 'bg-emerald-100 text-emerald-800' 
-                              : inv.estado === 'En Proceso' 
-                                ? 'bg-amber-100 text-amber-800' 
-                                : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            {inv.estado}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center font-bold border-r border-slate-200">
-                          <span className="text-sky-700">{inv.respondidas || 0}</span> / 100
-                        </td>
+                    {invitacionesList.map((inv, idx) => {
+                      const evalData = evaluacionesData[inv.codigo] || Object.values(evaluacionesData).find(e => 
+                        (e.dni && e.dni.trim().toUpperCase() === inv.codigo.trim().toUpperCase()) || 
+                        (e.nombre && e.nombre.trim().toLowerCase() === (inv.nombreExperto || '').trim().toLowerCase())
+                      )
+
+                      const countFromEval = evalData ? Object.keys(evalData.respuestas || {}).filter(k => {
+                        const r = evalData.respuestas[k]
+                        return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+                      }).length : 0
+
+                      const realAnswered = Math.max(inv.respondidas || 0, countFromEval)
+                      const realEstado = (realAnswered >= 100 || inv.estado === 'Completado') ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : (inv.estado || 'Pendiente'))
+
+                      return (
+                        <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                          <td className="px-4 py-3 font-black text-sky-900 border-r border-slate-200">
+                            <span className="bg-sky-100 text-sky-800 px-2 py-1 rounded font-mono text-xs">
+                              {inv.codigo}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-900 border-r border-slate-200">
+                            <button
+                              onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
+                              className="text-left hover:text-purple-700 hover:underline flex items-center gap-1.5 font-extrabold text-sky-900"
+                              title="Haz clic para ver la Carta, Instrumentos, Certificado y Hoja de Vida de este evaluador"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-purple-600 shrink-0" /> {inv.nombreExperto}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 border-r border-slate-200">
+                            {inv.cargo || 'No especificado'}
+                          </td>
+                          <td className="px-4 py-3 text-center border-r border-slate-200">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                              realEstado === 'Completado' 
+                                ? 'bg-emerald-100 text-emerald-800' 
+                                : realEstado === 'En Proceso' 
+                                  ? 'bg-amber-100 text-amber-800' 
+                                  : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {realEstado}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold border-r border-slate-200">
+                            <span className="text-sky-700 font-black text-sm">{realAnswered}</span> / 100
+                          </td>
                         <td className="px-4 py-3 text-center flex justify-center gap-2">
                           <button
                             onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
@@ -1611,7 +1625,8 @@ function App() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )
+                  })}
                   </tbody>
                 </table>
               </div>

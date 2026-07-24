@@ -155,11 +155,16 @@ const getConsolidatedInvitations = (invites, evals) => {
     const mainKey = (/^\d{8}$/.test(mainDni) || mainDni.startsWith('EXT-') || mainDni.startsWith('EXP-')) ? mainDni : cleanKey
 
     if (!grouped[mainKey]) {
-      const matchingEvals = Object.values(evals).filter(e => 
-        (e.codigo && e.codigo.trim().toUpperCase() === mainKey) || 
-        (e.dni && e.dni.trim().toUpperCase() === mainKey) ||
-        (cleanKey && e.codigo && e.codigo.trim().toUpperCase() === cleanKey)
-      )
+      const matchingEvals = Object.values(evals).filter(e => {
+        const eCode = (e.codigo || '').trim().toUpperCase()
+        const eDni = (e.dni || '').trim().toUpperCase()
+        const eNombre = (e.nombre || '').trim().toLowerCase()
+        const targetNombre = (inv.nombreExperto || '').trim().toLowerCase()
+
+        return (eCode && (eCode === mainKey || eCode === cleanKey)) ||
+               (eDni && (eDni === mainKey || eDni === cleanKey)) ||
+               (targetNombre && targetNombre !== "experto validador" && eNombre && (eNombre.includes(targetNombre) || targetNombre.includes(eNombre)))
+      })
 
       const combinedRespuestas = {}
       let finalNombre = inv.nombreExperto || "Experto Validador"
