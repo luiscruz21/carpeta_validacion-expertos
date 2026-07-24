@@ -726,7 +726,39 @@ function App() {
     }
   }
 
-  const handleCvFileUpload = (e) => {
+  const extractTextFromPdf = async (arrayBuffer) => {
+    try {
+      if (!window.pdfjsLib) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js'
+          script.onload = resolve
+          script.onerror = reject
+          document.head.appendChild(script)
+        })
+        if (window.pdfjsLib) {
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'
+        }
+      }
+
+      if (!window.pdfjsLib) return null
+
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      let fullText = ''
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const textContent = await page.getTextContent()
+        const pageText = textContent.items.map(item => item.str).join(' ')
+        fullText += `--- PÁGINA ${i} ---\n${pageText}\n\n`
+      }
+      return fullText.trim()
+    } catch (err) {
+      console.warn("No se pudo extraer texto bruto del PDF:", err)
+      return null
+    }
+  }
+
+  const handleCvFileUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
       setCvFileName(file.name)
@@ -738,14 +770,25 @@ function App() {
       }
       readerData.readAsDataURL(file)
 
-      // Leer texto si es un archivo de texto o compatible
-      const readerText = new FileReader()
-      readerText.onload = (event) => {
-        if (typeof event.target.result === 'string' && event.target.result.trim()) {
-          setCvTextContent(event.target.result)
+      // Extraer texto si es un PDF o archivo de texto
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        const arrayBufferReader = new FileReader()
+        arrayBufferReader.onload = async (event) => {
+          const pdfText = await extractTextFromPdf(event.target.result)
+          if (pdfText) {
+            setCvTextContent(pdfText)
+          }
         }
+        arrayBufferReader.readAsArrayBuffer(file)
+      } else {
+        const readerText = new FileReader()
+        readerText.onload = (event) => {
+          if (typeof event.target.result === 'string' && event.target.result.trim()) {
+            setCvTextContent(event.target.result)
+          }
+        }
+        readerText.readAsText(file)
       }
-      readerText.readAsText(file)
 
       alert(`¡Archivo de Hoja de Vida "${file.name}" cargado y procesado con éxito!`)
     }
@@ -2568,7 +2611,42 @@ function App() {
             </div>
 
             <div className="space-y-6 text-sm">
-              {/* FICHA RESUMEN CON LOS 5 DATOS CLAVE DEL CV / HOJA DE VIDA */}
+              {/* BOTÓN Y ÁREA PRINCIPAL PARA ADJUNTAR ARCHIVO CV (PDF O WORD) */}
+              <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-teal-500 transition-all shadow-sm">
+                <input 
+                  type="file" 
+                  accept=".pdf,.doc,.docx,.txt"
+                  ref={cvFileInputRef}
+                  className="hidden" 
+                  onChange={handleCvFileUpload}
+                />
+                <FileCheck className="w-12 h-12 text-teal-600 mx-auto mb-2 animate-bounce" />
+                <h3 className="font-extrabold text-slate-900 text-base">Adjuntar o Cargar Archivo de Hoja de Vida (CV)</h3>
+                <p className="text-xs text-slate-500 mb-4">Formatos permitidos: PDF, Word (DOC, DOCX) o Texto (TXT)</p>
+                
+                {cvFileName ? (
+                  <div className="inline-flex flex-col items-center gap-2">
+                    <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-900 font-black px-5 py-2.5 rounded-xl text-xs border border-emerald-400 shadow">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" /> Archivo de CV Cargado: {cvFileName}
+                    </div>
+                    <button
+                      onClick={() => cvFileInputRef.current?.click()}
+                      className="text-xs text-teal-700 underline font-extrabold hover:text-teal-900 pt-1"
+                    >
+                      🔄 Reemplazar por otro archivo PDF o Word
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => cvFileInputRef.current?.click()}
+                    className="bg-teal-700 hover:bg-teal-800 text-white font-extrabold py-3 px-8 rounded-xl text-xs shadow-md transition-all inline-flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" /> Seleccionar Archivo CV (PDF / Word) desde su equipo
+                  </button>
+                )}
+              </div>
+
+              {/* FICHA Y CONTENIDO EXTRAÍDO / VISUALIZADO DE LA HOJA DE VIDA DEL ARCHIVO */}
               <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
                   <div className="flex items-center gap-3">
@@ -2577,54 +2655,26 @@ function App() {
                     </div>
                     <div>
                       <h3 className="text-lg md:text-xl font-black text-white flex items-center gap-2">
-                        {nombre || 'Experto Validador Registrado'}
+                        {nombre || 'Experto Validador'}
                       </h3>
-                      <p className="text-xs text-teal-200 font-semibold">{cargo || 'Especialista / Investigador Informante'}</p>
+                      <p className="text-xs text-teal-200 font-semibold">{cargo || 'Especialista Informante'}</p>
                     </div>
                   </div>
 
-                  <span className="bg-teal-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-full uppercase tracking-wider shadow shrink-0">
-                    {gradoAcademico || 'Doctor / Magíster'}
-                  </span>
+                  {gradoAcademico && (
+                    <span className="bg-teal-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-full uppercase tracking-wider shadow shrink-0">
+                      {gradoAcademico}
+                    </span>
+                  )}
                 </div>
 
-                {/* TABLA VISUAL DE LOS 5 DATOS PRINCIPALES EXTRAÍDOS / INGRESADOS DE LA HOJA DE VIDA */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">1. Nombres y Apellidos:</span>
-                    <span className="text-white font-extrabold text-sm">{nombre || 'No especificado'}</span>
-                  </div>
-
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">2. Correo Electrónico:</span>
-                    <span className="text-amber-300 font-extrabold text-sm">{email || 'No especificado (ejemplo@institucion.edu.pe)'}</span>
-                  </div>
-
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">3. Grado Académico y Titulación:</span>
-                    <span className="text-emerald-300 font-extrabold text-sm">{gradoAcademico || 'Doctor / Magíster'}</span>
-                  </div>
-
-                  <div className="bg-white/10 p-3.5 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">4. Estudios Realizados / Filiación:</span>
-                    <span className="text-sky-200 font-extrabold text-sm">{estudios || institucion || 'Universidad Nacional / Escuela Posgrado'}</span>
-                  </div>
-
-                  <div className="md:col-span-2 bg-white/10 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
-                    <span className="text-slate-400 font-bold block mb-1 uppercase tracking-wider text-[10px]">5. Experiencia Profesional y Trayectoria:</span>
-                    <p className="text-slate-200 font-medium leading-relaxed text-xs">
-                      {experienciaDetallada || resumenProfesional || experiencia || 'Docencia universitaria y ejercicio profesional superior a 10 años en proyectos de infraestructura pública, ciencia de datos o gestión de riesgos.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* VISUALIZADOR INTEGRADO EN VIVO DEL ARCHIVO PDF DE LA HOJA DE VIDA */}
+                {/* VISUALIZADOR DIRECTO EN VIVO DEL ARCHIVO PDF / WORD */}
                 {cvFileDataUrl ? (
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center justify-between bg-teal-900/60 p-3.5 rounded-xl border border-teal-500/40 text-xs flex-wrap gap-2">
                       <div className="flex items-center gap-2 font-bold text-teal-200">
                         <FileCheck className="w-5 h-5 text-teal-400 shrink-0" />
-                        <span>Documento PDF de Hoja de Vida: <strong className="text-white">{cvFileName || 'Hoja_de_Vida.pdf'}</strong></span>
+                        <span>Documento de Hoja de Vida Cargado: <strong className="text-white">{cvFileName || 'Curriculum_Vitae.pdf'}</strong></span>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -2634,99 +2684,109 @@ function App() {
                           rel="noopener noreferrer"
                           className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
                         >
-                          <Eye className="w-4 h-4" /> Visualizar PDF en Pantalla Completa
+                          <Eye className="w-4 h-4" /> Ver Documento Completo en Pantalla Completa
                         </a>
                         <a
                           href={cvFileDataUrl}
-                          download={cvFileName || 'Hoja_de_Vida.pdf'}
+                          download={cvFileName || 'Curriculum_Vitae.pdf'}
                           className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition-all"
                         >
-                          <Download className="w-4 h-4" /> Descargar PDF
+                          <Download className="w-4 h-4" /> Descargar Archivo
                         </a>
                       </div>
                     </div>
 
-                    {/* EMBED PDF IFRAME */}
+                    {/* EMBED PDF / DOCUMENT IFRAME VIEWER */}
                     <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
                       <iframe
                         src={cvFileDataUrl}
-                        title="Visor en vivo de la Hoja de Vida PDF"
-                        className="w-full h-[500px] border-0"
+                        title="Visor en vivo de la Hoja de Vida Cargada"
+                        className="w-full h-[550px] border-0"
                       />
                     </div>
                   </div>
                 ) : cvFileName ? (
-                  <div className="bg-emerald-950/80 border border-emerald-500/50 p-3.5 rounded-xl flex items-center justify-between text-xs text-emerald-200 flex-wrap gap-2">
+                  <div className="bg-emerald-950/80 border border-emerald-500/50 p-4 rounded-xl flex items-center justify-between text-xs text-emerald-200 flex-wrap gap-2">
                     <div className="flex items-center gap-2 font-bold">
                       <FileCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <span>Documento de Hoja de Vida Adjuntado: <strong className="text-white">{cvFileName}</strong></span>
+                      <span>Archivo Registrado: <strong className="text-white">{cvFileName}</strong></span>
                     </div>
-                    <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-md shadow">
-                      ✓ REGISTRADO
+                    <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-3 py-1 rounded-md shadow">
+                      ✓ DOCUMENTO CARGADO
                     </span>
                   </div>
                 ) : (
-                  <div className="bg-amber-950/60 border border-amber-500/40 p-3 rounded-xl flex items-center gap-2 text-xs text-amber-200">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Seleccione abajo su archivo de Curriculum Vitae (PDF) para visualizarlo en vivo.</span>
+                  <div className="bg-amber-950/60 border border-amber-500/40 p-4 rounded-xl flex items-center gap-3 text-xs text-amber-200">
+                    <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                    <span>Por favor adjunte su archivo de Curriculum Vitae (PDF o Word) arriba para visualizar su contenido exacto aquí.</span>
                   </div>
                 )}
               </div>
 
-              {/* DOCUMENTO DETALLADO CON EL CONTENIDO COMPLETO DEL CV CARGADO */}
-              <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
-                  <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-teal-700" />
-                    Contenido Detallado del Curriculum Vitae del Evaluador / Experto
-                  </h3>
-                  {cvFileName && (
-                    <span className="bg-teal-100 text-teal-900 font-extrabold text-[11px] px-2.5 py-1 rounded-md border border-teal-300">
-                      Archivo: {cvFileName}
-                    </span>
-                  )}
+              {/* LECTURA DE TEXTO EXTRAÍDO DEL ARCHIVO O REGISTRO DEL EVALUADOR */}
+              {(cvTextContent || nombre || email || gradoAcademico || estudios || experienciaDetallada) && (
+                <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 space-y-4 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
+                    <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-teal-700" />
+                      Contenido Extraído / Registrado de la Hoja de Vida
+                    </h3>
+                    {cvFileName && (
+                      <span className="bg-teal-100 text-teal-900 font-extrabold text-[11px] px-2.5 py-1 rounded-md border border-teal-300">
+                        {cvFileName}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="bg-white p-6 rounded-xl border border-slate-200 text-slate-800 text-xs md:text-sm font-sans space-y-4 shadow-inner max-h-[500px] overflow-y-auto leading-relaxed">
+                    {cvTextContent ? (
+                      <div className="whitespace-pre-wrap font-serif leading-relaxed text-slate-900">{cvTextContent}</div>
+                    ) : (
+                      <div className="space-y-4">
+                        {nombre && (
+                          <div className="border-b border-slate-200 pb-3">
+                            <h4 className="font-black text-slate-900 text-base">{nombre}</h4>
+                            {cargo && <p className="text-teal-700 font-bold text-xs">{cargo}</p>}
+                            {dni && <p className="text-slate-500 text-xs">DNI / Registro: {dni}</p>}
+                            {institucion && <p className="text-slate-500 text-xs">Institución: {institucion}</p>}
+                            {email && <p className="text-slate-500 text-xs">Correo Electrónico: {email}</p>}
+                          </div>
+                        )}
+
+                        {(gradoAcademico || estudios) && (
+                          <div>
+                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">FORMACIÓN ACADÉMICA Y ESTUDIOS</h5>
+                            <ul className="list-disc pl-5 space-y-1 text-slate-700">
+                              {gradoAcademico && <li><strong>Grado Académico:</strong> {gradoAcademico}</li>}
+                              {estudios && <li><strong>Estudios Realizados / Universidad:</strong> {estudios}</li>}
+                            </ul>
+                          </div>
+                        )}
+
+                        {(experienciaDetallada || resumenProfesional || experiencia) && (
+                          <div>
+                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">EXPERIENCIA PROFESIONAL Y TRAYECTORIA</h5>
+                            <p className="text-slate-700 leading-relaxed">
+                              {experienciaDetallada || resumenProfesional || experiencia}
+                            </p>
+                          </div>
+                        )}
+
+                        {(ctiVitae || orcid || linkedin) && (
+                          <div>
+                            <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">ENLACES Y REGISTROS OFICIALES</h5>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {ctiVitae && <span className="bg-sky-50 text-sky-800 font-bold px-2.5 py-1 rounded border border-sky-200">CTI Vitae: {ctiVitae}</span>}
+                              {orcid && <span className="bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">ORCID: {orcid}</span>}
+                              {linkedin && <span className="bg-indigo-50 text-indigo-800 font-bold px-2.5 py-1 rounded border border-indigo-200">LinkedIn: {linkedin}</span>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <div className="bg-white p-6 rounded-xl border border-slate-200 text-slate-800 text-xs md:text-sm font-sans space-y-4 shadow-inner max-h-[500px] overflow-y-auto leading-relaxed">
-                  {cvTextContent ? (
-                    <div className="whitespace-pre-wrap font-serif">{cvTextContent}</div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="border-b border-slate-200 pb-3">
-                        <h4 className="font-black text-slate-900 text-base">{nombre || "Dr. Luis Alfonso Cruz Gálvez"}</h4>
-                        <p className="text-teal-700 font-bold text-xs">{cargo || "Ingeniero de Sistemas / Especialista en Infraestructura Pública y Gestión de Riesgos"}</p>
-                        <p className="text-slate-500 text-xs">D.N.I: {dni || "09091855"} | Filiación: {institucion || "Contraloría General de la República - INFOBRAS / Universidad Nacional"}</p>
-                        <p className="text-slate-500 text-xs">Correo Electrónico: {email || "l.cruz@contraloria.gob.pe"}</p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">I. GRADO ACADÉMICO Y FORMACIÓN ACADÉMICA</h5>
-                        <ul className="list-disc pl-5 space-y-1 text-slate-700">
-                          <li><strong>Grado Académico:</strong> {gradoAcademico || "Magíster en Ingeniería de Sistemas / Doctorando en Informática"}</li>
-                          <li><strong>Estudios Realizados:</strong> {estudios || "Universidad Nacional Mayor de San Marcos - Facultad de Ingeniería de Sistemas e Informática"}</li>
-                          <li><strong>Especialización:</strong> Gestión de Riesgos en Infraestructura Pública, Deep Learning y Métodos de Validación por Juicio de Expertos.</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">II. EXPERIENCIA PROFESIONAL Y DOCENTE</h5>
-                        <p className="text-slate-700 leading-relaxed">
-                          {experienciaDetallada || resumenProfesional || experiencia || "Más de 15 años de trayectoria profesional en auditoría técnica y supervisión de proyectos de infraestructura pública en la Contraloría General de la República (INFOBRAS). Docente e investigador universitario a nivel de posgrado en metodología de investigación cuantitativa, juicio de expertos y arquitectura analítica predictiva."}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">III. REGISTROS ACADÉMICOS Y ENLACES OFICIALES</h5>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {ctiVitae && <span className="bg-sky-50 text-sky-800 font-bold px-2.5 py-1 rounded border border-sky-200">CTI Vitae: {ctiVitae}</span>}
-                          {orcid && <span className="bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">ORCID: {orcid}</span>}
-                          {linkedin && <span className="bg-indigo-50 text-indigo-800 font-bold px-2.5 py-1 rounded border border-indigo-200">LinkedIn: {linkedin}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
 
               <div className="bg-teal-50/60 border border-teal-200 rounded-lg p-4 text-xs text-teal-950">
                 <p className="font-bold">Estimado(a) Experto(a):</p>
