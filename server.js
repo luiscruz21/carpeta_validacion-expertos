@@ -9,9 +9,13 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 3001
-const DATA_DIR = path.join(__dirname, 'db_data')
+// Detectar si está corriendo en Vercel o entorno Serverless
+const IS_VERCEL = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+const DATA_DIR = IS_VERCEL ? '/tmp' : path.join(__dirname, 'db_data')
+
 const EVAL_FILE = path.join(DATA_DIR, 'evaluaciones.json')
 const INVITE_FILE = path.join(DATA_DIR, 'invitaciones.json')
+const REVOCADOS_FILE = path.join(DATA_DIR, 'revocados.json')
 const CUSTOM_PREGUNTAS_FILE = path.join(DATA_DIR, 'preguntas_custom.json')
 const DEFAULT_PREGUNTAS_FILE = path.join(__dirname, 'src', 'preguntas.json')
 
@@ -20,36 +24,70 @@ const PIN_INVESTIGADOR_OFICIAL = "2026"
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true })
-}
+// Variables en memoria para persistencia fluida en Serverless (Vercel)
+let memoryInvites = null
+let memoryEvals = null
+let memoryRevocados = null
+let memoryPreguntas = null
 
-const REVOCADOS_FILE = path.join(DATA_DIR, 'revocados.json')
-
-if (!fs.existsSync(EVAL_FILE)) {
-  fs.writeFileSync(EVAL_FILE, JSON.stringify({}, null, 2))
-}
-
-if (!fs.existsSync(INVITE_FILE)) {
-  fs.writeFileSync(INVITE_FILE, JSON.stringify({}, null, 2))
-}
-
-if (!fs.existsSync(REVOCADOS_FILE)) {
-  fs.writeFileSync(REVOCADOS_FILE, JSON.stringify([], null, 2))
-}
-
-const readJson = (filePath) => {
-  try {
-    const raw = fs.readFileSync(filePath, 'utf-8')
-    return JSON.parse(raw)
-  } catch {
-    return null
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true })
   }
+} catch (e) {
+  console.warn("No se pudo crear directorio DATA_DIR:", e.message)
+}
+
+const readJson = (filePath, defaultVal = null) => {
+  if (filePath === INVITE_FILE && memoryInvites !== null) return memoryInvites
+  if (filePath === EVAL_FILE && memoryEvals !== null) return memoryEvals
+  if (filePath === REVOCADOS_FILE && memoryRevocados !== null) return memoryRevocados
+  if (filePath === CUSTOM_PREGUNTAS_FILE && memoryPreguntas !== null) return memoryPreguntas
+
+  try {
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8')
+      const parsed = JSON.parse(raw)
+      if (filePath === INVITE_FILE) memoryInvites = parsed
+      if (filePath === EVAL_FILE) memoryEvals = parsed
+      if (filePath === REVOCADOS_FILE) memoryRevocados = parsed
+      if (filePath === CUSTOM_PREGUNTAS_FILE) memoryPreguntas = parsed
+      return parsed
+    }
+  } catch (err) {
+    console.warn(`Error leyendo ${filePath}:`, err.message)
+  }
+
+  // Si no existía en /tmp (Vercel), intentamos leer la plantilla inicial de db_data
+  if (IS_VERCEL) {
+    try {
+      const baseFile = path.join(__dirname, 'db_data', path.basename(filePath))
+      if (fs.existsSync(baseFile)) {
+        const raw = fs.readFileSync(baseFile, 'utf-8')
+        const parsed = JSON.parse(raw)
+        if (filePath === INVITE_FILE) memoryInvites = parsed
+        if (filePath === EVAL_FILE) memoryEvals = parsed
+        if (filePath === REVOCADOS_FILE) memoryRevocados = parsed
+        if (filePath === CUSTOM_PREGUNTAS_FILE) memoryPreguntas = parsed
+        return parsed
+      }
+    } catch (e) {}
+  }
+
+  return defaultVal
 }
 
 const writeJson = (filePath, data) => {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  if (filePath === INVITE_FILE) memoryInvites = data
+  if (filePath === EVAL_FILE) memoryEvals = data
+  if (filePath === REVOCADOS_FILE) memoryRevocados = data
+  if (filePath === CUSTOM_PREGUNTAS_FILE) memoryPreguntas = data
+
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  } catch (err) {
+    console.warn(`Autoguardado en disco omitido para ${filePath}:`, err.message)
+  }
 }
 
 // -------------------------------------------------------------
