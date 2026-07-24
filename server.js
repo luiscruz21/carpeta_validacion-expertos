@@ -377,61 +377,70 @@ app.post('/api/evaluacion/save', (req, res) => {
   let revocados = readJson(REVOCADOS_FILE) || []
 
   const cleanCode = codigo.trim().toUpperCase()
-  
-  if (payload && payload.isNuevoRegistro) {
-    revocados = revocados.filter(k => k !== cleanCode && k !== (payload.dni || '').trim().toUpperCase())
-    writeJson(REVOCADOS_FILE, revocados)
+  const existingEval = evals[cleanCode] || (payload.dni ? evals[payload.dni.trim().toUpperCase()] : null) || {}
+
+  // Determinar nombre, cargo y DNI sin sobrescribir datos reales con placeholders
+  let finalNombre = (payload.nombre && payload.nombre !== "Experto Validador") ? payload.nombre : (existingEval.nombre || payload.nombre || "Experto Validador")
+  let finalCargo = (payload.cargo && payload.cargo !== "Especialista Informante") ? payload.cargo : (existingEval.cargo || payload.cargo || "Especialista Informante")
+  let finalDni = payload.dni || existingEval.dni || cleanCode
+
+  // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas
+  const mergedRespuestas = {
+    ...(existingEval.respuestas || {}),
+    ...(payload.respuestas || {})
   }
 
   // Recalcular avance y estado del evaluador
-  const totalAnswered = Object.keys(payload.respuestas || {}).filter(k => {
-    const r = payload.respuestas[k]
+  const totalAnswered = Object.keys(mergedRespuestas).filter(k => {
+    const r = mergedRespuestas[k]
     return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
   }).length
 
-  const nuevoEstado = (payload.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
+  const nuevoEstado = (payload.finalizado || existingEval.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
-  evals[cleanCode] = {
+  const updatedPayload = {
+    ...existingEval,
     ...payload,
+    nombre: finalNombre,
+    cargo: finalCargo,
+    dni: finalDni,
+    respuestas: mergedRespuestas,
     codigo: cleanCode,
     lastUpdated: new Date().toISOString()
   }
+
+  evals[cleanCode] = updatedPayload
 
   // Si la invitación no existía previamente para este evaluador, la registramos automáticamente
   if (!invites[cleanCode]) {
     invites[cleanCode] = {
       codigo: cleanCode,
-      nombreExperto: payload.nombre || "Experto Validador",
-      cargo: payload.cargo || "Especialista Informante",
-      dni: payload.dni || "",
+      nombreExperto: finalNombre,
+      cargo: finalCargo,
+      dni: finalDni,
       creadoEn: new Date().toISOString(),
       estado: nuevoEstado,
       respondidas: totalAnswered
     }
   } else {
-    if (payload.dni) invites[cleanCode].dni = payload.dni
-    if (payload.nombre) invites[cleanCode].nombreExperto = payload.nombre
-    if (payload.cargo) invites[cleanCode].cargo = payload.cargo
+    invites[cleanCode].dni = finalDni
+    invites[cleanCode].nombreExperto = finalNombre
+    invites[cleanCode].cargo = finalCargo
     invites[cleanCode].estado = nuevoEstado
     invites[cleanCode].respondidas = totalAnswered
   }
 
   // Buscar también por DNI para actualizar sincronizadamente
-  if (payload.dni) {
-    const cleanDni = payload.dni.trim().toUpperCase()
+  if (finalDni) {
+    const cleanDni = finalDni.trim().toUpperCase()
     if (invites[cleanDni]) {
-      invites[cleanDni].nombreExperto = payload.nombre
-      invites[cleanDni].cargo = payload.cargo
+      invites[cleanDni].nombreExperto = finalNombre
+      invites[cleanDni].cargo = finalCargo
       invites[cleanDni].estado = nuevoEstado
       invites[cleanDni].respondidas = totalAnswered
     }
     if (evals[cleanDni]) {
-      evals[cleanDni] = {
-        ...evals[cleanDni],
-        ...payload,
-        codigo: cleanDni,
-        lastUpdated: new Date().toISOString()
-      }
+      evals[cleanDni] = updatedPayload
     }
   }
 
@@ -441,7 +450,8 @@ app.post('/api/evaluacion/save', (req, res) => {
   return res.json({ 
     success: true, 
     mensaje: 'Evaluación guardada correctamente', 
-    lastUpdated: evals[cleanCode].lastUpdated,
+    data: updatedPayload,
+    lastUpdated: updatedPayload.lastUpdated,
     respondidas: totalAnswered,
     estado: nuevoEstado
   })
