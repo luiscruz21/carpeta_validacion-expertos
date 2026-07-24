@@ -60,6 +60,8 @@ function App() {
   const [qTexto, setQTexto] = useState('')
 
   // Datos del Experto Validador (INICIALIZAN 100% LIMPIOS EN BLANCO)
+  const [nombresExperto, setNombresExperto] = useState('')
+  const [apellidosExperto, setApellidosExperto] = useState('')
   const [nombre, setNombre] = useState('')
   const [dni, setDni] = useState('')
   const [cargo, setCargo] = useState('')
@@ -137,15 +139,18 @@ function App() {
         if (parsed.firmaImg) setInvestigadorFirmaImg(parsed.firmaImg)
       }
       const res = await fetch('/api/investigador/perfil')
-      const data = await res.json()
-      if (data.success && data.perfil) {
-        if (data.perfil.nombres) setInvestigadorNombres(data.perfil.nombres)
-        if (data.perfil.apellidos) setInvestigadorApellidos(data.perfil.apellidos)
-        if (data.perfil.dni) setInvestigadorDni(data.perfil.dni)
-        if (data.perfil.email) setInvestigadorEmail(data.perfil.email)
-        if (data.perfil.grado) setInvestigadorGrado(data.perfil.grado)
-        if (data.perfil.tituloTesis) setInvestigadorTituloTesis(data.perfil.tituloTesis)
-        if (data.perfil.firmaImg) setInvestigadorFirmaImg(data.perfil.firmaImg)
+      const contentType = res.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        const data = await res.json()
+        if (data.success && data.perfil) {
+          if (data.perfil.nombres) setInvestigadorNombres(data.perfil.nombres)
+          if (data.perfil.apellidos) setInvestigadorApellidos(data.perfil.apellidos)
+          if (data.perfil.dni) setInvestigadorDni(data.perfil.dni)
+          if (data.perfil.email) setInvestigadorEmail(data.perfil.email)
+          if (data.perfil.grado) setInvestigadorGrado(data.perfil.grado)
+          if (data.perfil.tituloTesis) setInvestigadorTituloTesis(data.perfil.tituloTesis)
+          if (data.perfil.firmaImg) setInvestigadorFirmaImg(data.perfil.firmaImg)
+        }
       }
     } catch (err) {
       console.warn("Carga de perfil de investigador desde localStorage activo:", err)
@@ -492,16 +497,25 @@ function App() {
   // Guardar datos obligatorios iniciales del Evaluador
   const handleCompletarRegistroEvaluador = async (e) => {
     e.preventDefault()
-    const cleanNombre = nombre.trim()
+    const cleanNombres = nombresExperto.trim()
+    const cleanApellidos = apellidosExperto.trim()
+    const combinedNombre = `${cleanNombres} ${cleanApellidos}`.trim() || nombre.trim()
     const cleanCargo = cargo.trim()
+    const cleanGrado = gradoAcademico.trim()
     const cleanDni = dni.trim().toUpperCase()
+    const cleanInstitucion = institucion.trim()
+    const cleanEmail = email.trim()
 
-    if (!cleanNombre) {
-      alert("El campo Nombres y Apellidos es obligatorio.")
+    if (!cleanNombres || !cleanApellidos) {
+      alert("Los campos Nombres y Apellidos del Experto son obligatorios.")
       return
     }
     if (!cleanCargo) {
-      alert("El campo Cargo / Especialidad es obligatorio.")
+      alert("El campo Título Profesional / Especialidad es obligatorio.")
+      return
+    }
+    if (!cleanGrado) {
+      alert("El campo Grado Académico es obligatorio.")
       return
     }
     if (!cleanDni) {
@@ -511,22 +525,33 @@ function App() {
 
     if (!isExtranjero && !cleanDni.startsWith('EXT-')) {
       if (!/^\d{8}$/.test(cleanDni)) {
-        alert("El DNI peruano debe ser estrictamente numérico de 8 dígitos.")
+        alert("El DNI peruano debe ser strictly numérico de 8 dígitos.")
         return
       }
     }
 
-    setNombre(cleanNombre)
+    if (!cleanInstitucion) {
+      alert("El campo Universidad de Procedencia / Institución es obligatorio.")
+      return
+    }
+
+    setNombre(combinedNombre)
     setCargo(cleanCargo)
+    setGradoAcademico(cleanGrado)
     setDni(cleanDni)
+    setInstitucion(cleanInstitucion)
+    setEmail(cleanEmail)
 
     // Enviar inmediatamente al backend marcándolo como nuevo registro para que actualice invitaciones y evaluaciones
     await saveEvaluationToBackend(cleanDni, {
-      nombre: cleanNombre,
+      nombre: combinedNombre,
+      nombresExperto: cleanNombres,
+      apellidosExperto: cleanApellidos,
       dni: cleanDni,
       cargo: cleanCargo,
-      gradoAcademico,
-      institucion,
+      gradoAcademico: cleanGrado,
+      institucion: cleanInstitucion,
+      email: cleanEmail,
       experiencia,
       isExtranjero,
       firmaExpertoImg,
@@ -535,6 +560,10 @@ function App() {
       linkedin,
       cvFileName,
       resumenProfesional,
+      estudios: cleanInstitucion,
+      experienciaDetallada,
+      cvFileDataUrl,
+      cvTextContent,
       valoracionGlobal,
       dictamenFinal,
       observaciones,
@@ -544,7 +573,7 @@ function App() {
     })
 
     setShowRegistroModal(false)
-    alert(`¡Bienvenido(a) ${cleanNombre}! Sus datos han sido registrados e integrados.`)
+    alert(`¡Bienvenido(a) ${combinedNombre}! Sus datos oficiales han sido registrados e integrados.`)
   }
 
   // Login del Investigador con PIN (2026)
@@ -1986,38 +2015,69 @@ function App() {
                   </p>
 
                   <form onSubmit={handleCompletarRegistroEvaluador} className="space-y-4 text-xs">
-                    <div>
-                      <label className="block font-bold text-slate-800 mb-1">
-                        Nombres y Apellidos del Experto <span className="text-red-600">*</span>:
-                      </label>
-                      <input 
-                        type="text" 
-                        placeholder="Ej. Dr. Carlos Alberto Mendoza Silva"
-                        className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        required
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Nombres del Experto <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Carlos Alberto"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={nombresExperto}
+                          onChange={(e) => setNombresExperto(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Apellidos del Experto <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Mendoza Silva"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={apellidosExperto}
+                          onChange={(e) => setApellidosExperto(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block font-bold text-slate-800 mb-1">
-                        Cargo / Especialidad <span className="text-red-600">*</span>:
-                      </label>
-                      <input 
-                        type="text" 
-                        placeholder="Ej. Especialista en Ciencia de Datos / Infraestructura Pública"
-                        className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                        value={cargo}
-                        onChange={(e) => setCargo(e.target.value)}
-                        required
-                      />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Título Profesional <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Ingeniero de Sistemas / Licenciado"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={cargo}
+                          onChange={(e) => setCargo(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Grado Académico <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Magíster / Doctor"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={gradoAcademico}
+                          onChange={(e) => setGradoAcademico(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <label className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <Globe className="w-4 h-4 text-sky-600" /> Identificación (DNI / Código):
+                          <Globe className="w-4 h-4 text-sky-600" /> DNI / Documento de Identidad <span className="text-red-600">*</span>:
                         </label>
 
                         <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer font-medium">
@@ -2041,7 +2101,7 @@ function App() {
                           <input 
                             type="text" 
                             maxLength={8}
-                            placeholder="DNI del Experto (8 dígitos estrictos) *"
+                            placeholder="DNI del Experto (8 dígitos) *"
                             className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest bg-white border-slate-300 focus:outline-none focus:border-sky-600"
                             value={dni}
                             onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
@@ -2062,42 +2122,49 @@ function App() {
                             <button
                               type="button"
                               onClick={handleGenerarCodigoExtranjero}
-                              className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shrink-0"
+                              className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shrink-0 cursor-pointer"
                             >
                               Generar Código
                             </button>
                           </div>
+                          <p className="text-[11px] text-amber-800 font-semibold">
+                            Si no es peruano, haga clic en <strong>Generar Código</strong> para obtener su código único de acceso.
+                          </p>
                         </div>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Grado Académico (Opcional):</label>
-                        <input 
-                          type="text" 
-                          placeholder="Magíster / Doctor"
-                          className="w-full p-2 border rounded text-slate-800 bg-white"
-                          value={gradoAcademico}
-                          onChange={(e) => setGradoAcademico(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block font-bold text-slate-700 mb-1">Institución (Opcional):</label>
-                        <input 
-                          type="text" 
-                          placeholder="Universidad / Entidad"
-                          className="w-full p-2 border rounded text-slate-800 bg-white"
-                          value={institucion}
-                          onChange={(e) => setInstitucion(e.target.value)}
-                        />
-                      </div>
+                    <div>
+                      <label className="block font-bold text-slate-800 mb-1">
+                        Universidad de Procedencia / Institución <span className="text-red-600">*</span>:
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="Ej. Universidad Nacional de Ingeniería (UNI) / UNMSM"
+                        className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                        value={institucion}
+                        onChange={(e) => setInstitucion(e.target.value)}
+                        required
+                      />
                     </div>
 
-                    <div className="pt-4 text-center">
+                    <div>
+                      <label className="block font-semibold text-slate-600 mb-1">
+                        Correo Electrónico (Opcional):
+                      </label>
+                      <input 
+                        type="email" 
+                        placeholder="Ej. experto@ejemplo.com (Opcional)"
+                        className="w-full p-2.5 border rounded-lg text-slate-800 bg-white focus:outline-none focus:border-sky-600"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="pt-3 text-center">
                       <button 
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Check className="w-5 h-5" /> INGRESAR A EVALUAR LOS INSTRUMENTOS
                       </button>

@@ -1,9 +1,9 @@
 {
   "09091855": {
-    "nombre": "Ma. Luis Alfonso Cruz Gálvez",
+    "nombre": "Marco Antonio Tipismana Neyra",
     "dni": "09091855",
-    "cargo": "Ing. de Sistemas",
-    "gradoAcademico": "",
+    "cargo": "Administracion",
+    "gradoAcademico": "Doctor",
     "institucion": "",
     "experiencia": "",
     "isExtranjero": false,
@@ -728,7 +728,7 @@
     },
     "inviteCode": "09091855",
     "codigo": "09091855",
-    "lastUpdated": "2026-07-24T15:16:59.368Z",
+    "lastUpdated": "2026-07-24T15:54:59.119Z",
     "finalizado": true
   }
 }
