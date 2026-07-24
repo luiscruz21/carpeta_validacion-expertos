@@ -41,11 +41,13 @@ try {
 }
 
 const readJson = (filePath, defaultVal = null) => {
-  if (filePath === INVITE_FILE && memoryInvites !== null) return memoryInvites
-  if (filePath === EVAL_FILE && memoryEvals !== null) return memoryEvals
-  if (filePath === REVOCADOS_FILE && memoryRevocados !== null) return memoryRevocados
-  if (filePath === CUSTOM_PREGUNTAS_FILE && memoryPreguntas !== null) return memoryPreguntas
-  if (filePath === INVESTIGADOR_FILE && memoryInvestigador !== null) return memoryInvestigador
+  if (IS_VERCEL) {
+    if (filePath === INVITE_FILE && memoryInvites !== null) return memoryInvites
+    if (filePath === EVAL_FILE && memoryEvals !== null) return memoryEvals
+    if (filePath === REVOCADOS_FILE && memoryRevocados !== null) return memoryRevocados
+    if (filePath === CUSTOM_PREGUNTAS_FILE && memoryPreguntas !== null) return memoryPreguntas
+    if (filePath === INVESTIGADOR_FILE && memoryInvestigador !== null) return memoryInvestigador
+  }
 
   try {
     if (fs.existsSync(filePath)) {
@@ -442,6 +444,12 @@ app.post('/api/evaluacion/save', (req, res) => {
   let finalNombre = (payload.nombre && payload.nombre !== "Experto Validador") ? payload.nombre : (existingEval.nombre || payload.nombre || "Experto Validador")
   let finalCargo = (payload.cargo && payload.cargo !== "Especialista Informante") ? payload.cargo : (existingEval.cargo || payload.cargo || "Especialista Informante")
   let finalDni = payload.dni || existingEval.dni || cleanCode
+
+  if (cleanCode === '09091855') {
+    finalNombre = "Dr. Luis Alfonso Cruz Gálvez"
+    finalCargo = "Investigador Principal"
+    finalDni = "09091855"
+  }
 
   // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas
   const mergedRespuestas = {

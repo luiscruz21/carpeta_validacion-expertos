@@ -1848,10 +1848,10 @@ function App() {
                   className="flex items-center gap-1.5 text-xs text-emerald-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 hover:bg-slate-700"
                 >
                   <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{nombre ? `${nombre.split(' ')[0]} (${dni})` : 'Ingresar / Retomar mi Evaluación'}</span>
+                  <span>{activeNombreExperto && activeNombreExperto !== 'Experto Validador' ? `${activeNombreExperto.replace(/^Dr\.\s*/i, '').split(' ')[0]} (${dni || '09091855'})` : 'Ingresar / Retomar mi Evaluación'}</span>
                 </button>
 
-                {nombre && (
+                {(nombre || dni) && (
                   <button
                     onClick={handleResetForm}
                     title="Cerrar sesión activa y permitir el ingreso de un nuevo evaluador"

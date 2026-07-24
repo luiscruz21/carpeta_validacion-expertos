@@ -1,9 +1,18 @@
 {
   "09091855": {
     "codigo": "09091855",
+    "nombreExperto": "Dr. Luis Alfonso Cruz Gálvez",
+    "cargo": "Investigador Principal",
+    "dni": "09091855",
+    "creadoEn": "2026-07-24T02:04:36.871Z",
+    "estado": "Completado",
+    "respondidas": 100
+  },
+  "EXP-1001": {
+    "codigo": "EXP-1001",
     "nombreExperto": "Marco Antonio Tipismana Neyra",
     "cargo": "Administracion",
-    "dni": "09091855",
+    "dni": "EXP-1001",
     "creadoEn": "2026-07-24T02:04:36.871Z",
     "estado": "Completado",
     "respondidas": 100
