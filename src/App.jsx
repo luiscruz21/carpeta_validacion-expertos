@@ -2535,6 +2535,62 @@ function App() {
             </div>
 
             <div className="space-y-6 text-sm">
+              {/* FICHA CON LOS DATOS PRINCIPALES EXTRAÍDOS / REGISTRADOS DE LA HOJA DE VIDA */}
+              <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-teal-950 text-white rounded-2xl p-6 shadow-xl border-l-8 border-l-teal-400 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 flex-wrap gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-teal-500/20 rounded-xl border border-teal-400/40 flex items-center justify-center text-teal-300 font-black text-xl shadow-inner shrink-0">
+                      {nombre ? nombre.charAt(0).toUpperCase() : 'E'}
+                    </div>
+                    <div>
+                      <h3 className="text-lg md:text-xl font-black text-white flex items-center gap-2">
+                        {nombre || 'Experto Validador Registrado'}
+                      </h3>
+                      <p className="text-xs text-teal-200 font-semibold">{cargo || 'Especialista / Investigador Informante'}</p>
+                    </div>
+                  </div>
+
+                  <span className="bg-teal-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-full uppercase tracking-wider shadow shrink-0">
+                    {gradoAcademico || 'Doctor / Magíster'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-0.5">DNI / Identificación:</span>
+                    <span className="text-amber-300 font-extrabold text-sm">{dni || 'No especificado'}</span>
+                  </div>
+
+                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-0.5">Institución / Filiación:</span>
+                    <span className="text-sky-200 font-extrabold text-sm">{institucion || 'No especificado'}</span>
+                  </div>
+
+                  <div className="bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                    <span className="text-slate-400 font-bold block mb-0.5">Grado Máximo Obtenido:</span>
+                    <span className="text-emerald-300 font-extrabold text-sm">{gradoAcademico || 'Doctor / Magíster'}</span>
+                  </div>
+                </div>
+
+                {/* ESTADO Y CONFIRMACIÓN DE ARCHIVO DE CV */}
+                {cvFileName ? (
+                  <div className="bg-emerald-950/80 border border-emerald-500/50 p-3.5 rounded-xl flex items-center justify-between text-xs text-emerald-200 flex-wrap gap-2">
+                    <div className="flex items-center gap-2 font-bold">
+                      <FileCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <span>Documento de Hoja de Vida (CV) Adjuntado: <strong className="text-white">{cvFileName}</strong></span>
+                    </div>
+                    <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-md shadow">
+                      ✓ ARCHIVO REGISTRADO
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-amber-950/60 border border-amber-500/40 p-3 rounded-xl flex items-center gap-2 text-xs text-amber-200">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Curriculum Vitae pendiente de adjuntar o ingresar enlace académico.</span>
+                  </div>
+                )}
+              </div>
+
               <div className="bg-teal-50/60 border border-teal-200 rounded-lg p-4 text-xs text-teal-950">
                 <p className="font-bold">Estimado(a) Experto(a):</p>
                 <p className="mt-1">
