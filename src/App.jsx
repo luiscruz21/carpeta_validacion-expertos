@@ -1160,9 +1160,9 @@ function App() {
               <tr>
                 ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
                 <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
-                <td>${ind.definicionOperacional}</td>
-                <td>${ind.sustentoTeorico}</td>
-                <td>${ind.validezConstructo}</td>
+                <td>${ind.definicion || ind.definicionOperacional || ''}</td>
+                <td>${ind.sustento || ind.sustentoTeorico || ''}</td>
+                <td>${ind.validez || ind.validezConstructo || ''}</td>
                 <td>${ind.escala}</td>
               </tr>
             `).join('')).join('')}
@@ -1186,9 +1186,9 @@ function App() {
               <tr>
                 ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
                 <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
-                <td>${ind.definicionOperacional}</td>
-                <td>${ind.sustentoTeorico}</td>
-                <td>${ind.validezConstructo}</td>
+                <td>${ind.definicion || ind.definicionOperacional || ''}</td>
+                <td>${ind.sustento || ind.sustentoTeorico || ''}</td>
+                <td>${ind.validez || ind.validezConstructo || ''}</td>
                 <td>${ind.escala}</td>
               </tr>
             `).join('')).join('')}
@@ -1426,9 +1426,9 @@ function App() {
               <tr>
                 ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
                 <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
-                <td>${ind.definicionOperacional}</td>
-                <td>${ind.sustentoTeorico}</td>
-                <td>${ind.validezConstructo}</td>
+                <td>${ind.definicion || ind.definicionOperacional || ''}</td>
+                <td>${ind.sustento || ind.sustentoTeorico || ''}</td>
+                <td>${ind.validez || ind.validezConstructo || ''}</td>
                 <td>${ind.escala}</td>
               </tr>
             `).join('')).join('')}
@@ -1452,9 +1452,9 @@ function App() {
               <tr>
                 ${iIdx === 0 ? `<td rowspan="${dim.indicadores.length}" style="font-weight:bold;">${dim.dimension}</td>` : ''}
                 <td><strong>${ind.codigo}:</strong> ${ind.nombre}</td>
-                <td>${ind.definicionOperacional}</td>
-                <td>${ind.sustentoTeorico}</td>
-                <td>${ind.validezConstructo}</td>
+                <td>${ind.definicion || ind.definicionOperacional || ''}</td>
+                <td>${ind.sustento || ind.sustentoTeorico || ''}</td>
+                <td>${ind.validez || ind.validezConstructo || ''}</td>
                 <td>${ind.escala}</td>
               </tr>
             `).join('')).join('')}
