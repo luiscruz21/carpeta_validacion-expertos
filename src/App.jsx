@@ -2337,6 +2337,37 @@ function App() {
               <Briefcase className="w-4 h-4" /> Hoja de Vida Evaluador
             </button>
 
+            {userRole === 'EVALUADOR' && (
+              <button
+                onClick={() => {
+                  if (window.confirm("¿Desea registrar un nuevo evaluador o ingresar con otro código de acceso?")) {
+                    setNombre('')
+                    setNombresExperto('')
+                    setApellidosExperto('')
+                    setDni('')
+                    setCargo('')
+                    setGradoAcademico('')
+                    setInstitucion('')
+                    setEmail('')
+                    setRespuestas({})
+                    setFirmaExpertoImg('')
+                    setCvFileName('')
+                    setCvFileDataUrl('')
+                    setCvTextContent('')
+                    setIsFinalizado(false)
+                    setInviteCode('')
+                    localStorage.removeItem(`${LOCAL_STORAGE_KEY}_dni`)
+                    localStorage.removeItem(`${LOCAL_STORAGE_KEY}_nombre`)
+                    setShowRegistroModal(true)
+                  }
+                }}
+                className="px-3.5 py-2 rounded-lg font-bold text-xs bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                title="Registrar un nuevo evaluador o ingresar con otro DNI"
+              >
+                <UserPlus className="w-4 h-4 text-sky-600" /> Cambiar / Nuevo Evaluador
+              </button>
+            )}
+
             {userRole === 'INVESTIGADOR' && (
               <>
                 <button
@@ -2372,7 +2403,7 @@ function App() {
               <ShieldCheck className="w-4 h-4 text-amber-400" /> MODO INVESTIGADOR ACTIVO (Luis Alfonso Cruz Gálvez)
             </span>
             <span className="text-purple-200">
-              Puedes navegar todas las pestañas de evaluación y editar/agregar preguntas en la pestaña "Instrumentos".
+              Usted puede ver y editar las evaluaciones de todos los expertos ingresados desde el Panel de Control.
             </span>
           </div>
         )}
@@ -2389,9 +2420,21 @@ function App() {
             <button
               onClick={() => {
                 setEvaluadorInspeccionado(null)
+                setNombre('')
+                setDni('')
+                setCargo('')
+                setGradoAcademico('')
+                setInstitucion('')
+                setEmail('')
+                setRespuestas({})
+                setFirmaExpertoImg('')
+                setCvFileName('')
+                setCvFileDataUrl('')
+                setCvTextContent('')
+                setIsFinalizado(false)
                 setActiveTab('PANEL_INVESTIGADOR')
               }}
-              className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow transition-all shrink-0"
+              className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow transition-all shrink-0 cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" /> Volver al Panel del Investigador
             </button>
