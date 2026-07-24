@@ -979,16 +979,19 @@ function App() {
   const totalPreguntas = (preguntasData.VI?.length || 0) + (preguntasData.VD?.length || 0)
   const totalMissing = totalPreguntas - totalComplete
 
+  const hasCvFile = useMemo(() => !!(cvFileName && (cvFileDataUrl || cvTextContent)), [cvFileName, cvFileDataUrl, cvTextContent])
+
   const isCvRequirementMet = useMemo(() => {
-    const hasCvFile = !!(cvFileName && (cvFileDataUrl || cvTextContent))
+    if (hasCvFile) return true
     const hasCvForm = !!(
       (nombre && nombre.trim() && nombre !== 'Experto Validador') &&
       (email && email.trim()) &&
       (gradoAcademico && gradoAcademico.trim()) &&
-      (estudios && estudios.trim())
+      (estudios && estudios.trim()) &&
+      ((experienciaDetallada && experienciaDetallada.trim()) || (cargo && cargo.trim()))
     )
-    return hasCvFile || hasCvForm
-  }, [cvFileName, cvFileDataUrl, cvTextContent, nombre, email, gradoAcademico, estudios])
+    return hasCvForm
+  }, [hasCvFile, nombre, email, gradoAcademico, estudios, experienciaDetallada, cargo])
 
   const handleSubmitEvaluacion = () => {
     if (!nombre.trim() || !dni.trim()) {
