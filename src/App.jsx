@@ -1942,6 +1942,7 @@ function App() {
                   {(preguntasData[instrumentoSubTab] || []).map((p, idx) => {
                     const currentResp = respuestas[p.id] || {}
                     const isComplete = currentResp.likert && currentResp.claridad && currentResp.coherencia && currentResp.relevancia && currentResp.suficiencia
+                    const itemNum = instrumentoSubTab === 'VI' ? (idx + 1) : (50 + idx + 1)
 
                     return (
                       <tr 
@@ -1949,47 +1950,73 @@ function App() {
                         className={`transition-colors hover:bg-slate-50/80 ${isComplete ? 'bg-emerald-50/30' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
                       >
                         <td className="px-4 py-4 align-top">
-                          <div className="flex justify-between items-start gap-2 mb-2">
-                            <div className="flex items-start gap-2">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 mt-0.5 ${
+                          <div className="flex flex-col gap-2 mb-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {/* NÚMERO DE ÍTEM (1-50 PARA VI, 51-100 PARA VD) */}
+                              <span className="bg-slate-900 text-amber-300 font-black px-2.5 py-1 rounded-md text-xs border border-slate-700 shadow-sm shrink-0">
+                                Ítem {itemNum} / 100
+                              </span>
+
+                              {/* BADGE DE ESTADO */}
+                              <span className={`px-2.5 py-1 rounded-md text-xs font-black shrink-0 ${
                                 isComplete 
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                                  : 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-400' 
+                                  : 'bg-red-100 text-red-900 border border-red-300 animate-pulse'
                               }`}>
                                 {isComplete ? '✓ COMPLETO' : '⚠️ PENDIENTE'}
                               </span>
-                              <p className="font-bold text-slate-900 leading-relaxed text-sm">{p.texto}</p>
+
+                              {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
+                              {userRole === 'INVESTIGADOR' && (
+                                <div className="flex items-center gap-1 ml-auto shrink-0 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                                  <button
+                                    onClick={() => handleAbrirModalEditarPregunta(p)}
+                                    className="p-1 text-purple-700 hover:bg-purple-100 rounded transition-all"
+                                    title="Editar texto, dimensión o indicador de esta pregunta"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleEliminarPregunta(p.id)}
+                                    className="p-1 text-red-600 hover:bg-red-100 rounded transition-all"
+                                    title="Eliminar pregunta"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
-                            {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
-                            {userRole === 'INVESTIGADOR' && (
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  onClick={() => handleAbrirModalEditarPregunta(p)}
-                                  className="p-1 text-purple-700 hover:bg-purple-100 rounded transition-all"
-                                  title="Editar texto, dimensión o indicador de esta pregunta"
-                                >
-                                  <Edit3 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleEliminarPregunta(p.id)}
-                                  className="p-1 text-red-600 hover:bg-red-100 rounded transition-all"
-                                  title="Eliminar pregunta"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            )}
+                            {/* TEXTO DE LA PREGUNTA: CAMBIA DE COLOR SEGÚN ESTADO (PENDIENTE = ROJO DESTACADO, COMPLETO = TEXTO OSCURO LIMPIO) */}
+                            <p className={`leading-relaxed text-sm transition-all ${
+                              isComplete 
+                                ? 'font-bold text-slate-900' 
+                                : 'font-black text-red-700 bg-red-50/90 p-3 rounded-lg border-2 border-red-300 shadow-sm'
+                            }`}>
+                              {p.texto}
+                            </p>
                           </div>
                           
-                          <div className="text-xs text-slate-600 border-t border-slate-100 pt-2 space-y-0.5">
-                            <p className="font-semibold text-slate-800">
-                              <span>Dimensión: {p.dimension}</span> <span className="text-slate-400 mx-1">•</span> <span>Indicador: {p.indicador}</span>
-                            </p>
+                          {/* RESALTADO VIBRANTE Y VISIBLE DE LA DIMENSIÓN E INDICADOR */}
+                          <div className="mt-3 bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white p-3 rounded-xl shadow border-l-4 border-l-amber-400 space-y-1.5">
+                            <div className="font-black text-xs tracking-wide flex flex-wrap items-center gap-2">
+                              <span className="bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded font-extrabold text-[11px] uppercase shadow-sm">
+                                Dimensión
+                              </span> 
+                              <span className="text-amber-200 text-sm font-black">{p.dimension}</span>
+                            </div>
+
+                            <div className="font-extrabold text-xs flex flex-wrap items-center gap-2 text-sky-200 border-t border-sky-800/80 pt-1.5">
+                              <span className="bg-sky-600 text-white px-2.5 py-0.5 rounded font-bold text-[10px] uppercase shadow-sm">
+                                Indicador
+                              </span> 
+                              <span className="text-white font-bold">{p.indicador}</span>
+                            </div>
+
                             {p.descripcion && (
-                              <p className="text-slate-600">
-                                <strong>Descripción:</strong> <span className="italic">{p.descripcion}</span>
-                              </p>
+                              <div className="text-[11px] text-slate-300 italic border-t border-sky-800/60 pt-1.5">
+                                <strong className="text-amber-300">Nota Metodológica:</strong> {p.descripcion}
+                              </div>
                             )}
                           </div>
                         </td>
@@ -2430,18 +2457,24 @@ function App() {
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               {totalComplete === totalPreguntas ? (
-                <CheckCircle2 className="text-emerald-500 w-7 h-7 shrink-0" />
+                <CheckCircle2 className="text-emerald-500 w-8 h-8 shrink-0 animate-bounce" />
               ) : (
                 <div className="w-4 h-4 bg-amber-500 rounded-full animate-ping shrink-0" />
               )}
               <div>
-                <p className="font-bold text-slate-800 text-sm">
-                  Avance Totalmente Completado: <span className="text-sky-700 font-extrabold">{totalComplete} / {totalPreguntas}</span> preguntas
-                </p>
-                <p className="text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                  <p className="font-bold text-slate-800 text-sm">
+                    Avance Respondido: <span className="text-sky-700 font-black">{totalAnswered} / {totalPreguntas}</span>
+                  </p>
+                  <span className="text-slate-300 hidden sm:inline">•</span>
+                  <p className="font-bold text-slate-800 text-sm">
+                    Totalmente Completadas: <span className="text-emerald-700 font-black">{totalComplete} / {totalPreguntas}</span>
+                  </p>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">
                   {totalComplete === totalPreguntas 
-                    ? "¡Todas las preguntas completadas! Listo para enviar su evaluación." 
-                    : `Faltan ${totalMissing} preguntas por responder de forma obligatoria.`}
+                    ? "¡Todas las 100 preguntas completadas! Listo para finalizar y enviar su evaluación." 
+                    : `⚠️ Faltan ${totalMissing} preguntas por completar (con escala Likert y los 4 criterios).`}
                 </p>
               </div>
             </div>
