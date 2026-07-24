@@ -18,6 +18,7 @@ const INVITE_FILE = path.join(DATA_DIR, 'invitaciones.json')
 const REVOCADOS_FILE = path.join(DATA_DIR, 'revocados.json')
 const CUSTOM_PREGUNTAS_FILE = path.join(DATA_DIR, 'preguntas_custom.json')
 const DEFAULT_PREGUNTAS_FILE = path.join(__dirname, 'src', 'preguntas.json')
+const INVESTIGADOR_FILE = path.join(DATA_DIR, 'investigador.json')
 
 const PIN_INVESTIGADOR_OFICIAL = "2026"
 
@@ -29,6 +30,7 @@ let memoryInvites = null
 let memoryEvals = null
 let memoryRevocados = null
 let memoryPreguntas = null
+let memoryInvestigador = null
 
 try {
   if (!fs.existsSync(DATA_DIR)) {
@@ -43,6 +45,7 @@ const readJson = (filePath, defaultVal = null) => {
   if (filePath === EVAL_FILE && memoryEvals !== null) return memoryEvals
   if (filePath === REVOCADOS_FILE && memoryRevocados !== null) return memoryRevocados
   if (filePath === CUSTOM_PREGUNTAS_FILE && memoryPreguntas !== null) return memoryPreguntas
+  if (filePath === INVESTIGADOR_FILE && memoryInvestigador !== null) return memoryInvestigador
 
   try {
     if (fs.existsSync(filePath)) {
@@ -52,6 +55,7 @@ const readJson = (filePath, defaultVal = null) => {
       if (filePath === EVAL_FILE) memoryEvals = parsed
       if (filePath === REVOCADOS_FILE) memoryRevocados = parsed
       if (filePath === CUSTOM_PREGUNTAS_FILE) memoryPreguntas = parsed
+      if (filePath === INVESTIGADOR_FILE) memoryInvestigador = parsed
       return parsed
     }
   } catch (err) {
@@ -82,6 +86,7 @@ const writeJson = (filePath, data) => {
   if (filePath === EVAL_FILE) memoryEvals = data
   if (filePath === REVOCADOS_FILE) memoryRevocados = data
   if (filePath === CUSTOM_PREGUNTAS_FILE) memoryPreguntas = data
+  if (filePath === INVESTIGADOR_FILE) memoryInvestigador = data
 
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
@@ -89,6 +94,29 @@ const writeJson = (filePath, data) => {
     console.warn(`Autoguardado en disco omitido para ${filePath}:`, err.message)
   }
 }
+
+// -------------------------------------------------------------
+// ENDPOINTS DE PERFIL DEL INVESTIGADOR
+// -------------------------------------------------------------
+app.get('/api/investigador/perfil', (req, res) => {
+  const perfil = readJson(INVESTIGADOR_FILE, {
+    nombres: "Luis Alfonso",
+    apellidos: "Cruz Gálvez",
+    dni: "09091855",
+    email: "luiscruz21@gmail.com",
+    grado: "Doctor en Educación / Magíster en Ingeniería",
+    tituloTesis: "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024",
+    firmaImg: ""
+  })
+  return res.json({ success: true, perfil })
+})
+
+app.post('/api/investigador/perfil', (req, res) => {
+  const { perfil } = req.body || {}
+  if (!perfil) return res.status(400).json({ success: false, error: 'Sin datos' })
+  writeJson(INVESTIGADOR_FILE, perfil)
+  return res.json({ success: true, mensaje: 'Perfil del investigador guardado con éxito', perfil })
+})
 
 // -------------------------------------------------------------
 // ENDPOINTS DE PREGUNTAS (OBTENER Y GUARDAR EDICIONES DEL INVESTIGADOR)

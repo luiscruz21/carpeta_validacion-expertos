@@ -106,12 +106,88 @@ function App() {
   const [nuevoExpertoNombre, setNuevoExpertoNombre] = useState('')
   const [nuevoExpertoCargo, setNuevoExpertoCargo] = useState('')
 
+  // DATOS DEL INVESTIGADOR PRINCIPAL (PERFIL CONFIGURABLE)
+  const [investigadorNombres, setInvestigadorNombres] = useState('Luis Alfonso')
+  const [investigadorApellidos, setInvestigadorApellidos] = useState('Cruz Gálvez')
+  const [investigadorDni, setInvestigadorDni] = useState('09091855')
+  const [investigadorEmail, setInvestigadorEmail] = useState('luiscruz21@gmail.com')
+  const [investigadorGrado, setInvestigadorGrado] = useState('Doctor en Educación / Magíster en Ingeniería')
+  const [investigadorTituloTesis, setInvestigadorTituloTesis] = useState('Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024')
+  const [investigadorFirmaImg, setInvestigadorFirmaImg] = useState('')
+
   const [syncing, setSyncing] = useState(false)
   const [showCvFullscreen, setShowCvFullscreen] = useState(false)
   const cvFileInputRef = useRef(null)
   const firmaFileInputRef = useRef(null)
   const canvasRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
+
+  // Cargar Perfil del Investigador desde Backend y LocalStorage
+  const fetchInvestigadorPerfil = async () => {
+    try {
+      const local = localStorage.getItem('perfil_investigador')
+      if (local) {
+        const parsed = JSON.parse(local)
+        if (parsed.nombres) setInvestigadorNombres(parsed.nombres)
+        if (parsed.apellidos) setInvestigadorApellidos(parsed.apellidos)
+        if (parsed.dni) setInvestigadorDni(parsed.dni)
+        if (parsed.email) setInvestigadorEmail(parsed.email)
+        if (parsed.grado) setInvestigadorGrado(parsed.grado)
+        if (parsed.tituloTesis) setInvestigadorTituloTesis(parsed.tituloTesis)
+        if (parsed.firmaImg) setInvestigadorFirmaImg(parsed.firmaImg)
+      }
+      const res = await fetch('/api/investigador/perfil')
+      const data = await res.json()
+      if (data.success && data.perfil) {
+        if (data.perfil.nombres) setInvestigadorNombres(data.perfil.nombres)
+        if (data.perfil.apellidos) setInvestigadorApellidos(data.perfil.apellidos)
+        if (data.perfil.dni) setInvestigadorDni(data.perfil.dni)
+        if (data.perfil.email) setInvestigadorEmail(data.perfil.email)
+        if (data.perfil.grado) setInvestigadorGrado(data.perfil.grado)
+        if (data.perfil.tituloTesis) setInvestigadorTituloTesis(data.perfil.tituloTesis)
+        if (data.perfil.firmaImg) setInvestigadorFirmaImg(data.perfil.firmaImg)
+      }
+    } catch (err) {
+      console.warn("Carga de perfil de investigador desde localStorage activo:", err)
+    }
+  }
+
+  const handleGuardarInvestigadorPerfil = async (e) => {
+    if (e) e.preventDefault()
+    const payload = {
+      nombres: investigadorNombres.trim(),
+      apellidos: investigadorApellidos.trim(),
+      dni: investigadorDni.trim(),
+      email: investigadorEmail.trim(),
+      grado: investigadorGrado.trim(),
+      tituloTesis: investigadorTituloTesis.trim(),
+      firmaImg: investigadorFirmaImg
+    }
+    try {
+      localStorage.setItem('perfil_investigador', JSON.stringify(payload))
+      await fetch('/api/investigador/perfil', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil: payload })
+      })
+      alert("¡Perfil, datos y firma del Investigador guardados con éxito!")
+    } catch (err) {
+      alert("¡Datos del Investigador guardados localmente!")
+    }
+  }
+
+  const handleInvestigadorFirmaUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const imgData = event.target.result
+        setInvestigadorFirmaImg(imgData)
+        alert("¡Imagen de firma del Investigador cargada con éxito! Haga clic en Guardar y Actualizar para conservarla.")
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   // Cargar Preguntas Dinámicas desde Backend al iniciar
   const fetchPreguntasBackend = async () => {
@@ -128,6 +204,7 @@ function App() {
 
   useEffect(() => {
     fetchPreguntasBackend()
+    fetchInvestigadorPerfil()
   }, [])
 
   // Detectar Parámetros URL (ej: ?code=EXP-1001 o ?investigador=true)
@@ -2194,14 +2271,25 @@ function App() {
             </button>
 
             {userRole === 'INVESTIGADOR' && (
-              <button
-                onClick={() => setActiveTab('PANEL_INVESTIGADOR')}
-                className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                  activeTab === 'PANEL_INVESTIGADOR' ? 'bg-purple-800 text-white shadow-md' : 'bg-purple-100 text-purple-900 hover:bg-purple-200'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" /> Panel de Control del Investigador
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('PERFIL_INVESTIGADOR')}
+                  className={`px-3.5 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
+                    activeTab === 'PERFIL_INVESTIGADOR' ? 'bg-purple-900 text-white shadow-md' : 'bg-purple-100 text-purple-900 hover:bg-purple-200'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4" /> Datos del Investigador
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('PANEL_INVESTIGADOR')}
+                  className={`px-3.5 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
+                    activeTab === 'PANEL_INVESTIGADOR' ? 'bg-indigo-900 text-white shadow-md' : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" /> Panel de Control
+                </button>
+              </>
             )}
           </div>
 
@@ -2275,6 +2363,173 @@ function App() {
                 <FileText className="w-4 h-4" /> DESCARGAR / IMPRIMIR EN PDF
               </button>
             </div>
+          </div>
+        )}
+
+        {/* PESTAÑA ESPECIAL: DATOS DEL INVESTIGADOR */}
+        {activeTab === 'PERFIL_INVESTIGADOR' && userRole === 'INVESTIGADOR' && (
+          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8 max-w-4xl mx-auto">
+            <div className="border-b border-slate-200 pb-4 mb-6 flex justify-between items-center flex-wrap gap-4">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <UserCheck className="text-purple-700 w-7 h-7" /> PERFIL Y DATOS DEL INVESTIGADOR PRINCIPAL
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Configure sus datos personales, información académica, título de la investigación y firma oficial en imagen. Estos datos se integran automáticamente en la Carta de Presentación y en todos los informes exportados.
+                </p>
+              </div>
+              <span className="bg-purple-100 text-purple-900 font-extrabold px-3 py-1 rounded-full text-xs border border-purple-300">
+                🔒 Configuración del Investigador
+              </span>
+            </div>
+
+            <form onSubmit={handleGuardarInvestigadorPerfil} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nombres del Investigador: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={investigadorNombres}
+                    onChange={(e) => setInvestigadorNombres(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej. Luis Alfonso"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Apellidos del Investigador: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={investigadorApellidos}
+                    onChange={(e) => setInvestigadorApellidos(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej. Cruz Gálvez"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    DNI / Documento de Identidad: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={investigadorDni}
+                    onChange={(e) => setInvestigadorDni(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej. 09091855"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Correo Electrónico de Contacto: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={investigadorEmail}
+                    onChange={(e) => setInvestigadorEmail(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej. luiscruz21@gmail.com"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Grado Académico Máximo / Título Profesional: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={investigadorGrado}
+                    onChange={(e) => setInvestigadorGrado(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
+                    placeholder="Ej. Doctor en Educación / Magíster en Ingeniería"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Título de la Tesis / Proyecto de Investigación: <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={investigadorTituloTesis}
+                    onChange={(e) => setInvestigadorTituloTesis(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500 leading-relaxed"
+                    placeholder="Escriba el título completo del proyecto de investigación..."
+                  />
+                </div>
+              </div>
+
+              {/* SECCIÓN DE FIRMA DIGITAL EN IMAGEN DEL INVESTIGADOR */}
+              <div className="bg-purple-50 p-5 rounded-xl border border-purple-200">
+                <label className="block text-xs font-black text-purple-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-purple-700" /> FIRMA OFICIAL DEL INVESTIGADOR (SUBIR IMAGEN PNG / JPG)
+                </label>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="border-2 border-dashed border-purple-300 rounded-xl p-3 bg-white w-full sm:w-64 h-32 flex items-center justify-center relative overflow-hidden shadow-inner">
+                    {investigadorFirmaImg ? (
+                      <img 
+                        src={investigadorFirmaImg} 
+                        alt="Firma del Investigador" 
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <img 
+                        src="/firma_lacg.png" 
+                        alt="Firma por defecto" 
+                        className="max-h-full max-w-full object-contain opacity-80"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <label className="bg-purple-800 hover:bg-purple-900 text-white font-bold px-4 py-2.5 rounded-lg inline-flex items-center gap-2 cursor-pointer shadow transition-all">
+                      <Upload className="w-4 h-4" /> Seleccionar Imagen de Firma (.png, .jpg)
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleInvestigadorFirmaUpload} 
+                        className="sr-only" 
+                      />
+                    </label>
+
+                    {investigadorFirmaImg && (
+                      <button
+                        type="button"
+                        onClick={() => setInvestigadorFirmaImg('')}
+                        className="block text-red-600 font-bold text-[11px] underline hover:text-red-800"
+                      >
+                        Restablecer Firma por Defecto
+                      </button>
+                    )}
+
+                    <p className="text-slate-500 text-[11px]">
+                      Se recomienda subir una imagen de firma digitalizada en formato PNG transparente para la Carta de Presentación y expedientes exportados.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <button
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-xl shadow-lg transition-all text-xs flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" /> GUARDAR Y ACTUALIZAR DATOS DEL INVESTIGADOR
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
@@ -2495,7 +2750,7 @@ function App() {
               <div className="bg-slate-50 border-l-4 border-sky-600 p-4 my-4 rounded-r-lg">
                 <p className="text-xs font-bold text-sky-900 uppercase">Título del Proyecto de Investigación:</p>
                 <p className="font-bold text-slate-900 mt-1 text-base">
-                  «{TITULO_TESIS_OFICIAL}»
+                  «{investigadorTituloTesis || TITULO_TESIS_OFICIAL}»
                 </p>
               </div>
 
@@ -2523,14 +2778,15 @@ function App() {
                   
                   <div className="my-2">
                     <img 
-                      src="/firma_lacg.png" 
-                      alt="Firma Luis Alfonso Cruz Gálvez" 
+                      src={investigadorFirmaImg || '/firma_lacg.png'} 
+                      alt={`Firma ${investigadorNombres} ${investigadorApellidos}`} 
                       className="h-20 w-auto object-contain -ml-2"
                     />
                   </div>
 
-                  <p className="font-bold text-sky-800 text-base">Luis Alfonso Cruz Gálvez</p>
-                  <p className="text-xs text-slate-500">Alumno Investigador | D.N.I: 09091855</p>
+                  <p className="font-bold text-sky-800 text-base">{investigadorNombres} {investigadorApellidos}</p>
+                  <p className="text-xs text-slate-600 font-semibold">{investigadorGrado} | D.N.I: {investigadorDni}</p>
+                  <p className="text-[11px] text-slate-500">{investigadorEmail}</p>
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 w-full md:w-80 text-xs space-y-2">
