@@ -3049,19 +3049,6 @@ function App() {
                   />
                 </div>
               </div>
-
-              {/* Botón Finalizar y Enviar Evaluación para el Experto */}
-              {userRole === 'EVALUADOR' && (
-                <div className="text-center pt-8 border-t border-slate-200">
-                  <button 
-                    onClick={handleSubmitEvaluacion}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 px-12 rounded-xl shadow-xl transition-all inline-flex items-center gap-3 text-base transform hover:-translate-y-0.5"
-                  >
-                    <Send className="w-5 h-5" />
-                    FINALIZAR Y ENVIAR MI EVALUACIÓN
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         )}
