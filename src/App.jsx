@@ -207,9 +207,12 @@ function App() {
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
       const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') || currentKey.startsWith('EXP-')
-      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && isValidKey && nombre.trim()) {
+      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && isValidKey) {
         saveEvaluationToBackend(currentKey, {
-          nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero,
+          nombre: nombre || "Experto Validador",
+          dni: dni || currentKey,
+          cargo: cargo || "Especialista Informante",
+          gradoAcademico, institucion, experiencia, isExtranjero,
           firmaExpertoImg, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional,
           valoracionGlobal, dictamenFinal, observaciones, respuestas, inviteCode: currentKey
         })

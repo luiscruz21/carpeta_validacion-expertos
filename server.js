@@ -383,6 +383,14 @@ app.post('/api/evaluacion/save', (req, res) => {
     writeJson(REVOCADOS_FILE, revocados)
   }
 
+  // Recalcular avance y estado del evaluador
+  const totalAnswered = Object.keys(payload.respuestas || {}).filter(k => {
+    const r = payload.respuestas[k]
+    return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+  }).length
+
+  const nuevoEstado = (payload.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
+
   evals[cleanCode] = {
     ...payload,
     codigo: cleanCode,
@@ -397,13 +405,15 @@ app.post('/api/evaluacion/save', (req, res) => {
       cargo: payload.cargo || "Especialista Informante",
       dni: payload.dni || "",
       creadoEn: new Date().toISOString(),
-      estado: payload.finalizado ? "Completado" : "En Proceso"
+      estado: nuevoEstado,
+      respondidas: totalAnswered
     }
   } else {
     if (payload.dni) invites[cleanCode].dni = payload.dni
     if (payload.nombre) invites[cleanCode].nombreExperto = payload.nombre
     if (payload.cargo) invites[cleanCode].cargo = payload.cargo
-    if (payload.finalizado) invites[cleanCode].estado = "Completado"
+    invites[cleanCode].estado = nuevoEstado
+    invites[cleanCode].respondidas = totalAnswered
   }
 
   // Buscar también por DNI para actualizar sincronizadamente
@@ -412,10 +422,16 @@ app.post('/api/evaluacion/save', (req, res) => {
     if (invites[cleanDni]) {
       invites[cleanDni].nombreExperto = payload.nombre
       invites[cleanDni].cargo = payload.cargo
+      invites[cleanDni].estado = nuevoEstado
+      invites[cleanDni].respondidas = totalAnswered
     }
     if (evals[cleanDni]) {
-      evals[cleanDni].nombre = payload.nombre
-      evals[cleanDni].cargo = payload.cargo
+      evals[cleanDni] = {
+        ...evals[cleanDni],
+        ...payload,
+        codigo: cleanDni,
+        lastUpdated: new Date().toISOString()
+      }
     }
   }
 
@@ -425,7 +441,9 @@ app.post('/api/evaluacion/save', (req, res) => {
   return res.json({ 
     success: true, 
     mensaje: 'Evaluación guardada correctamente', 
-    lastUpdated: evals[cleanCode].lastUpdated 
+    lastUpdated: evals[cleanCode].lastUpdated,
+    respondidas: totalAnswered,
+    estado: nuevoEstado
   })
 })
 
