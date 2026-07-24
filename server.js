@@ -125,23 +125,20 @@ app.post('/api/investigador/login', (req, res) => {
 app.get('/api/investigador/resumen', (req, res) => {
   const invites = readJson(INVITE_FILE) || {}
   const evals = readJson(EVAL_FILE) || {}
-  const evaluadoresList = Object.values(evals)
+  const invitacionesConsolidadas = getConsolidatedInvitations(invites, evals)
 
   return res.json({
     success: true,
-    totalInvitaciones: Object.keys(invites).length,
-    totalEvaluacionesIniciadas: evaluadoresList.length,
-    evaluacionesCompletadas: evaluadoresList.filter(e => e.finalizado || Object.keys(e.respuestas || {}).length >= 100).length,
-    invitaciones: Object.values(invites),
+    totalInvitaciones: invitacionesConsolidadas.length,
+    totalEvaluacionesIniciadas: invitacionesConsolidadas.filter(i => i.respondidas > 0).length,
+    evaluacionesCompletadas: invitacionesConsolidadas.filter(i => i.estado === "Completado" || i.respondidas >= 100).length,
+    invitaciones: invitacionesConsolidadas,
     evaluaciones: evals
   })
 })
 
-// GET Obtener todas las invitaciones (Consolidadas y agrupadas por Evaluador)
-app.get('/api/invitaciones', (req, res) => {
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-
+// Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas
+const getConsolidatedInvitations = (invites, evals) => {
   const allKeys = [...new Set([...Object.keys(invites), ...Object.keys(evals)])]
   const fullDniKeys = allKeys.filter(k => /^\d{8}$/.test(k) || k.startsWith('EXT-') || k.startsWith('EXP-'))
 
@@ -149,56 +146,66 @@ app.get('/api/invitaciones', (req, res) => {
 
   allKeys.forEach(key => {
     const cleanKey = key.trim().toUpperCase()
-    
-    // Ignorar fragmentos parciales si existe la versión completa de 8 dígitos
     if (/^\d{1,7}$/.test(cleanKey) && fullDniKeys.some(k => k.startsWith(cleanKey))) {
       return
     }
 
     const inv = invites[cleanKey] || {}
-    const evalData = evals[cleanKey] || (inv.dni ? evals[inv.dni] : null) || Object.values(evals).find(e => (e.dni || '').trim().toUpperCase() === cleanKey)
-
-    const mainDni = (inv.dni || evalData?.dni || cleanKey).trim().toUpperCase()
+    const mainDni = (inv.dni || evals[cleanKey]?.dni || cleanKey).trim().toUpperCase()
     const mainKey = (/^\d{8}$/.test(mainDni) || mainDni.startsWith('EXT-') || mainDni.startsWith('EXP-')) ? mainDni : cleanKey
 
     if (!grouped[mainKey]) {
-      let nombreExperto = (evalData?.nombre && evalData.nombre.trim()) || inv.nombreExperto || "Experto Validador"
-      let cargo = (evalData?.cargo && evalData.cargo.trim()) || inv.cargo || "Especialista Informante"
-      let dni = mainDni
-      let creadoEn = inv.creadoEn || evalData?.lastUpdated || new Date().toISOString()
-      let lastUpdated = evalData?.lastUpdated || creadoEn
+      const matchingEvals = Object.values(evals).filter(e => 
+        (e.codigo && e.codigo.trim().toUpperCase() === mainKey) || 
+        (e.dni && e.dni.trim().toUpperCase() === mainKey) ||
+        (cleanKey && e.codigo && e.codigo.trim().toUpperCase() === cleanKey)
+      )
 
-      let respondidas = 0
-      let estado = inv.estado || "Pendiente"
+      const combinedRespuestas = {}
+      let finalNombre = inv.nombreExperto || "Experto Validador"
+      let finalCargo = inv.cargo || "Especialista Informante"
+      let finalDni = mainDni
+      let finalFinalizado = inv.estado === "Completado"
+      let lastUpdated = inv.creadoEn || new Date().toISOString()
 
-      if (evalData) {
-        const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => {
-          const r = evalData.respuestas[k]
-          return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
-        }).length
-        respondidas = totalAnswered
+      matchingEvals.forEach(e => {
+        if (e.respuestas) Object.assign(combinedRespuestas, e.respuestas)
+        if (e.nombre && e.nombre !== "Experto Validador") finalNombre = e.nombre
+        if (e.cargo && e.cargo !== "Especialista Informante") finalCargo = e.cargo
+        if (e.dni) finalDni = e.dni
+        if (e.finalizado) finalFinalizado = true
+        if (e.lastUpdated) lastUpdated = e.lastUpdated
+      })
 
-        if (evalData.finalizado || totalAnswered >= 100) {
-          estado = "Completado"
-        } else if (totalAnswered > 0) {
-          estado = "En Proceso"
-        }
-      }
+      const totalAnswered = Object.keys(combinedRespuestas).filter(k => {
+        const r = combinedRespuestas[k]
+        return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+      }).length
+
+      let estado = finalFinalizado || totalAnswered >= 100 ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
       grouped[mainKey] = {
         codigo: mainKey,
-        nombreExperto,
-        cargo,
-        dni,
-        creadoEn,
+        nombreExperto: finalNombre,
+        cargo: finalCargo,
+        dni: finalDni,
+        creadoEn: inv.creadoEn || lastUpdated,
         lastUpdated,
         estado,
-        respondidas
+        respondidas: totalAnswered
       }
     }
   })
 
-  return res.json({ success: true, invitaciones: Object.values(grouped) })
+  return Object.values(grouped)
+}
+
+// GET Obtener todas las invitaciones (Consolidadas y agrupadas por Evaluador)
+app.get('/api/invitaciones', (req, res) => {
+  const invites = readJson(INVITE_FILE) || {}
+  const evals = readJson(EVAL_FILE) || {}
+  const result = getConsolidatedInvitations(invites, evals)
+  return res.json({ success: true, invitaciones: result })
 })
 
 // POST Crear una nueva invitación con código único

@@ -1986,140 +1986,225 @@ function App() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {(preguntasData[instrumentoSubTab] || []).map((p, idx) => {
-                    const currentResp = respuestas[p.id] || {}
-                    const isComplete = currentResp.likert && currentResp.claridad && currentResp.coherencia && currentResp.relevancia && currentResp.suficiencia
-                    const itemNum = instrumentoSubTab === 'VI' ? (idx + 1) : (50 + idx + 1)
+                  {(() => {
+                    const currentList = preguntasData[instrumentoSubTab] || []
+                    return currentList.map((p, idx) => {
+                      const currentResp = respuestas[p.id] || {}
+                      const isComplete = !!(currentResp.likert && currentResp.claridad && currentResp.coherencia && currentResp.relevancia && currentResp.suficiencia)
+                      const itemNum = instrumentoSubTab === 'VI' ? (idx + 1) : (50 + idx + 1)
 
-                    return (
-                      <tr 
-                        key={p.id} 
-                        className={`transition-colors hover:bg-slate-50/80 ${isComplete ? 'bg-emerald-50/30' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
-                      >
-                        <td className="px-4 py-4 align-top">
-                          <div className="flex flex-col gap-2 mb-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {/* NÚMERO DE ÍTEM (1-50 PARA VI, 51-100 PARA VD) */}
-                              <span className="bg-slate-900 text-amber-300 font-black px-2.5 py-1 rounded-md text-xs border border-slate-700 shadow-sm shrink-0">
-                                Ítem {itemNum} / 100
-                              </span>
+                      // REGLA DE BLOQUEO SECUENCIAL:
+                      // Solo aplica a Evaluadores (no a Investigadores ni en modo inspección).
+                      // El ítem 0 de la pestaña activa siempre está desbloqueado.
+                      // El ítem N (idx > 0) requiere que el ítem N-1 esté 100% COMPLETO.
+                      let isLocked = false
+                      let prevItemNum = itemNum - 1
+                      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
+                        const prevQuestion = currentList[idx - 1]
+                        const prevResp = respuestas[prevQuestion?.id] || {}
+                        const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
+                        if (!isPrevComplete) {
+                          isLocked = true
+                        }
+                      }
 
-                              {/* BADGE DE ESTADO */}
-                              <span className={`px-2.5 py-1 rounded-md text-xs font-black shrink-0 ${
-                                isComplete 
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-400' 
-                                  : 'bg-red-100 text-red-900 border border-red-300 animate-pulse'
+                      return (
+                        <tr 
+                          key={p.id} 
+                          className={`transition-all ${
+                            isLocked 
+                              ? 'bg-slate-100/90 opacity-60 border-2 border-slate-300' 
+                              : isComplete 
+                                ? 'bg-emerald-50/30 hover:bg-slate-50/80' 
+                                : idx % 2 === 0 ? 'bg-white hover:bg-slate-50/80' : 'bg-slate-50/40 hover:bg-slate-50/80'
+                          }`}
+                        >
+                          <td className="px-4 py-4 align-top">
+                            <div className="flex flex-col gap-2 mb-2">
+                              {/* ALERTA VISUAL DE BLOQUEO SECUENCIAL */}
+                              {isLocked && (
+                                <div className="bg-amber-100 border-2 border-amber-400 p-2.5 rounded-xl flex items-center gap-2 text-amber-950 font-black text-xs shadow-sm mb-1 animate-pulse">
+                                  <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+                                  <span>🔒 Ítem {itemNum} Bloqueado: Debe completar al 100% el Ítem {prevItemNum} (Likert y 4 criterios) para habilitar esta pregunta.</span>
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {/* NÚMERO DE ÍTEM (1-50 PARA VI, 51-100 PARA VD) */}
+                                <span className={`font-black px-2.5 py-1 rounded-md text-xs border shadow-sm shrink-0 ${
+                                  isLocked 
+                                    ? 'bg-slate-300 text-slate-700 border-slate-400' 
+                                    : 'bg-slate-900 text-amber-300 border-slate-700'
+                                }`}>
+                                  Ítem {itemNum} / 100
+                                </span>
+
+                                {/* BADGE DE ESTADO */}
+                                <span className={`px-2.5 py-1 rounded-md text-xs font-black shrink-0 ${
+                                  isLocked
+                                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                    : isComplete 
+                                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-400' 
+                                      : 'bg-red-100 text-red-900 border border-red-300 animate-pulse'
+                                }`}>
+                                  {isLocked ? '🔒 BLOQUEADO' : isComplete ? '✓ COMPLETO' : '⚠️ PENDIENTE'}
+                                </span>
+
+                                {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
+                                {userRole === 'INVESTIGADOR' && (
+                                  <div className="flex items-center gap-1 ml-auto shrink-0 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                                    <button
+                                      onClick={() => handleAbrirModalEditarPregunta(p)}
+                                      className="p-1 text-purple-700 hover:bg-purple-100 rounded transition-all"
+                                      title="Editar texto, dimensión o indicador de esta pregunta"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEliminarPregunta(p.id)}
+                                      className="p-1 text-red-600 hover:bg-red-100 rounded transition-all"
+                                      title="Eliminar pregunta"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* TEXTO DE LA PREGUNTA */}
+                              <p className={`leading-relaxed text-sm transition-all ${
+                                isLocked
+                                  ? 'font-medium text-slate-500 italic'
+                                  : isComplete 
+                                    ? 'font-bold text-slate-900' 
+                                    : 'font-black text-red-700 bg-red-50/90 p-3 rounded-lg border-2 border-red-300 shadow-sm'
                               }`}>
-                                {isComplete ? '✓ COMPLETO' : '⚠️ PENDIENTE'}
-                              </span>
+                                {p.texto}
+                              </p>
+                            </div>
+                            
+                            {/* DIMENSIÓN E INDICADOR */}
+                            <div className={`mt-3 p-3 rounded-xl shadow border-l-4 space-y-1.5 ${
+                              isLocked 
+                                ? 'bg-slate-200 text-slate-600 border-l-slate-400' 
+                                : 'bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white border-l-amber-400'
+                            }`}>
+                              <div className="font-black text-xs tracking-wide flex flex-wrap items-center gap-2">
+                                <span className={`px-2.5 py-0.5 rounded font-extrabold text-[11px] uppercase shadow-sm ${
+                                  isLocked ? 'bg-slate-400 text-slate-900' : 'bg-amber-400 text-slate-950'
+                                }`}>
+                                  Dimensión
+                                </span> 
+                                <span className={isLocked ? 'text-slate-700 text-sm font-bold' : 'text-amber-200 text-sm font-black'}>{p.dimension}</span>
+                              </div>
 
-                              {/* CONTROLES DE EDICIÓN SOLO VISIBLES EN MODO INVESTIGADOR */}
-                              {userRole === 'INVESTIGADOR' && (
-                                <div className="flex items-center gap-1 ml-auto shrink-0 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                                  <button
-                                    onClick={() => handleAbrirModalEditarPregunta(p)}
-                                    className="p-1 text-purple-700 hover:bg-purple-100 rounded transition-all"
-                                    title="Editar texto, dimensión o indicador de esta pregunta"
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleEliminarPregunta(p.id)}
-                                    className="p-1 text-red-600 hover:bg-red-100 rounded transition-all"
-                                    title="Eliminar pregunta"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                              <div className={`font-extrabold text-xs flex flex-wrap items-center gap-2 border-t pt-1.5 ${
+                                isLocked ? 'text-slate-600 border-slate-300' : 'text-sky-200 border-sky-800/80'
+                              }`}>
+                                <span className={`px-2.5 py-0.5 rounded font-bold text-[10px] uppercase shadow-sm ${
+                                  isLocked ? 'bg-slate-400 text-slate-900' : 'bg-sky-600 text-white'
+                                }`}>
+                                  Indicador
+                                </span> 
+                                <span className={isLocked ? 'text-slate-700 font-bold' : 'text-white font-bold'}>{p.indicador}</span>
+                              </div>
+
+                              {p.descripcion && (
+                                <div className={`text-[11px] italic border-t pt-1.5 ${
+                                  isLocked ? 'text-slate-500 border-slate-300' : 'text-slate-300 border-sky-800/60'
+                                }`}>
+                                  <strong className={isLocked ? 'text-slate-700' : 'text-amber-300'}>Nota Metodológica:</strong> {p.descripcion}
                                 </div>
                               )}
                             </div>
+                          </td>
 
-                            {/* TEXTO DE LA PREGUNTA: CAMBIA DE COLOR SEGÚN ESTADO (PENDIENTE = ROJO DESTACADO, COMPLETO = TEXTO OSCURO LIMPIO) */}
-                            <p className={`leading-relaxed text-sm transition-all ${
-                              isComplete 
-                                ? 'font-bold text-slate-900' 
-                                : 'font-black text-red-700 bg-red-50/90 p-3 rounded-lg border-2 border-red-300 shadow-sm'
+                          <td className="px-3 py-4 align-middle border-l border-slate-200">
+                            <div className={`grid grid-cols-5 gap-1 p-1.5 rounded-lg border ${
+                              isLocked ? 'bg-slate-200/60 border-slate-300 opacity-50 pointer-events-none' : 'bg-slate-100 border-slate-200'
                             }`}>
-                              {p.texto}
-                            </p>
-                          </div>
-                          
-                          {/* RESALTADO VIBRANTE Y VISIBLE DE LA DIMENSIÓN E INDICADOR */}
-                          <div className="mt-3 bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white p-3 rounded-xl shadow border-l-4 border-l-amber-400 space-y-1.5">
-                            <div className="font-black text-xs tracking-wide flex flex-wrap items-center gap-2">
-                              <span className="bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded font-extrabold text-[11px] uppercase shadow-sm">
-                                Dimensión
-                              </span> 
-                              <span className="text-amber-200 text-sm font-black">{p.dimension}</span>
+                              {[1, 2, 3, 4, 5].map(val => (
+                                <label 
+                                  key={val} 
+                                  title={isLocked ? 'Pregunta bloqueada' : LIKERT_MAP[val]}
+                                  className={`group relative flex flex-col items-center justify-center p-2 rounded transition-all ${
+                                    isLocked 
+                                      ? 'cursor-not-allowed text-slate-400' 
+                                      : currentResp.likert === val 
+                                        ? 'bg-sky-600 text-white font-bold shadow' 
+                                        : 'hover:bg-white text-slate-700 cursor-pointer'
+                                  }`}
+                                >
+                                  <input 
+                                    type="radio" 
+                                    name={`likert_${p.id}`}
+                                    value={val}
+                                    disabled={isLocked}
+                                    checked={currentResp.likert === val}
+                                    className="sr-only"
+                                    onChange={() => !isLocked && handleLikertChange(p.id, val)}
+                                  />
+                                  <span className="text-sm font-semibold">{val}</span>
+
+                                  {!isLocked && (
+                                    <span className="absolute bottom-full mb-1 hidden group-hover:block z-20 w-36 bg-slate-900 text-white text-[10px] rounded p-1.5 text-center shadow-lg pointer-events-none">
+                                      {LIKERT_MAP[val]}
+                                    </span>
+                                  )}
+                                </label>
+                              ))}
                             </div>
+                          </td>
 
-                            <div className="font-extrabold text-xs flex flex-wrap items-center gap-2 text-sky-200 border-t border-sky-800/80 pt-1.5">
-                              <span className="bg-sky-600 text-white px-2.5 py-0.5 rounded font-bold text-[10px] uppercase shadow-sm">
-                                Indicador
-                              </span> 
-                              <span className="text-white font-bold">{p.indicador}</span>
-                            </div>
-
-                            {p.descripcion && (
-                              <div className="text-[11px] text-slate-300 italic border-t border-sky-800/60 pt-1.5">
-                                <strong className="text-amber-300">Nota Metodológica:</strong> {p.descripcion}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="px-3 py-4 align-middle border-l border-slate-200">
-                          <div className="grid grid-cols-5 gap-1 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
-                            {[1, 2, 3, 4, 5].map(val => (
-                              <label 
-                                key={val} 
-                                title={LIKERT_MAP[val]}
-                                className={`group relative flex flex-col items-center justify-center p-2 rounded cursor-pointer transition-all ${
-                                  currentResp.likert === val 
-                                    ? 'bg-sky-600 text-white font-bold shadow' 
-                                    : 'hover:bg-white text-slate-700'
-                                }`}
-                              >
-                                <input 
-                                  type="radio" 
-                                  name={`likert_${p.id}`}
-                                  value={val}
-                                  checked={currentResp.likert === val}
-                                  className="sr-only"
-                                  onChange={() => handleLikertChange(p.id, val)}
-                                />
-                                <span className="text-sm font-semibold">{val}</span>
-
-                                <span className="absolute bottom-full mb-1 hidden group-hover:block z-20 w-36 bg-slate-900 text-white text-[10px] rounded p-1.5 text-center shadow-lg pointer-events-none">
-                                  {LIKERT_MAP[val]}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </td>
-
-                        <td className="px-3 py-3 align-middle border-l border-slate-200">
-                          <div className="grid grid-cols-2 gap-2">
-                            {['claridad', 'coherencia', 'relevancia', 'suficiencia'].map(crit => (
-                              <div key={crit} className="flex items-center justify-between bg-slate-50 border border-slate-200 px-2 py-1.5 rounded text-xs">
-                                <span className="font-medium capitalize text-slate-600">{crit}:</span>
-                                <div className="flex gap-2">
-                                  <label className={`px-2 py-0.5 rounded cursor-pointer transition-all ${currentResp[crit] === 'Si' ? 'bg-emerald-600 text-white font-bold' : 'hover:bg-slate-200 text-slate-700'}`}>
-                                    <input type="radio" name={`${crit}_${p.id}`} className="sr-only" onChange={() => handleCriterioChange(p.id, crit, 'Si')} />
-                                    Sí
-                                  </label>
-                                  <label className={`px-2 py-0.5 rounded cursor-pointer transition-all ${currentResp[crit] === 'No' ? 'bg-red-600 text-white font-bold' : 'hover:bg-slate-200 text-slate-700'}`}>
-                                    <input type="radio" name={`${crit}_${p.id}`} className="sr-only" onChange={() => handleCriterioChange(p.id, crit, 'No')} />
-                                    No
-                                  </label>
+                          <td className="px-3 py-3 align-middle border-l border-slate-200">
+                            <div className={`grid grid-cols-2 gap-2 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
+                              {['claridad', 'coherencia', 'relevancia', 'suficiencia'].map(crit => (
+                                <div key={crit} className="flex items-center justify-between bg-slate-50 border border-slate-200 px-2 py-1.5 rounded text-xs">
+                                  <span className="font-medium capitalize text-slate-600">{crit}:</span>
+                                  <div className="flex gap-2">
+                                    <label className={`px-2 py-0.5 rounded transition-all ${
+                                      isLocked 
+                                        ? 'cursor-not-allowed text-slate-400' 
+                                        : currentResp[crit] === 'Si' 
+                                          ? 'bg-emerald-600 text-white font-bold' 
+                                          : 'hover:bg-slate-200 text-slate-700 cursor-pointer'
+                                    }`}>
+                                      <input 
+                                        type="radio" 
+                                        name={`${crit}_${p.id}`} 
+                                        disabled={isLocked}
+                                        checked={currentResp[crit] === 'Si'}
+                                        className="sr-only" 
+                                        onChange={() => !isLocked && handleCriterioChange(p.id, crit, 'Si')} 
+                                      />
+                                      Sí
+                                    </label>
+                                    <label className={`px-2 py-0.5 rounded transition-all ${
+                                      isLocked 
+                                        ? 'cursor-not-allowed text-slate-400' 
+                                        : currentResp[crit] === 'No' 
+                                          ? 'bg-red-600 text-white font-bold' 
+                                          : 'hover:bg-slate-200 text-slate-700 cursor-pointer'
+                                    }`}>
+                                      <input 
+                                        type="radio" 
+                                        name={`${crit}_${p.id}`} 
+                                        disabled={isLocked}
+                                        checked={currentResp[crit] === 'No'}
+                                        className="sr-only" 
+                                        onChange={() => !isLocked && handleCriterioChange(p.id, crit, 'No')} 
+                                      />
+                                      No
+                                    </label>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  })()}
                 </tbody>
               </table>
             </div>

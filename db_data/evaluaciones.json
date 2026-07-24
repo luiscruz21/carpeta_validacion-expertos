@@ -1,1 +1,67 @@
-{}
+{
+  "09091855": {
+    "nombre": "Ma. Luis Alfonso Cruz Gálvez",
+    "dni": "09091855",
+    "cargo": "Ing. de Sistemas",
+    "gradoAcademico": "Master",
+    "institucion": "universidad Nacional Mayor de San Marcos",
+    "experiencia": "",
+    "isExtranjero": false,
+    "firmaExpertoImg": "",
+    "ctiVitae": "",
+    "orcid": "",
+    "linkedin": "",
+    "cvFileName": "",
+    "resumenProfesional": "",
+    "valoracionGlobal": "",
+    "dictamenFinal": "Aprobado",
+    "observaciones": "",
+    "respuestas": {
+      "VI_2": {
+        "likert": 5,
+        "claridad": "Si",
+        "relevancia": "Si",
+        "suficiencia": "Si",
+        "coherencia": "Si"
+      },
+      "VI_3": {
+        "likert": 4,
+        "relevancia": "Si",
+        "claridad": "Si",
+        "suficiencia": "Si",
+        "coherencia": "Si"
+      },
+      "VI_4": {
+        "likert": 4,
+        "claridad": "Si",
+        "relevancia": "Si",
+        "coherencia": "No",
+        "suficiencia": "Si"
+      },
+      "VI_5": {
+        "likert": 4,
+        "relevancia": "Si",
+        "claridad": "No",
+        "suficiencia": "Si",
+        "coherencia": "Si"
+      },
+      "VI_6": {
+        "likert": 4,
+        "relevancia": "No",
+        "claridad": "Si",
+        "coherencia": "Si",
+        "suficiencia": "No"
+      },
+      "VI_1": {
+        "likert": 4,
+        "relevancia": "Si",
+        "claridad": "Si",
+        "suficiencia": "Si",
+        "coherencia": "Si"
+      }
+    },
+    "inviteCode": "09091855",
+    "codigo": "09091855",
+    "lastUpdated": "2026-07-24T02:06:08.005Z"
+  }
+}
