@@ -6,7 +6,7 @@ import {
   Download, CheckCircle2, Award, FileText, ChevronRight, ChevronLeft, 
   UserCheck, ShieldCheck, Table, HelpCircle, Layers, CheckSquare, Save, 
   Trash2, Cloud, RefreshCw, Upload, FileCheck, Briefcase, PenTool, Eraser, 
-  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye, LogOut, MessageSquare
+  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye, EyeOff, LogOut, MessageSquare
 } from 'lucide-react'
 
 const LIKERT_MAP = {
