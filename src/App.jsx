@@ -99,6 +99,13 @@ function App() {
   })
   const isReadOnly = userRole === 'EVALUADOR' && isFinalizado
 
+  // NOMBRE DINÁMICO DEL EVALUADOR SEGÚN EL CONTEXTO Y ROL
+  const activeNombreExperto = evaluadorInspeccionado
+    ? evaluadorInspeccionado.nombre
+    : (userRole === 'INVESTIGADOR'
+        ? (nombre && nombre !== 'Marco Antonio Tipismana Neyra' ? nombre : 'Dr. Luis Alfonso Cruz Gálvez')
+        : ((dni === '09091855' || inviteCode === '09091855') ? 'Dr. Luis Alfonso Cruz Gálvez' : (nombre || 'Experto Validador')))
+
   // ESTADOS DEL INVESTIGADOR
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState('')
@@ -2859,7 +2866,7 @@ function App() {
               <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg flex items-center gap-2">
                 <span className="font-bold text-slate-900">Señor(a) Evaluador(a) / Experto(a):</span>
                 <span className="font-extrabold text-sky-900 text-base border-b-2 border-sky-500 px-2 bg-sky-50 rounded">
-                  {nombre || '________________________________________'}
+                  {activeNombreExperto}
                 </span>
               </div>
 
@@ -2921,7 +2928,7 @@ function App() {
                       Editar / Retomar
                     </button>
                   </div>
-                  <p><strong>Nombres:</strong> {nombre || 'No registrado'}</p>
+                  <p><strong>Nombres:</strong> {activeNombreExperto}</p>
                   <p><strong>DNI / Código:</strong> {dni || 'No registrado'}</p>
                   <p><strong>Cargo:</strong> {cargo || 'No registrado'}</p>
                   <p><strong>Grado:</strong> {gradoAcademico || 'No especificado'}</p>
@@ -3690,7 +3697,7 @@ function App() {
               {/* Vista Previa del Certificado Firmado */}
               <div className="border-t border-slate-200 pt-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
                 <div className="space-y-2">
-                  <p><strong className="text-slate-900">Apellidos y Nombres:</strong> {nombre || "________________________________"}</p>
+                  <p><strong className="text-slate-900">Apellidos y Nombres:</strong> {activeNombreExperto}</p>
                   <p><strong className="text-slate-900">DNI / Registro Profesional:</strong> {dni || "________________________________"}</p>
                   <p><strong className="text-slate-900">Grado Académico:</strong> {gradoAcademico || "________________________________"}</p>
                   <p><strong className="text-slate-900">Fecha:</strong> Lima, {new Date().getDate()} de {new Date().toLocaleString('es-ES', { month: 'long' })} del 2026</p>
@@ -3708,7 +3715,7 @@ function App() {
                   )}
                   <div className="border-b border-slate-400 w-48 mb-2"></div>
                   <p className="font-bold text-slate-900">Firma del Experto Informante</p>
-                  <p className="text-[11px] text-slate-500">{nombre || "Validador Especializado"}</p>
+                  <p className="text-[11px] text-slate-500">{activeNombreExperto}</p>
                 </div>
               </div>
 
