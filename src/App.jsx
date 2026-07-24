@@ -67,6 +67,7 @@ function App() {
   const [experiencia, setExperiencia] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_experiencia`) || '')
   const [isExtranjero, setIsExtranjero] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_isExtranjero`) === 'true')
   const [recuperarKeyInput, setRecuperarKeyInput] = useState('')
+  const [evaluadorInspeccionado, setEvaluadorInspeccionado] = useState(null)
 
   // Respuestas del Evaluador
   const [respuestas, setRespuestas] = useState(() => {
@@ -265,6 +266,58 @@ function App() {
       }
     } catch (err) {
       alert("No se pudo conectar al servidor de sincronización.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // INSPECCIONAR CARTA, INSTRUMENTOS, CERTIFICADO Y HOJA DE VIDA DE UN EVALUADOR ESPECÍFICO
+  const handleInspeccionarEvaluador = async (codigo, nombreExperto) => {
+    const cleanKey = (codigo || '').trim().toUpperCase()
+    try {
+      setSyncing(true)
+      const res = await fetch(`/api/evaluacion/${cleanKey}`)
+      const data = await res.json()
+
+      if (data.success && data.data) {
+        const ev = data.data
+        setRespuestas(ev.respuestas || {})
+        setNombre(ev.nombre || nombreExperto || '')
+        setDni(ev.dni || codigo || '')
+        setCargo(ev.cargo || '')
+        setGradoAcademico(ev.gradoAcademico || '')
+        setInstitucion(ev.institucion || '')
+        setExperiencia(ev.experiencia || '')
+        setIsExtranjero(ev.isExtranjero || false)
+        setFirmaExpertoImg(ev.firmaExpertoImg || '')
+        setCtiVitae(ev.ctiVitae || '')
+        setOrcid(ev.orcid || '')
+        setLinkedin(ev.linkedin || '')
+        setCvFileName(ev.cvFileName || '')
+        setResumenProfesional(ev.resumenProfesional || '')
+        setValoracionGlobal(ev.valoracionGlobal || '')
+        setDictamenFinal(ev.dictamenFinal || 'Aprobado')
+        setObservaciones(ev.observaciones || '')
+        setInviteCode(ev.inviteCode || codigo || '')
+
+        setEvaluadorInspeccionado({ codigo, nombre: ev.nombre || nombreExperto || 'Experto Validador' })
+        setActiveTab('CARTA')
+      } else {
+        const localInv = invitacionesList.find(i => i.codigo === codigo)
+        setNombre(localInv?.nombreExperto || nombreExperto || '')
+        setDni(localInv?.dni || codigo || '')
+        setCargo(localInv?.cargo || '')
+        setRespuestas({})
+        setFirmaExpertoImg('')
+        setCvFileName('')
+        setValoracionGlobal('')
+        setDictamenFinal('Aprobado')
+        setObservaciones('')
+        setEvaluadorInspeccionado({ codigo, nombre: localInv?.nombreExperto || nombreExperto || 'Experto Validador' })
+        setActiveTab('CARTA')
+      }
+    } catch (err) {
+      alert("Error al cargar el expediente del evaluador.")
     } finally {
       setSyncing(false)
     }
@@ -1224,6 +1277,27 @@ function App() {
           </div>
         )}
 
+        {/* BANNER INSPECCIÓN DE EVALUADOR ESPECÍFICO */}
+        {userRole === 'INVESTIGADOR' && evaluadorInspeccionado && (
+          <div className="bg-amber-900 text-amber-50 p-3.5 rounded-xl mb-4 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-lg border border-amber-600 animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-amber-300 animate-pulse shrink-0" />
+              <span>
+                <strong>EXPEDIENTE INSPECCIONADO:</strong> Viendo la Carta, Instrumentos, Certificado y Hoja de Vida de <strong>{evaluadorInspeccionado.nombre}</strong> ({evaluadorInspeccionado.codigo})
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setEvaluadorInspeccionado(null)
+                setActiveTab('PANEL_INVESTIGADOR')
+              }}
+              className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow transition-all shrink-0"
+            >
+              <ChevronLeft className="w-4 h-4" /> Volver al Panel del Investigador
+            </button>
+          </div>
+        )}
+
         {/* PESTAÑA ESPECIAL: PANEL DEL INVESTIGADOR */}
         {activeTab === 'PANEL_INVESTIGADOR' && userRole === 'INVESTIGADOR' && (
           <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8 max-w-7xl mx-auto">
@@ -1310,7 +1384,13 @@ function App() {
                           </span>
                         </td>
                         <td className="px-4 py-3 font-bold text-slate-900 border-r border-slate-200">
-                          {inv.nombreExperto}
+                          <button
+                            onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
+                            className="text-left hover:text-purple-700 hover:underline flex items-center gap-1.5 font-extrabold text-sky-900"
+                            title="Haz clic para ver la Carta, Instrumentos, Certificado y Hoja de Vida de este evaluador"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-purple-600 shrink-0" /> {inv.nombreExperto}
+                          </button>
                         </td>
                         <td className="px-4 py-3 text-slate-600 border-r border-slate-200">
                           {inv.cargo || 'No especificado'}
@@ -1330,6 +1410,14 @@ function App() {
                           <span className="text-sky-700">{inv.respondidas || 0}</span> / 100
                         </td>
                         <td className="px-4 py-3 text-center flex justify-center gap-2">
+                          <button
+                            onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
+                            className="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all"
+                            title="Ver Carta, Instrumentos, Certificado con Firma y Hoja de Vida de este evaluador"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Ver Expediente
+                          </button>
+
                           <button
                             onClick={() => handleCopiarEnlace(inv.codigo)}
                             className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded border border-slate-300 font-semibold text-[11px] flex items-center gap-1 transition-all"
