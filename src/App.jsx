@@ -206,7 +206,7 @@ function App() {
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_resumen_profesional`, resumenProfesional)
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
-      if (currentKey && nombre.trim() && dni.trim()) {
+      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && currentKey && nombre.trim() && dni.trim()) {
         saveEvaluationToBackend(currentKey, {
           nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero,
           firmaExpertoImg, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional,
@@ -619,15 +619,18 @@ function App() {
         const data = await res.json()
         if (data.success) {
           alert(`¡Registro eliminado exitosamente!`)
-          const cleanCode = (codigo || '').toUpperCase()
-          if ((dni || '').toUpperCase() === cleanCode || (inviteCode || '').toUpperCase() === cleanCode) {
-            localStorage.clear()
-            setNombre('')
-            setDni('')
-            setCargo('')
-            setRespuestas({})
-            setInviteCode('')
-          }
+          localStorage.clear()
+          setNombre('')
+          setDni('')
+          setCargo('')
+          setGradoAcademico('')
+          setInstitucion('')
+          setExperiencia('')
+          setFirmaExpertoImg('')
+          setCvFileName('')
+          setRespuestas({})
+          setInviteCode('')
+          setEvaluadorInspeccionado(null)
           fetchInvestigadorData()
         }
       } catch (err) {
