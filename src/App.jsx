@@ -6,7 +6,7 @@ import {
   Download, CheckCircle2, Award, FileText, ChevronRight, ChevronLeft, 
   UserCheck, ShieldCheck, Table, HelpCircle, Layers, CheckSquare, Save, 
   Trash2, Cloud, RefreshCw, Upload, FileCheck, Briefcase, PenTool, Eraser, 
-  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye, LogOut 
+  Send, Check, Key, UserPlus, Copy, Users, Lock, Unlock, BarChart3, Globe, AlertCircle, Edit3, PlusCircle, Eye, LogOut, MessageSquare
 } from 'lucide-react'
 
 const LIKERT_MAP = {
@@ -49,6 +49,7 @@ function App() {
   const [showPinModal, setShowPinModal] = useState(false)
   const [submittedModal, setSubmittedModal] = useState(false)
   const [registroTab, setRegistroTab] = useState('NUEVO')
+  const [openObsQuestions, setOpenObsQuestions] = useState({})
 
   // Modal para Editar/Agregar Pregunta (Investigador)
   const [showQuestionModal, setShowQuestionModal] = useState(false)
@@ -756,6 +757,16 @@ function App() {
       [preguntaId]: {
         ...prev[preguntaId],
         [criterio]: valor
+      }
+    }))
+  }
+
+  const handleObservacionChange = (preguntaId, valor) => {
+    setRespuestas(prev => ({
+      ...prev,
+      [preguntaId]: {
+        ...prev[preguntaId],
+        observacion: valor
       }
     }))
   }
@@ -2129,6 +2140,62 @@ function App() {
                                   isLocked ? 'text-slate-500 border-slate-300' : 'text-slate-300 border-sky-800/60'
                                 }`}>
                                   <strong className={isLocked ? 'text-slate-700' : 'text-amber-300'}>Nota Metodológica:</strong> {p.descripcion}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* BOTÓN E ÍCONO PARA AÑADIR OBSERVACIÓN OPCIONAL DEL EVALUADOR */}
+                            <div className="mt-3">
+                              <button
+                                type="button"
+                                disabled={isLocked}
+                                onClick={() => {
+                                  if (isLocked) return
+                                  setOpenObsQuestions(prev => ({
+                                    ...prev,
+                                    [p.id]: !prev[p.id]
+                                  }))
+                                }}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                  currentResp.observacion && currentResp.observacion.trim()
+                                    ? 'bg-amber-500 text-white border-amber-600 shadow-md hover:bg-amber-600'
+                                    : (openObsQuestions[p.id] || (evaluadorInspeccionado && currentResp.observacion))
+                                      ? 'bg-slate-800 text-amber-300 border-slate-700 shadow-sm'
+                                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                                }`}
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>
+                                  {currentResp.observacion && currentResp.observacion.trim()
+                                    ? '💬 Observación Registrada'
+                                    : (openObsQuestions[p.id] || (evaluadorInspeccionado && currentResp.observacion))
+                                      ? '▼ Ocultar Observación'
+                                      : '💬 Añadir Observación (Opcional)'}
+                                </span>
+                              </button>
+
+                              {(openObsQuestions[p.id] || (currentResp.observacion && currentResp.observacion.trim()) || evaluadorInspeccionado) && (
+                                <div className="mt-2 bg-amber-50/90 p-3 rounded-xl border-2 border-amber-300 shadow-sm transition-all">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <label className="font-black text-xs text-amber-950 flex items-center gap-1.5">
+                                      <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
+                                      <span>Observación Sugerida / Recomendación Metodológica (Opcional):</span>
+                                    </label>
+                                    {evaluadorInspeccionado && (
+                                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
+                                        Expediente del Evaluador
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <textarea
+                                    rows={2}
+                                    disabled={isLocked || evaluadorInspeccionado !== null}
+                                    value={currentResp.observacion || ''}
+                                    onChange={(e) => handleObservacionChange(p.id, e.target.value)}
+                                    placeholder="Escriba aquí sus observaciones o recomendaciones opcionales para este ítem..."
+                                    className="w-full text-xs p-2.5 rounded-lg border border-amber-300 bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-900 font-medium resize-y"
+                                  />
                                 </div>
                               )}
                             </div>
