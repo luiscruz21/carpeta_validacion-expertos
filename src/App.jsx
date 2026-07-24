@@ -929,13 +929,22 @@ function App() {
               </div>
             )}
 
-            {/* Botón Reiniciar */}
-            <button 
-              onClick={handleResetForm}
-              title="Reiniciar respuestas"
-              className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded transition-all"
+            {/* Botón Cambiar Rol / Modo */}
+            <button
+              onClick={() => {
+                if (userRole === 'INVESTIGADOR') {
+                  setUserRole('EVALUADOR')
+                  setShowRegistroModal(true)
+                } else {
+                  setUserRole('INVESTIGADOR')
+                  setShowPinModal(true)
+                }
+              }}
+              className="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 text-purple-200 font-bold rounded-lg text-xs flex items-center gap-1.5 border border-purple-700/60 transition-all shadow"
+              title="Cambiar entre Modo Evaluador e Investigador Principal"
             >
-              <Trash2 className="w-4 h-4" />
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span>{userRole === 'INVESTIGADOR' ? 'Modo Evaluador' : 'Ingresar como Investigador'}</span>
             </button>
           </div>
         </div>
@@ -1026,6 +1035,36 @@ function App() {
         {showRegistroModal && userRole === 'EVALUADOR' && (
           <div className="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-slate-200">
+              
+              {/* Selector de Rol Principal */}
+              <div className="flex bg-slate-900 p-1.5 rounded-xl mb-5 shadow-inner border border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserRole('EVALUADOR')
+                    setShowPinModal(false)
+                    setShowRegistroModal(true)
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-2 bg-sky-600 text-white shadow-md"
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-300" />
+                  <span>SOY EXPERTO EVALUADOR</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserRole('INVESTIGADOR')
+                    setShowRegistroModal(false)
+                    setShowPinModal(true)
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span>SOY EL INVESTIGADOR</span>
+                </button>
+              </div>
+
               <div className="flex bg-slate-100 p-1 rounded-xl mb-6 border border-slate-200">
                 <button
                   onClick={() => setRegistroTab('NUEVO')}
@@ -1207,12 +1246,42 @@ function App() {
         {/* MODAL ACCESO INVESTIGADOR (PIN: 2026) */}
         {showPinModal && (
           <div className="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200">
+              
+              {/* Selector de Rol Principal */}
+              <div className="flex bg-slate-900 p-1.5 rounded-xl mb-5 shadow-inner border border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserRole('EVALUADOR')
+                    setShowPinModal(false)
+                    setShowRegistroModal(true)
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800"
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-400" />
+                  <span>SOY EXPERTO EVALUADOR</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserRole('INVESTIGADOR')
+                    setShowRegistroModal(false)
+                    setShowPinModal(true)
+                  }}
+                  className="flex-1 py-2.5 px-3 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-2 bg-purple-800 text-white shadow-md"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span>SOY EL INVESTIGADOR</span>
+                </button>
+              </div>
+
               <div className="flex items-center gap-2 text-purple-900 font-extrabold text-lg mb-2">
-                <Lock className="w-6 h-6 text-purple-700" /> Acceso del Investigador
+                <Lock className="w-6 h-6 text-purple-700" /> Acceso del Investigador Principal
               </div>
               <p className="text-xs text-slate-600 mb-4">
-                Ingrese la clave PIN para acceder al Panel de Control del Investigador (Luis Alfonso Cruz Gálvez).
+                Ingrese su clave PIN de seguridad para acceder al Panel de Control del Investigador (Luis Alfonso Cruz Gálvez).
               </p>
 
               <form onSubmit={handleLoginInvestigador} className="space-y-4">
