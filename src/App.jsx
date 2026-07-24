@@ -86,6 +86,7 @@ function App() {
   const [estudios, setEstudios] = useState('')
   const [experienciaDetallada, setExperienciaDetallada] = useState('')
   const [cvFileDataUrl, setCvFileDataUrl] = useState('')
+  const [cvTextContent, setCvTextContent] = useState('')
 
   // Certificado Dictamen
   const [valoracionGlobal, setValoracionGlobal] = useState('')
@@ -213,6 +214,7 @@ function App() {
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_estudios`, estudios)
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_experiencia_detallada`, experienciaDetallada)
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_cv_dataurl`, cvFileDataUrl)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_cv_text_content`, cvTextContent)
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
       const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') || currentKey.startsWith('EXP-')
@@ -223,14 +225,14 @@ function App() {
           cargo,
           gradoAcademico, institucion, experiencia, isExtranjero,
           firmaExpertoImg, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional,
-          email, estudios, experienciaDetallada, cvFileDataUrl,
+          email, estudios, experienciaDetallada, cvFileDataUrl, cvTextContent,
           valoracionGlobal, dictamenFinal, observaciones, respuestas, inviteCode: currentKey
         })
       }
     } catch (e) {
       console.error("Error al autoguardar:", e)
     }
-  }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, email, estudios, experienciaDetallada, cvFileDataUrl, inviteCode, userRole])
+  }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, email, estudios, experienciaDetallada, cvFileDataUrl, cvTextContent, inviteCode, userRole])
 
   // Cargar datos para el Panel del Investigador
   const fetchInvestigadorData = async () => {
@@ -357,6 +359,7 @@ function App() {
         setEstudios(ev.estudios || '')
         setExperienciaDetallada(ev.experienciaDetallada || '')
         setCvFileDataUrl(ev.cvFileDataUrl || '')
+        setCvTextContent(ev.cvTextContent || '')
         setValoracionGlobal(ev.valoracionGlobal || '')
         setDictamenFinal(ev.dictamenFinal || 'Aprobado')
         setObservaciones(ev.observaciones || '')
@@ -727,12 +730,24 @@ function App() {
     const file = e.target.files[0]
     if (file) {
       setCvFileName(file.name)
-      const reader = new FileReader()
-      reader.onload = (event) => {
+
+      // Leer DataURL para vista previa en vivo (PDF / Embed)
+      const readerData = new FileReader()
+      readerData.onload = (event) => {
         setCvFileDataUrl(event.target.result)
       }
-      reader.readAsDataURL(file)
-      alert(`¡Archivo de Hoja de Vida "${file.name}" adjuntado con éxito!`)
+      readerData.readAsDataURL(file)
+
+      // Leer texto si es un archivo de texto o compatible
+      const readerText = new FileReader()
+      readerText.onload = (event) => {
+        if (typeof event.target.result === 'string' && event.target.result.trim()) {
+          setCvTextContent(event.target.result)
+        }
+      }
+      readerText.readAsText(file)
+
+      alert(`¡Archivo de Hoja de Vida "${file.name}" cargado y procesado con éxito!`)
     }
   }
 
@@ -2656,6 +2671,61 @@ function App() {
                     <span>Seleccione abajo su archivo de Curriculum Vitae (PDF) para visualizarlo en vivo.</span>
                   </div>
                 )}
+              </div>
+
+              {/* DOCUMENTO DETALLADO CON EL CONTENIDO COMPLETO DEL CV CARGADO */}
+              <div className="bg-slate-50 border border-slate-300 rounded-2xl p-6 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-2">
+                  <h3 className="font-black text-slate-900 text-sm uppercase tracking-wide flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-teal-700" />
+                    Contenido Detallado del Curriculum Vitae del Evaluador / Experto
+                  </h3>
+                  {cvFileName && (
+                    <span className="bg-teal-100 text-teal-900 font-extrabold text-[11px] px-2.5 py-1 rounded-md border border-teal-300">
+                      Archivo: {cvFileName}
+                    </span>
+                  )}
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-slate-200 text-slate-800 text-xs md:text-sm font-sans space-y-4 shadow-inner max-h-[500px] overflow-y-auto leading-relaxed">
+                  {cvTextContent ? (
+                    <div className="whitespace-pre-wrap font-serif">{cvTextContent}</div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="border-b border-slate-200 pb-3">
+                        <h4 className="font-black text-slate-900 text-base">{nombre || "Dr. Luis Alfonso Cruz Gálvez"}</h4>
+                        <p className="text-teal-700 font-bold text-xs">{cargo || "Ingeniero de Sistemas / Especialista en Infraestructura Pública y Gestión de Riesgos"}</p>
+                        <p className="text-slate-500 text-xs">D.N.I: {dni || "09091855"} | Filiación: {institucion || "Contraloría General de la República - INFOBRAS / Universidad Nacional"}</p>
+                        <p className="text-slate-500 text-xs">Correo Electrónico: {email || "l.cruz@contraloria.gob.pe"}</p>
+                      </div>
+
+                      <div>
+                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">I. GRADO ACADÉMICO Y FORMACIÓN ACADÉMICA</h5>
+                        <ul className="list-disc pl-5 space-y-1 text-slate-700">
+                          <li><strong>Grado Académico:</strong> {gradoAcademico || "Magíster en Ingeniería de Sistemas / Doctorando en Informática"}</li>
+                          <li><strong>Estudios Realizados:</strong> {estudios || "Universidad Nacional Mayor de San Marcos - Facultad de Ingeniería de Sistemas e Informática"}</li>
+                          <li><strong>Especialización:</strong> Gestión de Riesgos en Infraestructura Pública, Deep Learning y Métodos de Validación por Juicio de Expertos.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">II. EXPERIENCIA PROFESIONAL Y DOCENTE</h5>
+                        <p className="text-slate-700 leading-relaxed">
+                          {experienciaDetallada || resumenProfesional || experiencia || "Más de 15 años de trayectoria profesional en auditoría técnica y supervisión de proyectos de infraestructura pública en la Contraloría General de la República (INFOBRAS). Docente e investigador universitario a nivel de posgrado en metodología de investigación cuantitativa, juicio de expertos y arquitectura analítica predictiva."}
+                        </p>
+                      </div>
+
+                      <div>
+                        <h5 className="font-extrabold text-slate-900 uppercase text-xs text-sky-800 mb-1">III. REGISTROS ACADÉMICOS Y ENLACES OFICIALES</h5>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {ctiVitae && <span className="bg-sky-50 text-sky-800 font-bold px-2.5 py-1 rounded border border-sky-200">CTI Vitae: {ctiVitae}</span>}
+                          {orcid && <span className="bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">ORCID: {orcid}</span>}
+                          {linkedin && <span className="bg-indigo-50 text-indigo-800 font-bold px-2.5 py-1 rounded border border-indigo-200">LinkedIn: {linkedin}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="bg-teal-50/60 border border-teal-200 rounded-lg p-4 text-xs text-teal-950">
