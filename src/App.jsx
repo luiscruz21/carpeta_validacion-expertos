@@ -139,14 +139,14 @@ function App() {
     }
   }, [])
 
-  // Verificar al iniciar si el evaluador necesita llenar el registro o si su sesión fue revocada
+  // Verificar al iniciar si el evaluador existe en el servidor o si su sesión fue eliminada/revocada
   useEffect(() => {
     if (userRole === 'EVALUADOR') {
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
       if (currentKey) {
         fetch(`/api/evaluacion/${currentKey}`)
           .then(res => {
-            if (res.status === 403) {
+            if (res.status === 403 || res.status === 404) {
               localStorage.clear()
               setNombre('')
               setDni('')
@@ -159,7 +159,7 @@ function App() {
             return res.json()
           })
           .then(data => {
-            if (data && data.revocado) {
+            if (!data || !data.success || data.revocado || !data.data) {
               localStorage.clear()
               setNombre('')
               setDni('')
@@ -167,13 +167,19 @@ function App() {
               setRespuestas({})
               setInviteCode('')
               setShowRegistroModal(true)
+            } else if (data.data) {
+              const ev = data.data
+              if (ev.nombre) setNombre(ev.nombre)
+              if (ev.cargo) setCargo(ev.cargo)
+              if (ev.dni) setDni(ev.dni)
+              if (ev.respuestas) setRespuestas(ev.respuestas)
             }
           })
           .catch(() => {})
-      }
-
-      if (!nombre.trim() || !cargo.trim() || !dni.trim()) {
-        setShowRegistroModal(true)
+      } else {
+        if (!nombre.trim() || !cargo.trim() || !dni.trim()) {
+          setShowRegistroModal(true)
+        }
       }
     }
   }, [userRole])
