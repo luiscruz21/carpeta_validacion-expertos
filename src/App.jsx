@@ -701,7 +701,15 @@ function App() {
       setIsDrawing(false)
       const canvas = canvasRef.current
       if (canvas) {
-        setFirmaExpertoImg(canvas.toDataURL('image/png'))
+        const imgData = canvas.toDataURL('image/png')
+        setFirmaExpertoImg(imgData)
+        try {
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_firma_img`, imgData)
+        } catch (e) {}
+        const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+        if (currentKey) {
+          saveEvaluationToBackend(currentKey, { firmaExpertoImg: imgData })
+        }
       }
     }
   }
@@ -712,6 +720,13 @@ function App() {
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       setFirmaExpertoImg('')
+      try {
+        localStorage.removeItem(`${LOCAL_STORAGE_KEY}_firma_img`)
+      } catch (e) {}
+      const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+      if (currentKey) {
+        saveEvaluationToBackend(currentKey, { firmaExpertoImg: '' })
+      }
     }
   }
 
@@ -720,8 +735,16 @@ function App() {
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
-        setFirmaExpertoImg(event.target.result)
-        alert("¡Imagen de firma cargada con éxito!")
+        const imgData = event.target.result
+        setFirmaExpertoImg(imgData)
+        try {
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_firma_img`, imgData)
+        } catch (e) {}
+        const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+        if (currentKey) {
+          saveEvaluationToBackend(currentKey, { firmaExpertoImg: imgData })
+        }
+        alert("¡Imagen de firma cargada y guardada con éxito!")
       }
       reader.readAsDataURL(file)
     }
@@ -926,6 +949,17 @@ function App() {
   const totalPreguntas = (preguntasData.VI?.length || 0) + (preguntasData.VD?.length || 0)
   const totalMissing = totalPreguntas - totalComplete
 
+  const isCvRequirementMet = useMemo(() => {
+    const hasCvFile = !!(cvFileName && (cvFileDataUrl || cvTextContent))
+    const hasCvForm = !!(
+      (nombre && nombre.trim() && nombre !== 'Experto Validador') &&
+      (email && email.trim()) &&
+      (gradoAcademico && gradoAcademico.trim()) &&
+      (estudios && estudios.trim())
+    )
+    return hasCvFile || hasCvForm
+  }, [cvFileName, cvFileDataUrl, cvTextContent, nombre, email, gradoAcademico, estudios])
+
   const handleSubmitEvaluacion = () => {
     if (!nombre.trim() || !dni.trim()) {
       alert("Por favor, complete sus datos personales obligatorios antes de enviar su evaluación.")
@@ -936,10 +970,16 @@ function App() {
     if (totalComplete < totalPreguntas) {
       const missingVI = (preguntasData.VI?.length || 0) - viComplete
       const missingVD = (preguntasData.VD?.length || 0) - vdComplete
-      alert(`⚠️ ATENCIÓN: Las preguntas de los instrumentos son estrictamente OBLIGATORIAS.\n\nAún faltan ${totalMissing} preguntas por completar obligatoriamente:\n- Variable Independiente (VI): Faltan ${missingVI} preguntas por completar totalmente\n- Variable Dependiente (VD): Faltan ${missingVD} preguntas por completar totalmente\n\nPor favor asegúrese de responder tanto la escala Likert (1-5) como los 4 criterios de calidad (Claridad, Coherencia, Relevancia, Suficiencia) en cada ítem.`)
+      alert(`⚠️ ATENCIÓN: Las preguntas de los instrumentos son strictly OBLIGATORIAS.\n\nAún faltan ${totalMissing} preguntas por completar obligatoriamente:\n- Variable Independiente (VI): Faltan ${missingVI} preguntas por completar totalmente\n- Variable Dependiente (VD): Faltan ${missingVD} preguntas por completar totalmente\n\nPor favor asegúrese de responder tanto la escala Likert (1-5) como los 4 criterios de calidad (Claridad, Coherencia, Relevancia, Suficiencia) en cada ítem.`)
       setActiveTab('INSTRUMENTOS')
       if (missingVI > 0) setInstrumentoSubTab('VI')
       else if (missingVD > 0) setInstrumentoSubTab('VD')
+      return
+    }
+
+    if (!isCvRequirementMet) {
+      alert("⚠️ REQUISITO DE HOJA DE VIDA PENDIENTE:\n\nPara poder finalizar y enviar la evaluación, debe cumplir con el respaldo en la pestaña HOJA DE VIDA DEL EVALUADOR / EXPERTO:\n- Adjuntar su archivo de Curriculum Vitae (PDF o Word), o bien\n- Llenar el Formulario de Registro / Actualización de Datos Principales del CV.")
+      setActiveTab('HOJA_VIDA')
       return
     }
 
@@ -3008,27 +3048,31 @@ function App() {
                     Totalmente Completadas: <span className="text-emerald-700 font-black">{totalComplete} / {totalPreguntas}</span>
                   </p>
                 </div>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  {totalComplete === totalPreguntas 
-                    ? "¡Todas las 100 preguntas completadas! Listo para finalizar y enviar su evaluación." 
-                    : `⚠️ Faltan ${totalMissing} preguntas por completar (con escala Likert y los 4 criterios).`}
+                <p className="text-xs text-slate-600 mt-0.5 font-medium">
+                  {totalComplete < totalPreguntas 
+                    ? `⚠️ Faltan ${totalMissing} preguntas por completar (con escala Likert y los 4 criterios).` 
+                    : !isCvRequirementMet
+                      ? "⚠️ Las 100 preguntas están completas, pero falta adjuntar su Hoja de Vida (PDF/Word) o llenar sus datos en la pestaña HOJA DE VIDA."
+                      : "¡Todas las 100 preguntas y el requisito de Hoja de Vida están listos! Puede finalizar y enviar su evaluación."}
                 </p>
               </div>
             </div>
 
             <button 
               onClick={handleSubmitEvaluacion}
-              disabled={totalComplete < totalPreguntas}
+              disabled={totalComplete < totalPreguntas || !isCvRequirementMet}
               className={`w-full sm:w-auto font-extrabold py-3 px-8 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg ${
-                totalComplete === totalPreguntas 
+                (totalComplete === totalPreguntas && isCvRequirementMet)
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer hover:shadow-emerald-600/30' 
                   : 'bg-slate-300 text-slate-500 cursor-not-allowed border border-slate-400'
               }`}
             >
-              {totalComplete === totalPreguntas ? <Send className="w-4 h-4" /> : <Lock className="w-4 h-4 text-slate-400" />}
-              {totalComplete === totalPreguntas 
-                ? 'FINALIZAR Y ENVIAR EVALUACIÓN' 
-                : `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)`}
+              {(totalComplete === totalPreguntas && isCvRequirementMet) ? <Send className="w-4 h-4" /> : <Lock className="w-4 h-4 text-slate-400" />}
+              {totalComplete < totalPreguntas 
+                ? `FINALIZAR Y ENVIAR (Faltan ${totalMissing} preguntas)` 
+                : !isCvRequirementMet
+                  ? 'FINALIZAR Y ENVIAR (Falta Hoja de Vida)'
+                  : 'FINALIZAR Y ENVIAR EVALUACIÓN'}
             </button>
           </div>
         </div>
