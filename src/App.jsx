@@ -139,9 +139,39 @@ function App() {
     }
   }, [])
 
-  // Verificar al iniciar si el evaluador necesita llenar el registro
+  // Verificar al iniciar si el evaluador necesita llenar el registro o si su sesión fue revocada
   useEffect(() => {
     if (userRole === 'EVALUADOR') {
+      const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+      if (currentKey) {
+        fetch(`/api/evaluacion/${currentKey}`)
+          .then(res => {
+            if (res.status === 403) {
+              localStorage.clear()
+              setNombre('')
+              setDni('')
+              setCargo('')
+              setRespuestas({})
+              setInviteCode('')
+              setShowRegistroModal(true)
+              return null
+            }
+            return res.json()
+          })
+          .then(data => {
+            if (data && data.revocado) {
+              localStorage.clear()
+              setNombre('')
+              setDni('')
+              setCargo('')
+              setRespuestas({})
+              setInviteCode('')
+              setShowRegistroModal(true)
+            }
+          })
+          .catch(() => {})
+      }
+
       if (!nombre.trim() || !cargo.trim() || !dni.trim()) {
         setShowRegistroModal(true)
       }
@@ -555,6 +585,15 @@ function App() {
         const data = await res.json()
         if (data.success) {
           alert(`¡Registro eliminado exitosamente!`)
+          const cleanCode = (codigo || '').toUpperCase()
+          if ((dni || '').toUpperCase() === cleanCode || (inviteCode || '').toUpperCase() === cleanCode) {
+            localStorage.clear()
+            setNombre('')
+            setDni('')
+            setCargo('')
+            setRespuestas({})
+            setInviteCode('')
+          }
           fetchInvestigadorData()
         }
       } catch (err) {
