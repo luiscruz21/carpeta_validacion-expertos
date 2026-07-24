@@ -137,55 +137,68 @@ app.get('/api/investigador/resumen', (req, res) => {
   })
 })
 
-// GET Obtener todas las invitaciones
+// GET Obtener todas las invitaciones (Consolidadas y agrupadas por Evaluador)
 app.get('/api/invitaciones', (req, res) => {
   const invites = readJson(INVITE_FILE) || {}
   const evals = readJson(EVAL_FILE) || {}
 
-  // Combinar invitaciones y evaluaciones para asegurar que todo evaluador aparezca
-  const allKeys = new Set([...Object.keys(invites), ...Object.keys(evals)])
-  const result = []
+  const allKeys = [...new Set([...Object.keys(invites), ...Object.keys(evals)])]
+  const fullDniKeys = allKeys.filter(k => /^\d{8}$/.test(k) || k.startsWith('EXT-') || k.startsWith('EXP-'))
+
+  const grouped = {}
 
   allKeys.forEach(key => {
-    const inv = invites[key] || {}
-    const evalData = evals[key] || (inv.dni ? evals[inv.dni] : null)
+    const cleanKey = key.trim().toUpperCase()
     
-    let nombreExperto = inv.nombreExperto || (evalData ? evalData.nombre : "Experto Validador")
-    let cargo = inv.cargo || (evalData ? evalData.cargo : "Especialista Informante")
-    let dni = inv.dni || (evalData ? evalData.dni : "")
-    let creadoEn = inv.creadoEn || (evalData ? evalData.lastUpdated : new Date().toISOString())
-    let lastUpdated = evalData?.lastUpdated || creadoEn
-
-    let respondidas = 0
-    let estado = inv.estado || "Pendiente"
-
-    if (evalData) {
-      const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => {
-        const r = evalData.respuestas[k]
-        return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
-      }).length
-      respondidas = totalAnswered
-
-      if (evalData.finalizado || totalAnswered >= 100) {
-        estado = "Completado"
-      } else if (totalAnswered > 0) {
-        estado = "En Proceso"
-      }
+    // Ignorar fragmentos parciales si existe la versión completa de 8 dígitos
+    if (/^\d{1,7}$/.test(cleanKey) && fullDniKeys.some(k => k.startsWith(cleanKey))) {
+      return
     }
 
-    result.push({
-      codigo: key,
-      nombreExperto,
-      cargo,
-      dni,
-      creadoEn,
-      lastUpdated,
-      estado,
-      respondidas
-    })
+    const inv = invites[cleanKey] || {}
+    const evalData = evals[cleanKey] || (inv.dni ? evals[inv.dni] : null) || Object.values(evals).find(e => (e.dni || '').trim().toUpperCase() === cleanKey)
+
+    const mainDni = (inv.dni || evalData?.dni || cleanKey).trim().toUpperCase()
+    const mainKey = (/^\d{8}$/.test(mainDni) || mainDni.startsWith('EXT-') || mainDni.startsWith('EXP-')) ? mainDni : cleanKey
+
+    if (!grouped[mainKey]) {
+      let nombreExperto = (evalData?.nombre && evalData.nombre.trim()) || inv.nombreExperto || "Experto Validador"
+      let cargo = (evalData?.cargo && evalData.cargo.trim()) || inv.cargo || "Especialista Informante"
+      let dni = mainDni
+      let creadoEn = inv.creadoEn || evalData?.lastUpdated || new Date().toISOString()
+      let lastUpdated = evalData?.lastUpdated || creadoEn
+
+      let respondidas = 0
+      let estado = inv.estado || "Pendiente"
+
+      if (evalData) {
+        const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => {
+          const r = evalData.respuestas[k]
+          return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+        }).length
+        respondidas = totalAnswered
+
+        if (evalData.finalizado || totalAnswered >= 100) {
+          estado = "Completado"
+        } else if (totalAnswered > 0) {
+          estado = "En Proceso"
+        }
+      }
+
+      grouped[mainKey] = {
+        codigo: mainKey,
+        nombreExperto,
+        cargo,
+        dni,
+        creadoEn,
+        lastUpdated,
+        estado,
+        respondidas
+      }
+    }
   })
 
-  return res.json({ success: true, invitaciones: result })
+  return res.json({ success: true, invitaciones: Object.values(grouped) })
 })
 
 // POST Crear una nueva invitación con código único
@@ -238,7 +251,8 @@ app.delete('/api/invitaciones/:codigo', (req, res) => {
   }
 
   Object.keys(evals).forEach(k => {
-    if (k.toUpperCase() === cleanCode || (evals[k].dni && evals[k].dni.toUpperCase() === cleanCode)) {
+    const kClean = k.toUpperCase()
+    if (kClean === cleanCode || (evals[k].dni && evals[k].dni.toUpperCase() === cleanCode) || (/^\d+$/.test(kClean) && (cleanCode.startsWith(kClean) || kClean.startsWith(cleanCode)))) {
       if (evals[k].dni && !revocados.includes(evals[k].dni.trim().toUpperCase())) {
         revocados.push(evals[k].dni.trim().toUpperCase())
       }
@@ -248,7 +262,8 @@ app.delete('/api/invitaciones/:codigo', (req, res) => {
   })
 
   Object.keys(invites).forEach(k => {
-    if (k.toUpperCase() === cleanCode || (invites[k].dni && invites[k].dni.toUpperCase() === cleanCode)) {
+    const kClean = k.toUpperCase()
+    if (kClean === cleanCode || (invites[k].dni && invites[k].dni.toUpperCase() === cleanCode) || (/^\d+$/.test(kClean) && (cleanCode.startsWith(kClean) || kClean.startsWith(cleanCode)))) {
       delete invites[k]
       found = true
     }

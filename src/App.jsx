@@ -206,7 +206,8 @@ function App() {
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_resumen_profesional`, resumenProfesional)
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
-      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && currentKey && nombre.trim() && dni.trim()) {
+      const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') || currentKey.startsWith('EXP-')
+      if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && isValidKey && nombre.trim()) {
         saveEvaluationToBackend(currentKey, {
           nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero,
           firmaExpertoImg, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional,
