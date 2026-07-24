@@ -95,7 +95,7 @@ function App() {
   const [isFinalizado, setIsFinalizado] = useState(() => {
     return localStorage.getItem(`${LOCAL_STORAGE_KEY}_finalizado`) === 'true'
   })
-  const isReadOnly = isFinalizado || (userRole === 'INVESTIGADOR' && evaluadorInspeccionado !== null)
+  const isReadOnly = userRole === 'EVALUADOR' && isFinalizado
 
   // ESTADOS DEL INVESTIGADOR
   const [pinInput, setPinInput] = useState('')
@@ -938,30 +938,48 @@ function App() {
   }
 
   const handleLikertChange = (preguntaId, valor) => {
-    setRespuestas(prev => ({
-      ...prev,
-      [preguntaId]: { ...prev[preguntaId], likert: valor }
-    }))
+    setRespuestas(prev => {
+      const nextResp = {
+        ...prev,
+        [preguntaId]: { ...prev[preguntaId], likert: valor }
+      }
+      if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
+        saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      }
+      return nextResp
+    })
   }
 
   const handleCriterioChange = (preguntaId, criterio, valor) => {
-    setRespuestas(prev => ({
-      ...prev,
-      [preguntaId]: {
-        ...prev[preguntaId],
-        [criterio]: valor
+    setRespuestas(prev => {
+      const nextResp = {
+        ...prev,
+        [preguntaId]: {
+          ...prev[preguntaId],
+          [criterio]: valor
+        }
       }
-    }))
+      if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
+        saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      }
+      return nextResp
+    })
   }
 
   const handleObservacionChange = (preguntaId, valor) => {
-    setRespuestas(prev => ({
-      ...prev,
-      [preguntaId]: {
-        ...prev[preguntaId],
-        observacion: valor
+    setRespuestas(prev => {
+      const nextResp = {
+        ...prev,
+        [preguntaId]: {
+          ...prev[preguntaId],
+          observacion: valor
+        }
       }
-    }))
+      if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
+        saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      }
+      return nextResp
+    })
   }
 
   const isQuestionAnswered = (preguntaId) => {
@@ -2206,11 +2224,11 @@ function App() {
 
         {/* BANNER INSPECCIÓN DE EVALUADOR ESPECÍFICO */}
         {userRole === 'INVESTIGADOR' && evaluadorInspeccionado && (
-          <div className="bg-amber-900 text-amber-50 p-3.5 rounded-xl mb-4 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-lg border border-amber-600 animate-in fade-in">
+          <div className="bg-amber-950 text-amber-100 p-3.5 rounded-xl mb-4 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 shadow-lg border border-amber-500 animate-in fade-in">
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-amber-300 animate-pulse shrink-0" />
               <span>
-                <strong>EXPEDIENTE INSPECCIONADO:</strong> Viendo la Carta, Instrumentos, Certificado y Hoja de Vida de <strong>{evaluadorInspeccionado.nombre}</strong> ({evaluadorInspeccionado.codigo})
+                <strong>EDICIÓN E INSPECCIÓN ACTIVA DEL INVESTIGADOR:</strong> Revisando expediente de <strong>{evaluadorInspeccionado.nombre}</strong> ({evaluadorInspeccionado.codigo}). <em>(Como Investigador, usted puede visualizar todo lo realizado y ajustar o modificar cualquier pregunta, Likert o criterio si lo requiere).</em>
               </span>
             </div>
             <button
