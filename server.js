@@ -118,7 +118,7 @@ app.get('/api/invitaciones', (req, res) => {
     if (evalData) {
       const totalAnswered = Object.keys(evalData.respuestas || {}).filter(k => {
         const r = evalData.respuestas[k]
-        return r && r.likert && r.claridad && r.coherencia && r.relevancia && r.suficiencia
+        return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
       }).length
       respondidas = totalAnswered
 

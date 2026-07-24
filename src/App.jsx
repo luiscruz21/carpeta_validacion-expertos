@@ -670,17 +670,29 @@ function App() {
     }))
   }
 
+  const isQuestionAnswered = (preguntaId) => {
+    const resp = respuestas[preguntaId]
+    return !!(resp && (resp.likert || resp.claridad || resp.coherencia || resp.relevancia || resp.suficiencia))
+  }
+
   const isQuestionComplete = (preguntaId) => {
     const resp = respuestas[preguntaId]
     return !!(resp && resp.likert && resp.claridad && resp.coherencia && resp.relevancia && resp.suficiencia)
   }
 
-  const countAnswered = (list) => list.filter(p => isQuestionComplete(p.id)).length
+  const countAnswered = (list) => list.filter(p => isQuestionAnswered(p.id)).length
+  const countFullyComplete = (list) => list.filter(p => isQuestionComplete(p.id)).length
+
   const viAnswered = countAnswered(preguntasData.VI || [])
   const vdAnswered = countAnswered(preguntasData.VD || [])
   const totalAnswered = viAnswered + vdAnswered
+
+  const viComplete = countFullyComplete(preguntasData.VI || [])
+  const vdComplete = countFullyComplete(preguntasData.VD || [])
+  const totalComplete = viComplete + vdComplete
+
   const totalPreguntas = (preguntasData.VI?.length || 0) + (preguntasData.VD?.length || 0)
-  const totalMissing = totalPreguntas - totalAnswered
+  const totalMissing = totalPreguntas - totalComplete
 
   const handleSubmitEvaluacion = () => {
     if (!nombre.trim() || !dni.trim()) {
@@ -689,10 +701,10 @@ function App() {
       return
     }
 
-    if (totalAnswered < totalPreguntas) {
-      const missingVI = (preguntasData.VI?.length || 0) - viAnswered
-      const missingVD = (preguntasData.VD?.length || 0) - vdAnswered
-      alert(`⚠️ ATENCIÓN: Las preguntas de los instrumentos son estrictamente OBLIGATORIAS.\n\nAún faltan ${totalMissing} preguntas por completar obligatoriamente:\n- Variable Independiente (VI): Faltan ${missingVI} preguntas\n- Variable Dependiente (VD): Faltan ${missingVD} preguntas\n\nPor favor asegúrese de responder tanto la escala Likert (1-5) como los 4 criterios de calidad (Claridad, Coherencia, Relevancia, Suficiencia) en cada ítem.`)
+    if (totalComplete < totalPreguntas) {
+      const missingVI = (preguntasData.VI?.length || 0) - viComplete
+      const missingVD = (preguntasData.VD?.length || 0) - vdComplete
+      alert(`⚠️ ATENCIÓN: Las preguntas de los instrumentos son estrictamente OBLIGATORIAS.\n\nAún faltan ${totalMissing} preguntas por completar obligatoriamente:\n- Variable Independiente (VI): Faltan ${missingVI} preguntas por completar totalmente\n- Variable Dependiente (VD): Faltan ${missingVD} preguntas por completar totalmente\n\nPor favor asegúrese de responder tanto la escala Likert (1-5) como los 4 criterios de calidad (Claridad, Coherencia, Relevancia, Suficiencia) en cada ítem.`)
       setActiveTab('INSTRUMENTOS')
       if (missingVI > 0) setInstrumentoSubTab('VI')
       else if (missingVD > 0) setInstrumentoSubTab('VD')
