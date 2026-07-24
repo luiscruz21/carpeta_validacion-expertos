@@ -72,6 +72,17 @@ function App() {
   const [recuperarKeyInput, setRecuperarKeyInput] = useState('')
   const [evaluadorInspeccionado, setEvaluadorInspeccionado] = useState(null)
 
+  // ESTADOS DE INVITACIÓN STRICTA
+  const [codigoInvitacionInput, setCodigoInvitacionInput] = useState('')
+  const [inviteValidado, setInviteValidado] = useState(false)
+  const [invitationError, setInvitationError] = useState('')
+
+  // ESTADOS DE GESTIÓN DE PIN DEL INVESTIGADOR
+  const [pinActualInput, setPinActualInput] = useState('')
+  const [nuevoPinInput, setNuevoPinInput] = useState('')
+  const [pinSuccessMsg, setPinSuccessMsg] = useState('')
+  const [pinErrorMsg, setPinErrorMsg] = useState('')
+
   // Respuestas del Evaluador (INICIALIZAN VACÍAS)
   const [respuestas, setRespuestas] = useState({})
 
@@ -587,12 +598,119 @@ function App() {
       dictamenFinal,
       observaciones,
       respuestas,
-      inviteCode: cleanDni,
+      inviteCode: inviteCode || cleanDni,
       isNuevoRegistro: true
     })
 
+    // Limpiar campos del formulario modal tras grabar exitosamente
+    setNombresExperto('')
+    setApellidosExperto('')
+    setCargo('')
+    setGradoAcademico('')
+    setDni('')
+    setInstitucion('')
+    setEmail('')
+    setInviteValidado(false)
+    setCodigoInvitacionInput('')
+
     setShowRegistroModal(false)
-    alert(`¡Bienvenido(a) ${combinedNombre}! Sus datos oficiales han sido registrados e integrados.`)
+    setActiveTab('CARTA')
+    alert(`¡Bienvenido(a) ${combinedNombre}! Sus datos oficiales han sido registrados e integrados. A partir de ahora podrá retomar su avance ingresando su DNI (${cleanDni}).`)
+  }
+
+  // Validar Código de Invitación emitido por el Investigador
+  const handleValidarInvitacion = async (e) => {
+    if (e) e.preventDefault()
+    setInvitationError('')
+    const cleanCode = codigoInvitacionInput.trim().toUpperCase()
+    if (!cleanCode) {
+      setInvitationError('Por favor ingrese su Código de Invitación (ej. EXP-XXXX / 09091855).')
+      return
+    }
+
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/invitacion/validar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: cleanCode })
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setInvitationError(data.mensaje || 'Código de invitación no encontrado o no válido.')
+        setInviteValidado(false)
+        return
+      }
+
+      setInviteCode(cleanCode)
+      setInviteValidado(true)
+
+      // Cargar datos previos si existen
+      if (data.evaluacion) {
+        const ev = data.evaluacion
+        if (ev.nombre) setNombre(ev.nombre)
+        if (ev.nombresExperto) setNombresExperto(ev.nombresExperto)
+        if (ev.apellidosExperto) setApellidosExperto(ev.apellidosExperto)
+        if (ev.dni) setDni(ev.dni)
+        if (ev.cargo) setCargo(ev.cargo)
+        if (ev.gradoAcademico) setGradoAcademico(ev.gradoAcademico)
+        if (ev.institucion) setInstitucion(ev.institucion)
+        if (ev.email) setEmail(ev.email)
+        if (ev.respuestas) setRespuestas(ev.respuestas)
+        if (ev.firmaExpertoImg) setFirmaExpertoImg(ev.firmaExpertoImg)
+        if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
+      } else if (data.invitacion) {
+        if (data.invitacion.nombreExperto && data.invitacion.nombreExperto !== "Experto Validador") {
+          setNombre(data.invitacion.nombreExperto)
+          const parts = data.invitacion.nombreExperto.split(' ')
+          if (parts.length >= 2) {
+            setNombresExperto(parts[0])
+            setApellidosExperto(parts.slice(1).join(' '))
+          }
+        }
+        if (data.invitacion.cargo && data.invitacion.cargo !== "Especialista Informante") {
+          setCargo(data.invitacion.cargo)
+        }
+      }
+    } catch (err) {
+      setInvitationError('Error de conexión al verificar el código de invitación.')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  // Cambiar Clave PIN del Investigador desde el Panel
+  const handleCambiarPinInvestigador = async (e) => {
+    e.preventDefault()
+    setPinSuccessMsg('')
+    setPinErrorMsg('')
+
+    if (!nuevoPinInput || nuevoPinInput.trim().length < 4) {
+      setPinErrorMsg('El nuevo PIN debe contener al menos 4 caracteres.')
+      return
+    }
+
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/investigador/cambiar-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinActual: pinActualInput.trim(), nuevoPin: nuevoPinInput.trim() })
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setPinSuccessMsg(`¡Clave PIN del Investigador actualizada con éxito a: "${nuevoPinInput.trim()}"!`)
+        setPinActualInput('')
+        setNuevoPinInput('')
+      } else {
+        setPinErrorMsg(data.mensaje || 'Error al actualizar la clave PIN.')
+      }
+    } catch (err) {
+      setPinErrorMsg('Error de conexión al actualizar la clave PIN.')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   // Login del Investigador con PIN (2026)
@@ -2026,169 +2144,230 @@ function App() {
 
               {registroTab === 'NUEVO' ? (
                 <div>
-                  <div className="flex items-center gap-2 text-slate-900 font-extrabold text-lg mb-1">
-                    <UserCheck className="w-6 h-6 text-emerald-600" /> Registro Oficial del Experto Validador
-                  </div>
-                  <p className="text-xs text-slate-600 mb-5">
-                    Ingrese sus datos por primera vez. Estos se integrarán automáticamente en la Carta de Presentación y Certificado de Validación.
-                  </p>
-
-                  <form onSubmit={handleCompletarRegistroEvaluador} className="space-y-4 text-xs">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-slate-800 mb-1">
-                          Nombres del Experto <span className="text-red-600">*</span>:
-                        </label>
-                        <input 
-                          type="text" 
-                          placeholder="Ej. Carlos Alberto"
-                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                          value={nombresExperto}
-                          onChange={(e) => setNombresExperto(e.target.value)}
-                          required
-                        />
+                  {!inviteValidado ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-slate-900 font-extrabold text-lg mb-1">
+                        <Key className="w-6 h-6 text-amber-600" /> Ingreso por Invitación Oficial
                       </div>
-                      <div>
-                        <label className="block font-bold text-slate-800 mb-1">
-                          Apellidos del Experto <span className="text-red-600">*</span>:
+                      <p className="text-xs text-slate-600 mb-3">
+                        El acceso a la plataforma es <strong>exclusivamente por invitación previa</strong> generada por el Investigador Principal. Ingrese su <strong>Código de Invitación (EXP-XXXX / 09091855)</strong> para desbloquear su registro.
+                      </p>
+
+                      {invitationError && (
+                        <div className="bg-red-50 border border-red-300 p-3 rounded-lg text-xs text-red-700 font-bold flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                          <span>{invitationError}</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleValidarInvitacion} className="bg-amber-50/60 border border-amber-200 p-4 rounded-xl space-y-3">
+                        <label className="block font-bold text-amber-900 text-xs">
+                          Código de Invitación Expedido por el Investigador *:
                         </label>
                         <input 
                           type="text" 
-                          placeholder="Ej. Mendoza Silva"
-                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                          value={apellidosExperto}
-                          onChange={(e) => setApellidosExperto(e.target.value)}
+                          placeholder="Ej. EXP-1001 / 09091855"
+                          className="w-full p-3 border-2 border-amber-300 rounded-xl text-center font-black text-slate-900 tracking-wider uppercase text-base bg-white focus:outline-none focus:border-amber-600"
+                          value={codigoInvitacionInput}
+                          onChange={(e) => setCodigoInvitacionInput(e.target.value)}
                           required
                         />
+
+                        <button
+                          type="submit"
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-md transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <CheckCircle2 className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} /> VALIDAR MI CÓDIGO DE INVITACIÓN
+                        </button>
+                      </form>
+
+                      <div className="text-center pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setRegistroTab('RETOMAR')}
+                          className="text-sky-700 font-bold hover:underline text-xs"
+                        >
+                          ¿Ya se registró anteriormente? Haga clic aquí para ingresar con su DNI
+                        </button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block font-bold text-slate-800 mb-1">
-                          Título Profesional <span className="text-red-600">*</span>:
-                        </label>
-                        <input 
-                          type="text" 
-                          placeholder="Ej. Ingeniero de Sistemas / Licenciado"
-                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                          value={cargo}
-                          onChange={(e) => setCargo(e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block font-bold text-slate-800 mb-1">
-                          Grado Académico <span className="text-red-600">*</span>:
-                        </label>
-                        <input 
-                          type="text" 
-                          placeholder="Ej. Magíster / Doctor"
-                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                          value={gradoAcademico}
-                          onChange={(e) => setGradoAcademico(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <label className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <Globe className="w-4 h-4 text-sky-600" /> DNI / Documento de Identidad <span className="text-red-600">*</span>:
-                        </label>
-
-                        <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer font-medium">
-                          <input 
-                            type="checkbox" 
-                            checked={isExtranjero}
-                            onChange={(e) => {
-                              setIsExtranjero(e.target.checked)
-                              if (e.target.checked && !dni.startsWith('EXT-')) {
-                                handleGenerarCodigoExtranjero()
-                              }
-                            }}
-                            className="rounded text-sky-600 focus:ring-sky-500"
-                          />
-                          Soy experto extranjero (Sin DNI peruano)
-                        </label>
-                      </div>
-
-                      {!isExtranjero ? (
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
                         <div>
+                          <div className="flex items-center gap-2 text-slate-900 font-extrabold text-base">
+                            <UserCheck className="w-5 h-5 text-emerald-600" /> Registro de Datos del Experto Evaluador
+                          </div>
+                          <p className="text-[11px] text-slate-500"> Complete sus datos para generar su Carta de Presentación y Certificado. </p>
+                        </div>
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Código: {inviteCode}
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleCompletarRegistroEvaluador} className="space-y-4 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block font-bold text-slate-800 mb-1">
+                              Nombres del Experto <span className="text-red-600">*</span>:
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="Ej. Carlos Alberto"
+                              className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                              value={nombresExperto}
+                              onChange={(e) => setNombresExperto(e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-bold text-slate-800 mb-1">
+                              Apellidos del Experto <span className="text-red-600">*</span>:
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="Ej. Mendoza Silva"
+                              className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                              value={apellidosExperto}
+                              onChange={(e) => setApellidosExperto(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block font-bold text-slate-800 mb-1">
+                              Título Profesional <span className="text-red-600">*</span>:
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="Ej. Ingeniero de Sistemas / Licenciado"
+                              className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                              value={cargo}
+                              onChange={(e) => setCargo(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-800 mb-1">
+                              Grado Académico <span className="text-red-600">*</span>:
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="Ej. Magíster / Doctor"
+                              className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                              value={gradoAcademico}
+                              onChange={(e) => setGradoAcademico(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <label className="font-bold text-slate-900 flex items-center gap-1.5">
+                              <Globe className="w-4 h-4 text-sky-600" /> DNI / Documento de Identidad <span className="text-red-600">*</span>:
+                            </label>
+
+                            <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer font-medium">
+                              <input 
+                                type="checkbox" 
+                                checked={isExtranjero}
+                                onChange={(e) => {
+                                  setIsExtranjero(e.target.checked)
+                                  if (e.target.checked && !dni.startsWith('EXT-')) {
+                                    handleGenerarCodigoExtranjero()
+                                  }
+                                }}
+                                className="rounded text-sky-600 focus:ring-sky-500"
+                              />
+                              Soy experto extranjero (Sin DNI peruano)
+                            </label>
+                          </div>
+
+                          {!isExtranjero ? (
+                            <div>
+                              <input 
+                                type="text" 
+                                maxLength={8}
+                                placeholder="DNI del Experto (8 dígitos) *"
+                                className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest bg-white border-slate-300 focus:outline-none focus:border-sky-600"
+                                value={dni}
+                                onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
+                                required
+                              />
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex gap-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="Código de Acceso Extranjero *"
+                                  className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest uppercase bg-amber-50 border-amber-300 focus:outline-none"
+                                  value={dni}
+                                  onChange={(e) => setDni(e.target.value.toUpperCase())}
+                                  required
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleGenerarCodigoExtranjero}
+                                  className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shrink-0 cursor-pointer"
+                                >
+                                  Generar Código
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-slate-800 mb-1">
+                            Universidad de Procedencia / Institución <span className="text-red-600">*</span>:
+                          </label>
                           <input 
                             type="text" 
-                            maxLength={8}
-                            placeholder="DNI del Experto (8 dígitos) *"
-                            className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest bg-white border-slate-300 focus:outline-none focus:border-sky-600"
-                            value={dni}
-                            onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
+                            placeholder="Ej. Universidad Nacional de Ingeniería (UNI) / UNMSM"
+                            className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                            value={institucion}
+                            onChange={(e) => setInstitucion(e.target.value)}
                             required
                           />
                         </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
-                            <input 
-                              type="text" 
-                              placeholder="Código de Acceso Extranjero *"
-                              className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest uppercase bg-amber-50 border-amber-300 focus:outline-none"
-                              value={dni}
-                              onChange={(e) => setDni(e.target.value.toUpperCase())}
-                              required
-                            />
-                            <button
-                              type="button"
-                              onClick={handleGenerarCodigoExtranjero}
-                              className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shrink-0 cursor-pointer"
-                            >
-                              Generar Código
-                            </button>
-                          </div>
-                          <p className="text-[11px] text-amber-800 font-semibold">
-                            Si no es peruano, haga clic en <strong>Generar Código</strong> para obtener su código único de acceso.
-                          </p>
+
+                        <div>
+                          <label className="block font-semibold text-slate-600 mb-1">
+                            Correo Electrónico (Opcional):
+                          </label>
+                          <input 
+                            type="email" 
+                            placeholder="Ej. experto@ejemplo.com (Opcional)"
+                            className="w-full p-2.5 border rounded-lg text-slate-800 bg-white focus:outline-none focus:border-sky-600"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
                         </div>
-                      )}
-                    </div>
 
-                    <div>
-                      <label className="block font-bold text-slate-800 mb-1">
-                        Universidad de Procedencia / Institución <span className="text-red-600">*</span>:
-                      </label>
-                      <input 
-                        type="text" 
-                        placeholder="Ej. Universidad Nacional de Ingeniería (UNI) / UNMSM"
-                        className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                        value={institucion}
-                        onChange={(e) => setInstitucion(e.target.value)}
-                        required
-                      />
-                    </div>
+                        <div className="pt-3 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setInviteValidado(false)}
+                            className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition-all"
+                          >
+                            Volver
+                          </button>
 
-                    <div>
-                      <label className="block font-semibold text-slate-600 mb-1">
-                        Correo Electrónico (Opcional):
-                      </label>
-                      <input 
-                        type="email" 
-                        placeholder="Ej. experto@ejemplo.com (Opcional)"
-                        className="w-full p-2.5 border rounded-lg text-slate-800 bg-white focus:outline-none focus:border-sky-600"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
+                          <button 
+                            type="submit"
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <Check className="w-5 h-5" /> GRABAR DATOS Y ACCEDER A EVALUAR
+                          </button>
+                        </div>
+                      </form>
                     </div>
-
-                    <div className="pt-3 text-center">
-                      <button 
-                        type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Check className="w-5 h-5" /> INGRESAR A EVALUAR LOS INSTRUMENTOS
-                      </button>
-                    </div>
-                  </form>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2681,6 +2860,65 @@ function App() {
               >
                 <Download className="w-4 h-4" /> DESCARGAR CONSOLIDADO GENERAL V DE AIKEN (EXCEL)
               </button>
+            </div>
+
+            {/* SECCIÓN CONFIGURACIÓN DE CLAVE PIN DE ACCESO DEL INVESTIGADOR */}
+            <div className="bg-slate-900 text-white rounded-xl p-5 mb-8 shadow-lg border border-slate-700">
+              <h3 className="text-sm font-extrabold text-amber-400 flex items-center gap-2 mb-2">
+                <Lock className="w-4 h-4 text-amber-400" /> Configuración de Clave de Acceso del Investigador (PIN)
+              </h3>
+              <p className="text-xs text-slate-300 mb-4">
+                Configure o cambie la clave de acceso privada que utiliza para ingresar al Panel de Control del Investigador.
+              </p>
+
+              {pinSuccessMsg && (
+                <div className="bg-emerald-950/80 border border-emerald-500 p-3 rounded-lg text-xs text-emerald-300 font-bold mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{pinSuccessMsg}</span>
+                </div>
+              )}
+
+              {pinErrorMsg && (
+                <div className="bg-red-950/80 border border-red-500 p-3 rounded-lg text-xs text-red-300 font-bold mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>{pinErrorMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleCambiarPinInvestigador} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Clave PIN Actual *:</label>
+                  <input 
+                    type="password" 
+                    placeholder="Ingrese PIN Actual"
+                    className="w-full p-2.5 rounded-lg text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-amber-400 font-mono tracking-widest"
+                    value={pinActualInput}
+                    onChange={(e) => setPinActualInput(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Nueva Clave PIN *:</label>
+                  <input 
+                    type="password" 
+                    placeholder="Mínimo 4 caracteres"
+                    className="w-full p-2.5 rounded-lg text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-amber-400 font-mono tracking-widest"
+                    value={nuevoPinInput}
+                    onChange={(e) => setNuevoPinInput(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="pt-5">
+                  <button
+                    type="submit"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2.5 rounded-lg text-xs shadow transition-all flex items-center justify-center gap-2"
+                  >
+                    <Key className="w-4 h-4" /> Actualizar Clave PIN
+                  </button>
+                </div>
+              </form>
             </div>
 
             {/* SECCIÓN 1: FORMULARIO PARA CREAR INVITACIONES */}

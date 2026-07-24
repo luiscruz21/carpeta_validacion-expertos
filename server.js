@@ -141,14 +141,77 @@ app.post('/api/preguntas/guardar', (req, res) => {
 })
 
 // -------------------------------------------------------------
-// ENDPOINT DE LOGIN PARA INVESTIGADOR (PIN: 2026)
+// ENDPOINT DE LOGIN Y CAMBIO DE PIN PARA INVESTIGADOR
 // -------------------------------------------------------------
 app.post('/api/investigador/login', (req, res) => {
   const { pin } = req.body
-  if (pin === PIN_INVESTIGADOR_OFICIAL) {
+  const perfil = readJson(INVESTIGADOR_FILE) || {}
+  const currentPin = perfil.pin || PIN_INVESTIGADOR_OFICIAL || '2026'
+
+  if (pin === currentPin) {
     return res.json({ success: true, mensaje: 'Autenticación exitosa como Investigador' })
   }
-  return res.status(401).json({ success: false, mensaje: 'Clave PIN incorrecta. La clave por defecto es 2026.' })
+  return res.status(401).json({ success: false, mensaje: 'Clave PIN incorrecta. Verifique la clave configurada en el Panel de Control.' })
+})
+
+app.post('/api/investigador/cambiar-pin', (req, res) => {
+  const { pinActual, nuevoPin } = req.body
+  if (!nuevoPin || nuevoPin.trim().length < 4) {
+    return res.status(400).json({ success: false, mensaje: 'El nuevo PIN debe tener al menos 4 dígitos o caracteres.' })
+  }
+  const perfil = readJson(INVESTIGADOR_FILE) || {
+    nombres: "Luis Alfonso",
+    apellidos: "Cruz Gálvez",
+    dni: "09091855",
+    email: "luiscruz21@gmail.com",
+    grado: "Doctor en Educación / Magíster en Ingeniería",
+    tituloTesis: TITULO_TESIS_OFICIAL,
+    pin: "2026"
+  }
+  const currentPin = perfil.pin || PIN_INVESTIGADOR_OFICIAL || '2026'
+  if (pinActual !== currentPin) {
+    return res.status(400).json({ success: false, mensaje: 'La clave PIN actual ingresada es incorrecta.' })
+  }
+  perfil.pin = nuevoPin.trim()
+  writeJson(INVESTIGADOR_FILE, perfil)
+  return res.json({ success: true, mensaje: 'Clave PIN del Investigador actualizada con éxito', pin: perfil.pin })
+})
+
+// VALIDACIÓN STRICTA DE CÓDIGO DE INVITACIÓN
+app.post('/api/invitacion/validar', (req, res) => {
+  const { codigo } = req.body
+  if (!codigo) {
+    return res.status(400).json({ success: false, mensaje: 'Debe ingresar un código de invitación.' })
+  }
+  const cleanCode = codigo.trim().toUpperCase()
+  const invites = readJson(INVITE_FILE) || {}
+  const evals = readJson(EVAL_FILE) || {}
+  const revocados = readJson(REVOCADOS_FILE) || []
+
+  if (revocados.includes(cleanCode)) {
+    return res.status(403).json({
+      success: false,
+      revocado: true,
+      mensaje: 'Acceso Denegado: Su invitación ha sido revocada por el Investigador Principal.'
+    })
+  }
+
+  let invite = invites[cleanCode] || Object.values(invites).find(i => i.codigo === cleanCode || i.dni === cleanCode)
+  let evalData = evals[cleanCode] || Object.values(evals).find(e => e.codigo === cleanCode || e.dni === cleanCode)
+
+  if (!invite && !evalData && cleanCode !== '09091855') {
+    return res.status(404).json({
+      success: false,
+      mensaje: 'Código de invitación NO VÁLIDO o no encontrado. El acceso es exclusivamente por invitación previa generada por el Investigador Principal.'
+    })
+  }
+
+  return res.json({
+    success: true,
+    mensaje: 'Código de invitación verificado con éxito',
+    invitacion: invite || { codigo: cleanCode },
+    evaluacion: evalData || null
+  })
 })
 
 // GET Resumen Consolidado Completo para el Investigador
