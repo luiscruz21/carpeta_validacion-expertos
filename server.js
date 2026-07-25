@@ -389,19 +389,6 @@ const getConsolidatedInvitations = (invites, evals) => {
 
     let estado = (matchingEval?.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
 
-    if (cleanCode === '09091855' || cleanCode === dniInvestigador.toUpperCase()) {
-      grouped['09091855'] = {
-        codigo: '09091855',
-        nombreExperto: (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || nombreInvestigador),
-        cargo: (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || cargoInvestigador),
-        dni: dniInvestigador,
-        creadoEn: inv.creadoEn || new Date().toISOString(),
-        estado: 'Completado',
-        respondidas: 100
-      }
-      return
-    }
-
     grouped[cleanCode] = {
       codigo: cleanCode,
       nombreExperto: finalNombre,
@@ -409,7 +396,7 @@ const getConsolidatedInvitations = (invites, evals) => {
       dni: finalDni,
       creadoEn: inv.creadoEn || new Date().toISOString(),
       estado,
-      respondidas: totalAnswered
+      respondidas: (cleanCode === '09091855' || matchingEval?.finalizado) ? 100 : totalAnswered
     }
   })
 
@@ -613,11 +600,6 @@ app.get('/api/evaluacion/:key', (req, res) => {
         mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
       })
     }
-    if (cleanKey === '09091855' || found.dni === '09091855') {
-      found.nombre = "Dr. Luis Alfonso Cruz Gálvez"
-      found.cargo = "Investigador Principal"
-      found.dni = "09091855"
-    }
     return res.json({ success: true, data: found })
   }
   return res.json({ success: false, message: 'No encontrado' })
@@ -636,13 +618,6 @@ app.post('/api/evaluacion/save', (req, res) => {
 
   const cleanCode = codigo.trim().toUpperCase()
 
-  // Proteger DNI del Investigador Principal (09091855)
-  if (cleanCode === '09091855' && payload && payload.nombre && !payload.nombre.toLowerCase().includes('luis alfonso cruz')) {
-    return res.status(400).json({
-      success: false,
-      mensaje: 'El DNI 09091855 pertenece exclusivamente al Investigador Principal (Dr. Luis Alfonso Cruz Gálvez). Por favor utilice su propio DNI de evaluador o genere su código de acceso para extranjero.'
-    })
-  }
   // Determinar clave canónica (Invitation Code como clave principal)
   let targetKey = cleanCode
   if (payload.inviteCode && payload.inviteCode.trim().toUpperCase().startsWith('EXP-')) {
@@ -651,22 +626,15 @@ app.post('/api/evaluacion/save', (req, res) => {
 
   const existingEval = evals[targetKey] || evals[cleanCode] || {}
 
-  // Determinar nombre, cargo y DNI sin sobrescribir datos reales con placeholders
+  // Determinar nombre, cargo y DNI sin sobrescribir datos reales
   let finalNombre = (payload.nombre && payload.nombre !== "Experto Validador") ? payload.nombre : (existingEval.nombre || payload.nombre || "Experto Validador")
-  let finalCargo = (payload.cargo && payload.cargo !== "Especialista Informante" && payload.cargo !== "Investigador Principal") 
-    ? payload.cargo 
-    : (existingEval.cargo && existingEval.cargo !== "Investigador Principal" ? existingEval.cargo : "Licenciado en Administración")
+  let finalCargo = payload.cargo || existingEval.cargo || "Especialista Informante"
   let finalDni = payload.dni || existingEval.dni || cleanCode
 
-  if (targetKey === '09091855' || cleanCode === '09091855') {
-    finalNombre = "Dr. Luis Alfonso Cruz Gálvez"
-    finalCargo = "Investigador Principal"
-    finalDni = "09091855"
-    targetKey = "09091855"
-  } else if (targetKey === 'EXP-23TJ' || cleanCode === 'EXP-23TJ' || finalDni === '21868177') {
-    finalNombre = "Marco Antonio Tipismana Neyra"
-    finalCargo = "Licenciado en Administración"
-    finalDni = "21868177"
+  if (targetKey === 'EXP-23TJ' || cleanCode === 'EXP-23TJ') {
+    if (!payload.nombre || payload.nombre === "Experto Validador") {
+      finalNombre = existingEval.nombre || "Marco Antonio Tipismana Neyra"
+    }
     targetKey = "EXP-23TJ"
   }
 
