@@ -792,22 +792,14 @@ function App() {
     }
   }
 
-  // Descargar Informe Completo en Word (.docx) con estado en vivo
+  // Descargar Informe Completo en Word (.docx)
   const handleDescargarInformeDocx = async () => {
     try {
       setSyncing(true)
-      const payload = {
-        evaluaciones: evaluacionesData,
-        invitaciones: Object.fromEntries((invitacionesList || []).map(i => [i.codigo, i])),
-        perfil: investigadorPerfil,
-        evaluadores: selectedEvaluadoresDocx.length > 0 ? selectedEvaluadoresDocx : (invitacionesList || []).map(i => i.codigo)
-      }
-
-      const res = await fetch('/api/investigador/descargar-informe-docx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      const selectedCodes = selectedEvaluadoresDocx.length > 0 ? selectedEvaluadoresDocx : (invitacionesList || []).map(i => i.codigo)
+      const queryParam = selectedCodes.length > 0 ? `?evaluadores=${encodeURIComponent(selectedCodes.join(','))}` : ''
+      
+      const res = await fetch('/api/investigador/descargar-informe-docx' + queryParam)
 
       if (!res.ok) {
         throw new Error('Error al generar el informe en el servidor')
@@ -828,21 +820,11 @@ function App() {
     }
   }
 
-  // Descargar Informe Exclusivo de Alfa de Cronbach en Word (.docx) con estado en vivo
+  // Descargar Informe Exclusivo de Alfa de Cronbach en Word (.docx)
   const handleDescargarInformeCronbachDocx = async () => {
     try {
       setSyncing(true)
-      const payload = {
-        evaluaciones: evaluacionesData,
-        invitaciones: Object.fromEntries((invitacionesList || []).map(i => [i.codigo, i])),
-        perfil: investigadorPerfil
-      }
-
-      const res = await fetch('/api/investigador/descargar-informe-cronbach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      const res = await fetch('/api/investigador/descargar-informe-cronbach')
 
       if (!res.ok) {
         throw new Error('Error al generar el informe de Alfa de Cronbach en el servidor')

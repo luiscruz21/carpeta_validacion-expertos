@@ -235,25 +235,15 @@ app.get('/api/investigador/resumen', (req, res) => {
 // GET / POST Descargar Informe Completo de Validación V de Aiken (.docx Word)
 const handleDescargarDocxHandler = async (req, res) => {
   try {
-    const diskInvites = readJson(INVITE_FILE) || {}
-    const diskEvals = readJson(EVAL_FILE) || {}
-    const diskPerfil = readJson(INVESTIGADOR_FILE) || {}
-
-    const bodyInvites = (req.body && req.body.invitaciones) ? req.body.invitaciones : {}
-    const bodyEvals = (req.body && req.body.evaluaciones) ? req.body.evaluaciones : {}
-    const bodyPerfil = (req.body && req.body.perfil) ? req.body.perfil : {}
-
-    const invites = { ...diskInvites, ...bodyInvites }
-    const evals = { ...diskEvals, ...bodyEvals }
-    const perfil = { ...diskPerfil, ...bodyPerfil }
-
-    // Persistir si vinieron datos desde la vista
-    if (Object.keys(bodyInvites).length > 0) writeJson(INVITE_FILE, invites)
-    if (Object.keys(bodyEvals).length > 0) writeJson(EVAL_FILE, evals)
+    const invites = readJson(INVITE_FILE) || {}
+    const evals = readJson(EVAL_FILE) || {}
+    const perfil = readJson(INVESTIGADOR_FILE) || {}
 
     let preguntas = {}
     if (fs.existsSync(DEFAULT_PREGUNTAS_FILE)) {
-      preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+      try {
+        preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+      } catch (e) {}
     }
 
     const rawSel = req.query.evaluadores || (req.body && req.body.evaluadores)
@@ -271,7 +261,7 @@ const handleDescargarDocxHandler = async (req, res) => {
     return res.send(docBuffer)
   } catch (err) {
     console.error("Error generando informe Word:", err)
-    return res.status(500).json({ success: false, mensaje: "Error al generar informe Word" })
+    return res.status(500).json({ success: false, mensaje: "Error al generar informe Word: " + err.message })
   }
 }
 
@@ -281,24 +271,15 @@ app.post('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 // GET / POST Descargar Informe Exclusivo Alfa de Cronbach (.docx Word)
 const handleDescargarCronbachDocxHandler = async (req, res) => {
   try {
-    const diskInvites = readJson(INVITE_FILE) || {}
-    const diskEvals = readJson(EVAL_FILE) || {}
-    const diskPerfil = readJson(INVESTIGADOR_FILE) || {}
-
-    const bodyInvites = (req.body && req.body.invitaciones) ? req.body.invitaciones : {}
-    const bodyEvals = (req.body && req.body.evaluaciones) ? req.body.evaluaciones : {}
-    const bodyPerfil = (req.body && req.body.perfil) ? req.body.perfil : {}
-
-    const invites = { ...diskInvites, ...bodyInvites }
-    const evals = { ...diskEvals, ...bodyEvals }
-    const perfil = { ...diskPerfil, ...bodyPerfil }
-
-    if (Object.keys(bodyInvites).length > 0) writeJson(INVITE_FILE, invites)
-    if (Object.keys(bodyEvals).length > 0) writeJson(EVAL_FILE, evals)
+    const invites = readJson(INVITE_FILE) || {}
+    const evals = readJson(EVAL_FILE) || {}
+    const perfil = readJson(INVESTIGADOR_FILE) || {}
 
     let preguntas = {}
     if (fs.existsSync(DEFAULT_PREGUNTAS_FILE)) {
-      preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+      try {
+        preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+      } catch (e) {}
     }
 
     const docBuffer = await generateCronbachDocxReport(evals, invites, perfil, preguntas)
@@ -308,7 +289,7 @@ const handleDescargarCronbachDocxHandler = async (req, res) => {
     return res.send(docBuffer)
   } catch (err) {
     console.error("Error generando informe Cronbach Word:", err)
-    return res.status(500).json({ success: false, mensaje: "Error al generar informe Cronbach Word" })
+    return res.status(500).json({ success: false, mensaje: "Error al generar informe Cronbach Word: " + err.message })
   }
 }
 
