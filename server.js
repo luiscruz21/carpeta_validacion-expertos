@@ -509,18 +509,26 @@ app.post('/api/evaluacion/save', (req, res) => {
       success: false,
       mensaje: 'El DNI 09091855 pertenece exclusivamente al Investigador Principal (Dr. Luis Alfonso Cruz Gálvez). Por favor utilice su propio DNI de evaluador o genere su código de acceso para extranjero.'
     })
+  // Determinar clave canónica (Invitation Code como clave principal)
+  let targetKey = cleanCode
+  if (payload.inviteCode && payload.inviteCode.trim().toUpperCase().startsWith('EXP-')) {
+    targetKey = payload.inviteCode.trim().toUpperCase()
   }
-  const existingEval = evals[cleanCode] || (payload.dni ? evals[payload.dni.trim().toUpperCase()] : null) || {}
+
+  const existingEval = evals[targetKey] || evals[cleanCode] || (payload.dni ? evals[payload.dni.trim().toUpperCase()] : null) || {}
 
   // Determinar nombre, cargo y DNI sin sobrescribir datos reales con placeholders
   let finalNombre = (payload.nombre && payload.nombre !== "Experto Validador") ? payload.nombre : (existingEval.nombre || payload.nombre || "Experto Validador")
-  let finalCargo = (payload.cargo && payload.cargo !== "Especialista Informante") ? payload.cargo : (existingEval.cargo || payload.cargo || "Especialista Informante")
+  let finalCargo = (payload.cargo && payload.cargo !== "Especialista Informante" && payload.cargo !== "Investigador Principal") 
+    ? payload.cargo 
+    : (existingEval.cargo && existingEval.cargo !== "Investigador Principal" ? existingEval.cargo : "Licenciado en Administración")
   let finalDni = payload.dni || existingEval.dni || cleanCode
 
-  if (cleanCode === '09091855') {
+  if (targetKey === '09091855' || cleanCode === '09091855') {
     finalNombre = "Dr. Luis Alfonso Cruz Gálvez"
     finalCargo = "Investigador Principal"
     finalDni = "09091855"
+    targetKey = "09091855"
   }
 
   // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas
@@ -544,43 +552,29 @@ app.post('/api/evaluacion/save', (req, res) => {
     cargo: finalCargo,
     dni: finalDni,
     respuestas: mergedRespuestas,
-    codigo: cleanCode,
+    codigo: targetKey,
+    inviteCode: targetKey,
     lastUpdated: new Date().toISOString()
   }
 
-  evals[cleanCode] = updatedPayload
+  // Guardar bajo la clave canónica de invitación
+  evals[targetKey] = updatedPayload
 
-  // Si la invitación no existía previamente para este evaluador, la registramos automáticamente
-  if (!invites[cleanCode]) {
-    invites[cleanCode] = {
-      codigo: cleanCode,
-      nombreExperto: finalNombre,
-      cargo: finalCargo,
-      dni: finalDni,
-      creadoEn: new Date().toISOString(),
-      estado: nuevoEstado,
-      respondidas: totalAnswered
-    }
-  } else {
-    invites[cleanCode].dni = finalDni
-    invites[cleanCode].nombreExperto = finalNombre
-    invites[cleanCode].cargo = finalCargo
-    invites[cleanCode].estado = nuevoEstado
-    invites[cleanCode].respondidas = totalAnswered
+  // Si la clave ingresada fue el DNI y es diferente del targetKey, eliminar la clave duplicada standalone
+  if (cleanCode !== targetKey && /^\d{8}$/.test(cleanCode)) {
+    delete evals[cleanCode]
+    delete invites[cleanCode]
   }
 
-  // Buscar también por DNI para actualizar sincronizadamente
-  if (finalDni) {
-    const cleanDni = finalDni.trim().toUpperCase()
-    if (invites[cleanDni]) {
-      invites[cleanDni].nombreExperto = finalNombre
-      invites[cleanDni].cargo = finalCargo
-      invites[cleanDni].estado = nuevoEstado
-      invites[cleanDni].respondidas = totalAnswered
-    }
-    if (evals[cleanDni]) {
-      evals[cleanDni] = updatedPayload
-    }
+  // Actualizar o crear objeto de invitación sincronizado
+  invites[targetKey] = {
+    codigo: targetKey,
+    nombreExperto: finalNombre,
+    cargo: finalCargo,
+    dni: finalDni,
+    creadoEn: invites[targetKey]?.creadoEn || new Date().toISOString(),
+    estado: nuevoEstado,
+    respondidas: totalAnswered
   }
 
   writeJson(INVITE_FILE, invites)

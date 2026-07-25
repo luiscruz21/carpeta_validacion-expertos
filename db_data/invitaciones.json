@@ -8,22 +8,13 @@
     "estado": "Completado",
     "respondidas": 100
   },
-  "EXP-0HTY": {
-    "codigo": "EXP-0HTY",
+  "EXP-23TJ": {
+    "codigo": "EXP-23TJ",
     "nombreExperto": "Marco Antonio Tipismana Neyra",
     "cargo": "Licenciado en Administración",
     "dni": "21868177",
-    "creadoEn": "2026-07-25T01:07:21.318Z",
+    "creadoEn": "2026-07-24T20:30:00.000Z",
     "estado": "En Proceso",
-    "respondidas": 10
-  },
-  "EXP-1WBD": {
-    "codigo": "EXP-1WBD",
-    "nombreExperto": "Dr. Luis Alfonso Cruz Gálvez",
-    "cargo": "Investigador Principal",
-    "dni": "09091855",
-    "creadoEn": "2026-07-25T01:08:41.992Z",
-    "estado": "Completado",
-    "respondidas": 100
+    "respondidas": 11
   }
 }
