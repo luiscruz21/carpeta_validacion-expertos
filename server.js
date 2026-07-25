@@ -3,6 +3,7 @@ import cors from 'cors'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { generateDocxReport } from './generateDocxReport.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -228,6 +229,29 @@ app.get('/api/investigador/resumen', (req, res) => {
     invitaciones: invitacionesConsolidadas,
     evaluaciones: evals
   })
+})
+
+// GET Descargar Informe Completo de Validación V de Aiken (.docx Word)
+app.get('/api/investigador/descargar-informe-docx', async (req, res) => {
+  try {
+    const invites = readJson(INVITE_FILE) || {}
+    const evals = readJson(EVAL_FILE) || {}
+    const perfil = readJson(INVESTIGADOR_FILE) || {}
+
+    let preguntas = {}
+    if (fs.existsSync(DEFAULT_PREGUNTAS_FILE)) {
+      preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+    }
+
+    const docBuffer = await generateDocxReport(evals, invites, perfil, preguntas)
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    res.setHeader('Content-Disposition', 'attachment; filename="MODELO_V_DE_AIKEN_VALIDACION_DE_LOS_INSTRUMENTOS.docx"')
+    return res.send(docBuffer)
+  } catch (err) {
+    console.error("Error generando informe Word:", err)
+    return res.status(500).json({ success: false, mensaje: "Error al generar informe Word" })
+  }
 })
 
 // Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)

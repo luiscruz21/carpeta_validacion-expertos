@@ -782,6 +782,11 @@ function App() {
     }
   }
 
+  // Descargar Informe Completo en Word (.docx)
+  const handleDescargarInformeDocx = () => {
+    window.location.href = '/api/investigador/descargar-informe-docx'
+  }
+
   // -------------------------------------------------------------
   // FUNCIONES DE EDICIÓN Y GESTIÓN DE PREGUNTAS (INVESTIGADOR)
   // -------------------------------------------------------------
@@ -2855,12 +2860,22 @@ function App() {
                 </p>
               </div>
 
-              <button
-                onClick={handleExportConsolidadoInvestigador}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-3 rounded-xl shadow-lg transition-all text-xs flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" /> DESCARGAR CONSOLIDADO GENERAL V DE AIKEN (EXCEL)
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleDescargarInformeDocx}
+                  className="bg-blue-700 hover:bg-blue-800 text-white font-extrabold px-5 py-3 rounded-xl shadow-lg transition-all text-xs flex items-center gap-2 cursor-pointer"
+                  title="Descargar Informe Oficial de Validación V de Aiken en formato Word (.docx)"
+                >
+                  <FileText className="w-4 h-4 text-blue-200" /> DESCARGAR INFORME COMPLETO (WORD .DOCX)
+                </button>
+
+                <button
+                  onClick={handleExportConsolidadoInvestigador}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-3 rounded-xl shadow-lg transition-all text-xs flex items-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" /> DESCARGAR CONSOLIDADO GENERAL (EXCEL)
+                </button>
+              </div>
             </div>
 
             {/* SECCIÓN REGISTRO Y GESTIÓN DE CLAVES DE ACCESO DE INVESTIGADORES */}

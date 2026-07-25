@@ -16,6 +16,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.5.4",
     "cors": "^2.8.6",
+    "docx": "^9.7.1",
     "express": "^5.2.1",
     "lucide-react": "^1.25.0",
     "postcss": "^8.5.21",
