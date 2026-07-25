@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { generateDocxReport } from './generateDocxReport.js'
+import { generateCronbachDocxReport } from './generateCronbachDocxReport.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -264,6 +265,32 @@ const handleDescargarDocxHandler = async (req, res) => {
 
 app.get('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 app.post('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
+
+// GET / POST Descargar Informe Exclusivo Alfa de Cronbach (.docx Word)
+const handleDescargarCronbachDocxHandler = async (req, res) => {
+  try {
+    const invites = readJson(INVITE_FILE) || {}
+    const evals = readJson(EVAL_FILE) || {}
+    const perfil = readJson(INVESTIGADOR_FILE) || {}
+
+    let preguntas = {}
+    if (fs.existsSync(DEFAULT_PREGUNTAS_FILE)) {
+      preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
+    }
+
+    const docBuffer = await generateCronbachDocxReport(evals, invites, perfil, preguntas)
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    res.setHeader('Content-Disposition', 'attachment; filename="INFORME_CONFIABILIDAD_ALFA_DE_CRONBACH.docx"')
+    return res.send(docBuffer)
+  } catch (err) {
+    console.error("Error generando informe Cronbach Word:", err)
+    return res.status(500).json({ success: false, mensaje: "Error al generar informe Cronbach Word" })
+  }
+}
+
+app.get('/api/investigador/descargar-informe-cronbach', handleDescargarCronbachDocxHandler)
+app.post('/api/investigador/descargar-informe-cronbach', handleDescargarCronbachDocxHandler)
 
 // POST Editar Datos de Evaluador por parte del Investigador Principal
 app.post('/api/investigador/editar-evaluador', (req, res) => {

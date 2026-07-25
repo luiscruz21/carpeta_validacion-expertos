@@ -1,4 +1,5 @@
 import * as docx from 'docx'
+import { calculateCronbachAlpha } from './generateCronbachDocxReport.js'
 const { 
   Document, Packer, Paragraph, Table, TableRow, TableCell, 
   TextRun, WidthType, AlignmentType, HeadingLevel, 
@@ -713,6 +714,53 @@ export async function generateDocxReport(
           text: "APROBADO Y VALIDADO PARA SU APLICACIÓN OFICIAL EN LA INVESTIGACIÓN",
           bold: true,
           color: "2F855A",
+          size: 22,
+          font: "Arial"
+        })
+      ]
+    })
+  )
+
+  // SECCIÓN 4: ANÁLISIS DE CONFIABILIDAD MEDIANTE ALFA DE CRONBACH (α)
+  const evalsListForCronbach = selectedList.map(e => e.respuestas || {}).filter(r => Object.keys(r).length > 0)
+  const cronbachVI = calculateCronbachAlpha(viList, evalsListForCronbach)
+  const cronbachVD = calculateCronbachAlpha(vdList, evalsListForCronbach)
+  const cronbachGlobal = calculateCronbachAlpha(allPreguntas, evalsListForCronbach)
+
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({
+          text: "SECCIÓN IV: ANÁLISIS DE CONFIABILIDAD DEL INSTRUMENTO (ALFA DE CRONBACH)",
+          bold: true,
+          size: 24,
+          color: "1A365D",
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 150 },
+      children: [
+        new TextRun({
+          text: `Se determinó la consistencia interna mediante el Coeficiente Alfa de Cronbach (α) sobre los 100 ítems formulados en escala Likert:`,
+          size: 20,
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 100, after: 150 },
+      children: [
+        new TextRun({
+          text: `Alfa de Cronbach Global: α = ${cronbachGlobal.alpha}  |  Nivel: ${cronbachGlobal.nivel}`,
+          bold: true,
+          color: "1A365D",
           size: 22,
           font: "Arial"
         })

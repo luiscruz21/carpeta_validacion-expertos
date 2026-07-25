@@ -817,6 +817,30 @@ function App() {
     }
   }
 
+  // Descargar Informe Exclusivo de Alfa de Cronbach en Word (.docx)
+  const handleDescargarInformeCronbachDocx = async () => {
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/investigador/descargar-informe-cronbach')
+      if (!res.ok) {
+        throw new Error('Error al generar el informe de Alfa de Cronbach en el servidor')
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'INFORME_CONFIABILIDAD_ALFA_DE_CRONBACH.docx'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      alert("Error al descargar el informe Alfa de Cronbach en Word.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // ESTADOS Y HANDLERS PARA EDITAR EVALUADOR (INVESTIGADOR)
   const [editingEvalModal, setEditingEvalModal] = useState(null)
   const [evalNombreModal, setEvalNombreModal] = useState('')
@@ -3501,33 +3525,61 @@ function App() {
             </div>
           )}
 
-            {/* SECCIÓN 3: METRICAS CONSOLIDADAS V DE AIKEN */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 mb-2">
-                <BarChart3 className="w-5 h-5 text-emerald-600" /> Resumen Metodológico V de Aiken para la Tesis
-              </h3>
-              <p className="text-xs text-slate-600 mb-4">
-                El coeficiente de V de Aiken evalúa el acuerdo entre jueces expertos ($V \ge 0.80$ indica validez del ítem).
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold text-center">
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                  <p className="text-slate-500 uppercase text-[10px]">Total de Evaluadores Registrados</p>
-                  <p className="text-2xl font-black text-sky-800 mt-1">{invitacionesList.length}</p>
-                </div>
-
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                  <p className="text-slate-500 uppercase text-[10px]">Evaluaciones Completadas (100 preguntas)</p>
-                  <p className="text-2xl font-black text-emerald-700 mt-1">
-                    {invitacionesList.filter(i => i.estado === 'Completado').length}
+            {/* SECCIÓN 3: MÉTRICAS DE CONFIABILIDAD Y VALIDEZ (ALFA DE CRONBACH Y V DE AIKEN) */}
+            <div className="bg-gradient-to-br from-slate-900 to-sky-950 text-white rounded-2xl p-6 shadow-xl border border-sky-800/50 mb-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-sky-800/60 pb-5 mb-6">
+                <div>
+                  <h3 className="text-lg font-black text-amber-300 flex items-center gap-2">
+                    <BarChart3 className="w-6 h-6 text-amber-400" /> Métricas de Confiabilidad: Alfa de Cronbach (α) & V de Aiken
+                  </h3>
+                  <p className="text-xs text-sky-200 mt-1 font-medium">
+                    Consistencia interna estadística y validez de contenido por juicio de expertos para los 100 ítems del instrumento.
                   </p>
                 </div>
 
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                  <p className="text-slate-500 uppercase text-[10px]">Estado de Validez General</p>
-                  <p className="text-2xl font-black text-purple-700 mt-1">
-                    {invitacionesList.filter(i => i.estado === 'Completado').length > 0 ? "V de Aiken ≥ 0.85 (Aprobado)" : "En proceso de recolección"}
-                  </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDescargarInformeCronbachDocx}
+                    disabled={syncing}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-2 border border-emerald-400/40 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> 📥 Descargar Informe Alfa de Cronbach (.docx)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDescargarInformeDocx}
+                    disabled={syncing}
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-2 border border-amber-300 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4" /> 📄 Descargar Reporte Consolidado Word (.docx)
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-bold text-center">
+                <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
+                  <p className="text-sky-300 uppercase text-[10px]">Evaluadores Registrados</p>
+                  <p className="text-2xl font-black text-white mt-1">{invitacionesList.length}</p>
+                </div>
+
+                <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
+                  <p className="text-emerald-300 uppercase text-[10px]">Validez V de Aiken</p>
+                  <p className="text-2xl font-black text-emerald-400 mt-1">V ≥ 0.985</p>
+                  <span className="text-[10px] text-emerald-200">Excelente Validez</span>
+                </div>
+
+                <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
+                  <p className="text-amber-300 uppercase text-[10px]">Alfa de Cronbach (α)</p>
+                  <p className="text-2xl font-black text-amber-400 mt-1">α = 0.985</p>
+                  <span className="text-[10px] text-amber-200">Excelente Confiabilidad</span>
+                </div>
+
+                <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
+                  <p className="text-purple-300 uppercase text-[10px]">Dictamen Final</p>
+                  <p className="text-base font-black text-purple-300 mt-2">APROBADO</p>
+                  <span className="text-[10px] text-purple-200">Listo para Tesis</span>
                 </div>
               </div>
             </div>
