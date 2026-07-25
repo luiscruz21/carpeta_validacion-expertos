@@ -7,5 +7,13 @@
     "creadoEn": "2026-07-24T02:04:36.871Z",
     "estado": "Completado",
     "respondidas": 100
+  },
+  "EXP-1WBD": {
+    "codigo": "EXP-1WBD",
+    "nombreExperto": "Marco Antonio Tipismana Neyra",
+    "cargo": "Especialista Informante",
+    "creadoEn": "2026-07-25T00:43:04.281Z",
+    "estado": "Pendiente",
+    "dni": ""
   }
 }
