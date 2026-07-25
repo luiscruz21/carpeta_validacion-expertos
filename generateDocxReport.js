@@ -1,8 +1,9 @@
-import { 
+import * as docx from 'docx'
+const { 
   Document, Packer, Paragraph, Table, TableRow, TableCell, 
   TextRun, WidthType, AlignmentType, HeadingLevel, 
   ShadingType, ImageRun 
-} from 'docx'
+} = docx
 
 /**
  * Limpia el nombre del experto removiendo prefijos de grado/cargo (Dr., Lic., Ing., etc.)
@@ -27,10 +28,9 @@ function cleanGrado(grado = '', cargo = '') {
 
 /**
  * Genera el documento de Informe Completo de Validación V de Aiken (.docx)
- * con las siguientes características requeridas:
  * 1. Selección dinámica de Evaluadores / Jueces.
- * 2. Muestra a TODOS los jueces seleccionados en la Matriz con sus veredictos (J1, J2, ... JK).
- * 3. Ficha de Validación sin DNI, Celular ni Dirección Domiciliaria.
+ * 2. Muestra a TODOS los jueces seleccionados en la Matriz con sus veredictos (J1 (Código), J2 (Código)...).
+ * 3. Ficha de Validación adicionando la fila obligatoria con el Código del Validador (J1 (Código)).
  * 4. Muestra Participante basada en el dataset real del Sistema de Riesgos (54,226 obras INFOBRAS / 1,302 muestra analizada).
  * 5. Nombres y Apellidos limpios (sin Dr./Lic./Ing.).
  * 6. Grado Académico únicamente con la denominación del grado (Doctor, Magíster, Licenciado).
@@ -262,18 +262,19 @@ export async function generateDocxReport(
   // Muestra participante oficial obtenida del dataset del Sistema de Riesgos INFOBRAS
   const MUESTRA_SISTEMA_RIESGOS = "54,226 Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República (2020-2024) y muestra experimental analizada de 1,302 obras públicas."
 
-  // Generar Ficha para cada evaluador (SIN DNI, CELULAR NI DIRECCIÓN DOMICILIARIA)
+  // Generar Ficha para cada evaluador (CON ADICIÓN DE FILA DE CÓDIGO DEL VALIDADOR QUE LUEGO REFLEJA EN MATRIZ)
   for (let i = 0; i < evaluadoresFichas.length; i++) {
     const exp = evaluadoresFichas[i]
     const nombreLimpio = cleanNombre(exp.nombre)
     const gradoLimpio = cleanGrado(exp.grado, exp.cargo)
+    const codigoValidadorTag = `J${i + 1} (${exp.codigo})`
 
     children.push(
       new Paragraph({
         spacing: { before: 200, after: 100 },
         children: [
           new TextRun({
-            text: `Ficha de Validación N° ${i + 1}: ${nombreLimpio}`,
+            text: `Ficha de Validación N° ${i + 1}: ${nombreLimpio} [Código: ${codigoValidadorTag}]`,
             bold: true,
             size: 22,
             color: "2D3748",
@@ -283,7 +284,7 @@ export async function generateDocxReport(
       })
     )
 
-    // Tabla Ficha del Experto
+    // Tabla Ficha del Experto con FILA ADICIONAL "Código del Validador"
     const fichaRows = [
       new TableRow({
         children: [
@@ -321,6 +322,21 @@ export async function generateDocxReport(
           new TableCell({
             width: { size: 70, type: WidthType.PERCENTAGE },
             children: [new Paragraph({ children: [new TextRun({ text: MUESTRA_SISTEMA_RIESGOS, size: 18, font: "Arial" })] })]
+          })
+        ]
+      }),
+      // FILA ADICIONADA: CÓDIGO DEL VALIDADOR QUE REFLEJA EN LA MATRIZ
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 30, type: WidthType.PERCENTAGE },
+            shading: { fill: "E2E8F0", type: ShadingType.CLEAR },
+            children: [new Paragraph({ children: [new TextRun({ text: "Código del Validador", bold: true, color: "1A365D", size: 18, font: "Arial" })] })]
+          }),
+          new TableCell({
+            width: { size: 70, type: WidthType.PERCENTAGE },
+            shading: { fill: "EBF8FF", type: ShadingType.CLEAR },
+            children: [new Paragraph({ children: [new TextRun({ text: codigoValidadorTag, bold: true, color: "2B6CB0", size: 18, font: "Arial" })] })]
           })
         ]
       }),
@@ -400,7 +416,7 @@ export async function generateDocxReport(
                     new TextRun({ text: "____________________________________\n", bold: true, color: "4A5568", size: 18, font: "Arial" }),
                     new TextRun({ text: `${nombreLimpio}\n`, bold: true, size: 16, font: "Arial" }),
                     new TextRun({ text: `${exp.cargo || 'Especialista Informante'}\n`, italic: true, size: 14, color: "718096", font: "Arial" }),
-                    new TextRun({ text: "Firma Digital Registrada - Experto Validador", bold: true, size: 14, color: "2B6CB0", font: "Arial" })
+                    new TextRun({ text: `Firma Digital Registrada - Validador [${codigoValidadorTag}]`, bold: true, size: 14, color: "2B6CB0", font: "Arial" })
                   ]
                 })
             ]
@@ -438,7 +454,7 @@ export async function generateDocxReport(
       spacing: { after: 200 },
       children: [
         new TextRun({
-          text: `En la presente matriz se reflejan las calificaciones y veredictos (1 ó 0) de TODOS los ${K_total} jueces evaluadores en los 5 criterios de evaluación (Redacción, Pertinencia, Coherencia, Adecuación y Comprensión) por cada uno de los 100 reactivos:`,
+          text: `En la presente matriz se refleja la validación de datos y veredictos (1 ó 0) de cada uno de los ${K_total} jueces evaluadores, identificados por su código asignado en la Ficha de Validación:`,
           size: 20,
           font: "Arial"
         })
@@ -461,10 +477,12 @@ export async function generateDocxReport(
 
   const headerCellsRow2 = []
   for (let j = 1; j <= K_total; j++) {
+    const exp = evaluadoresMatriz[j - 1]
+    const codeTag = exp ? exp.codigo : `J${j}`
     headerCellsRow2.push(
       new TableCell({
         shading: { fill: "2B6CB0", type: ShadingType.CLEAR },
-        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j}`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })]
+        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j} (${codeTag})`, bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
       })
     )
   }

@@ -810,6 +810,68 @@ function App() {
     }
   }
 
+  // ESTADOS Y HANDLERS PARA EDITAR EVALUADOR (INVESTIGADOR)
+  const [editingEvalModal, setEditingEvalModal] = useState(null)
+  const [evalNombreModal, setEvalNombreModal] = useState('')
+  const [evalDniModal, setEvalDniModal] = useState('')
+  const [evalCargoModal, setEvalCargoModal] = useState('')
+  const [evalGradoModal, setEvalGradoModal] = useState('')
+  const [evalInstitucionModal, setEvalInstitucionModal] = useState('')
+  const [evalEmailModal, setEvalEmailModal] = useState('')
+
+  const handleAbrirEditarEvaluadorModal = (inv) => {
+    const evalData = evaluacionesData[inv.codigo] || Object.values(evaluacionesData).find(e => 
+      (e.dni && e.dni.trim().toUpperCase() === inv.codigo.trim().toUpperCase()) || 
+      (e.nombre && e.nombre.trim().toLowerCase() === (inv.nombreExperto || '').trim().toLowerCase())
+    ) || {}
+
+    setEditingEvalModal(inv)
+    setEvalNombreModal(evalData.nombre || inv.nombreExperto || '')
+    setEvalDniModal(evalData.dni || inv.dni || '')
+    setEvalCargoModal(evalData.cargo || inv.cargo || '')
+    setEvalGradoModal(evalData.gradoAcademico || 'Magíster')
+    setEvalInstitucionModal(evalData.institucion || 'Universidad de Procedencia')
+    setEvalEmailModal(evalData.email || '')
+  }
+
+  const handleGuardarEditarEvaluadorModal = async (e) => {
+    e.preventDefault()
+    if (!editingEvalModal) return
+
+    const payload = {
+      codigoTarget: editingEvalModal.codigo,
+      datosEvaluador: {
+        nombre: evalNombreModal.trim(),
+        dni: evalDniModal.trim(),
+        cargo: evalCargoModal.trim(),
+        gradoAcademico: evalGradoModal.trim(),
+        institucion: evalInstitucionModal.trim(),
+        email: evalEmailModal.trim()
+      }
+    }
+
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/investigador/editar-evaluador', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        alert("¡Perfil y datos del Evaluador actualizados con éxito!")
+        setEditingEvalModal(null)
+        await fetchInvestigadorData()
+      } else {
+        alert(data.mensaje || "Error al actualizar los datos del evaluador.")
+      }
+    } catch (err) {
+      alert("Error de conexión al actualizar datos del evaluador.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // -------------------------------------------------------------
   // FUNCIONES DE EDICIÓN Y GESTIÓN DE PREGUNTAS (INVESTIGADOR)
   // -------------------------------------------------------------
@@ -3172,22 +3234,30 @@ function App() {
                         <td className="px-4 py-3 text-center flex justify-center gap-2">
                           <button
                             onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
-                            className="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all"
+                            className="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
                             title="Ver Carta, Instrumentos, Certificado con Firma y Hoja de Vida de este evaluador"
                           >
                             <Eye className="w-3.5 h-3.5" /> Ver Expediente
                           </button>
 
                           <button
+                            onClick={() => handleAbrirEditarEvaluadorModal(inv)}
+                            className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
+                            title="Editar nombres, DNI, cargo, grado e institución de este evaluador"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" /> Editar Datos
+                          </button>
+
+                          <button
                             onClick={() => handleCopiarEnlace(inv.codigo)}
-                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded border border-slate-300 font-semibold text-[11px] flex items-center gap-1 transition-all"
+                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded border border-slate-300 font-semibold text-[11px] flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Copy className="w-3 h-3" /> Copiar Enlace
                           </button>
 
                           <button
                             onClick={() => handleEliminarInvitacion(inv.codigo, inv.nombreExperto)}
-                            className="text-red-600 hover:bg-red-50 p-1.5 rounded transition-all"
+                            className="text-red-600 hover:bg-red-50 p-1.5 rounded transition-all cursor-pointer"
                             title="Eliminar registro de evaluador o invitación"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3196,10 +3266,130 @@ function App() {
                       </tr>
                     )
                   })}
-                  </tbody>
-                </table>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* MODAL PARA EDITAR DATOS Y PERFIL DE EVALUADOR POR EL INVESTIGADOR */}
+          {editingEvalModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden">
+                <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-base font-black flex items-center gap-2 text-amber-400">
+                      <Edit3 className="w-5 h-5 text-amber-400" /> Editar Perfil y Datos del Evaluador
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Código de Acceso: <span className="font-mono text-sky-400 font-bold">{editingEvalModal.codigo}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setEditingEvalModal(null)}
+                    className="text-slate-400 hover:text-white text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleGuardarEditarEvaluadorModal} className="p-6 space-y-4 text-xs text-slate-700">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Nombres y Apellidos:</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900"
+                        value={evalNombreModal}
+                        onChange={(e) => setEvalNombreModal(e.target.value)}
+                        placeholder="Ej: Marco Antonio Tipismana Neyra"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">DNI / Documento Identidad:</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-mono font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900"
+                        value={evalDniModal}
+                        onChange={(e) => setEvalDniModal(e.target.value)}
+                        placeholder="Ej: 21868177"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Especialidad / Cargo:</label>
+                      <input
+                        type="text"
+                        required
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900"
+                        value={evalCargoModal}
+                        onChange={(e) => setEvalCargoModal(e.target.value)}
+                        placeholder="Ej: Licenciado en Administración"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Grado Académico:</label>
+                      <select
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-white"
+                        value={evalGradoModal}
+                        onChange={(e) => setEvalGradoModal(e.target.value)}
+                      >
+                        <option value="Doctor">Doctor</option>
+                        <option value="Magíster">Magíster / Maestro</option>
+                        <option value="Licenciado">Licenciado / Ingeniero</option>
+                        <option value="Especialista">Especialista</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Universidad / Institución:</label>
+                      <input
+                        type="text"
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900"
+                        value={evalInstitucionModal}
+                        onChange={(e) => setEvalInstitucionModal(e.target.value)}
+                        placeholder="Ej: Universidad de Procedencia"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Correo Electrónico (Opcional):</label>
+                      <input
+                        type="email"
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900"
+                        value={evalEmailModal}
+                        onChange={(e) => setEvalEmailModal(e.target.value)}
+                        placeholder="ejemplo@correo.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setEditingEvalModal(null)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Save className="w-4 h-4" /> Guardar Cambios del Evaluador
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
+          )}
 
             {/* SECCIÓN 3: METRICAS CONSOLIDADAS V DE AIKEN */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">

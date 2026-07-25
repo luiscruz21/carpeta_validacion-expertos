@@ -265,6 +265,59 @@ const handleDescargarDocxHandler = async (req, res) => {
 app.get('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 app.post('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 
+// POST Editar Datos de Evaluador por parte del Investigador Principal
+app.post('/api/investigador/editar-evaluador', (req, res) => {
+  const { codigoTarget, datosEvaluador } = req.body
+  if (!codigoTarget || !datosEvaluador) {
+    return res.status(400).json({ success: false, mensaje: 'Faltan datos obligatorios' })
+  }
+
+  const cleanCode = codigoTarget.trim().toUpperCase()
+  const evals = readJson(EVAL_FILE) || {}
+  const invites = readJson(INVITE_FILE) || {}
+
+  const existingEval = evals[cleanCode] || Object.values(evals).find(e => e.codigo === cleanCode || e.dni === cleanCode) || {}
+  const existingInvite = invites[cleanCode] || Object.values(invites).find(i => i.codigo === cleanCode || i.dni === cleanCode) || {}
+
+  const keyToUse = existingEval.codigo || existingInvite.codigo || cleanCode
+
+  const updatedEval = {
+    ...existingEval,
+    codigo: keyToUse,
+    inviteCode: keyToUse,
+    nombre: datosEvaluador.nombre || existingEval.nombre || "Experto Validador",
+    nombresExperto: datosEvaluador.nombresExperto || existingEval.nombresExperto || "",
+    apellidosExperto: datosEvaluador.apellidosExperto || existingEval.apellidosExperto || "",
+    cargo: datosEvaluador.cargo || existingEval.cargo || "Especialista Informante",
+    gradoAcademico: datosEvaluador.gradoAcademico || existingEval.gradoAcademico || "Magíster",
+    institucion: datosEvaluador.institucion || existingEval.institucion || "Universidad de Procedencia",
+    dni: datosEvaluador.dni || existingEval.dni || keyToUse,
+    email: datosEvaluador.email || existingEval.email || "",
+    lastUpdated: new Date().toISOString()
+  }
+
+  const updatedInvite = {
+    ...existingInvite,
+    codigo: keyToUse,
+    nombreExperto: updatedEval.nombre,
+    cargo: updatedEval.cargo,
+    dni: updatedEval.dni
+  }
+
+  evals[keyToUse] = updatedEval
+  invites[keyToUse] = updatedInvite
+
+  writeJson(EVAL_FILE, evals)
+  writeJson(INVITE_FILE, invites)
+
+  return res.json({
+    success: true,
+    mensaje: 'Perfil y datos del evaluador actualizados con éxito por el Investigador',
+    evaluacion: updatedEval,
+    invitacion: updatedInvite
+  })
+})
+
 // Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)
 const getConsolidatedInvitations = (invites, evals) => {
   const grouped = {}
