@@ -43,13 +43,10 @@ export async function generateDocxReport(
   preguntasData = {}, 
   selectedEvaluadoresKeys = []
 ) {
-  // 1. Consolidar lista de evaluadores únicos (FILTRANDO AL INVESTIGADOR PRINCIPAL DE LA LISTA DE VALIDADORES)
+  // 1. Consolidar lista de evaluadores únicos
   const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
     ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
     : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
-  const dniInvestigador = perfilInvestigador.dni || '09091855'
-  const cargoInvestigador = perfilInvestigador.cargo || 'Investigador Principal'
-  const gradoInvestigador = perfilInvestigador.grado || 'Doctor en Educación / Magíster en Ingeniería'
 
   const allKeys = [...new Set([...Object.keys(invitacionesMap), ...Object.keys(evaluacionesMap)])]
   
@@ -59,14 +56,17 @@ export async function generateDocxReport(
     const ev = evaluacionesMap[key] || {}
     let dni = inv.dni || ev.dni || key
     let nombre = (ev.nombre && ev.nombre !== "Experto Validador") ? ev.nombre : (inv.nombreExperto || "Experto Validador")
-    let cargo = (ev.cargo && ev.cargo !== "Especialista Informante") ? ev.cargo : (inv.cargo || "Especialista Informante")
-    let grado = ev.gradoAcademico || "Magíster / Doctor"
+    let cargo = ev.cargo || inv.cargo || "Especialista Informante"
+    let grado = ev.gradoAcademico || inv.gradoAcademico || "Magíster"
     let institucion = ev.institucion || ev.estudios || "Universidad de Procedencia"
     let firmaImg = ev.firmaExpertoImg || ""
     const respuestas = ev.respuestas || {}
 
-    // Evitar duplicados por DNI si ya fue ingresado
-    if (!rawList.some(e => e.dni === dni || e.nombre.toLowerCase() === nombre.toLowerCase())) {
+    // Excluir sólo si la entrada coincide exactamente con el nombre Y cargo del Investigador Autor de la tesis
+    const isAutorInvestigador = cleanNombre(nombre).toLowerCase().includes(cleanNombre(nombreInvestigador).toLowerCase()) &&
+                                /investigador\s+principal/i.test(cargo)
+
+    if (!isAutorInvestigador && !rawList.some(e => e.codigo === key || e.dni === dni)) {
       rawList.push({
         codigo: key,
         nombre,
@@ -80,16 +80,21 @@ export async function generateDocxReport(
     }
   })
 
-  // FILTRAR EXCLUSIVAMENTE A LOS EXPERTOS VALIDADORES EXTERNOS (Excluir al Autor/Investigador Principal)
-  const externalEvaluadores = rawList.filter(e => 
-    e.dni !== '09091855' && 
-    e.dni !== dniInvestigador && 
-    !/investigador\s+principal/i.test(e.cargo) &&
-    !cleanNombre(e.nombre).toLowerCase().includes(cleanNombre(nombreInvestigador).toLowerCase())
-  )
-
-  // Si existen evaluadores externos (ej. Marco Antonio Tipismana Neyra), usamos sólo la lista de expertos validadoras
-  const evaluadoresList = externalEvaluadores.length > 0 ? externalEvaluadores : rawList
+  // Lista de evaluadores participantes
+  const evaluadoresList = rawList.length > 0 ? rawList : allKeys.map(k => {
+    const inv = invitacionesMap[k] || {}
+    const ev = evaluacionesMap[k] || {}
+    return {
+      codigo: k,
+      nombre: ev.nombre || inv.nombreExperto || "Experto Validador",
+      cargo: ev.cargo || inv.cargo || "Especialista Informante",
+      dni: inv.dni || ev.dni || k,
+      grado: ev.gradoAcademico || "Magíster",
+      institucion: ev.institucion || "Universidad de Procedencia",
+      firmaImg: ev.firmaExpertoImg || "",
+      respuestas: ev.respuestas || {}
+    }
+  })
 
   // Filtrar si el usuario seleccionó evaluadores específicos en el panel
   let selectedList = evaluadoresList
