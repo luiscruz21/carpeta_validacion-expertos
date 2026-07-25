@@ -307,7 +307,9 @@ function App() {
               if (ev.valoracionGlobal) setValoracionGlobal(ev.valoracionGlobal)
               if (ev.dictamenFinal) setDictamenFinal(ev.dictamenFinal)
               if (ev.observaciones) setObservaciones(ev.observaciones)
-              if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
+              const isComp = Boolean(ev && (ev.finalizado || ev.estado === 'Completado' || (ev.respuestas && Object.keys(ev.respuestas).filter(k => ev.respuestas[k]?.likert).length >= 100)))
+              setIsFinalizado(isComp)
+              localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, isComp ? 'true' : 'false')
             }
           })
           .catch(() => {})
@@ -448,10 +450,11 @@ function App() {
         if (ev.cvFileName) setCvFileName(ev.cvFileName)
         if (ev.resumenProfesional) setResumenProfesional(ev.resumenProfesional)
         if (ev.valoracionGlobal) setValoracionGlobal(ev.valoracionGlobal)
-        if (ev.dictamenFinal) setDictamenFinal(ev.dictamenFinal)
         if (ev.observaciones) setObservaciones(ev.observaciones)
         if (ev.inviteCode) setInviteCode(ev.inviteCode)
-        if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
+        const isComp = Boolean(ev && (ev.finalizado || ev.estado === 'Completado' || (ev.respuestas && Object.keys(ev.respuestas).filter(k => ev.respuestas[k]?.likert).length >= 100)))
+        setIsFinalizado(isComp)
+        localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, isComp ? 'true' : 'false')
 
         setShowRegistroModal(false)
         const count = Object.keys(ev.respuestas || {}).filter(k => ev.respuestas[k]?.likert).length
@@ -616,6 +619,8 @@ function App() {
     setEmail('')
     setInviteValidado(false)
     setCodigoInvitacionInput('')
+    setIsFinalizado(false)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, 'false')
 
     setShowRegistroModal(false)
     setActiveTab('CARTA')
@@ -662,7 +667,9 @@ function App() {
           if (ev.email) setEmail(ev.email)
           if (ev.respuestas) setRespuestas(ev.respuestas)
           if (ev.firmaExpertoImg) setFirmaExpertoImg(ev.firmaExpertoImg)
-          if (ev.finalizado || ev.estado === 'Completado') setIsFinalizado(true)
+          const isComp = Boolean(ev && (ev.finalizado || ev.estado === 'Completado' || (ev.respuestas && Object.keys(ev.respuestas).filter(k => ev.respuestas[k]?.likert).length >= 100)))
+          setIsFinalizado(isComp)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, isComp ? 'true' : 'false')
         } else if (data.invitacion) {
           if (data.invitacion.nombreExperto && data.invitacion.nombreExperto !== "Experto Validador") {
             setNombre(data.invitacion.nombreExperto)
@@ -3816,6 +3823,18 @@ function App() {
               </h2>
               <span className="text-xs bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full">Dictamen Oficial</span>
             </div>
+
+            {userRole === 'EVALUADOR' && totalAnswered < 100 && (
+              <div className="bg-amber-50 border-2 border-amber-400 text-amber-900 rounded-xl p-4 mb-6 shadow flex items-center gap-3">
+                <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
+                <div className="text-xs">
+                  <strong className="block text-sm font-extrabold mb-0.5 text-amber-950">
+                    ⚠️ Evaluación en Proceso (Avance actual: {totalAnswered} / 100 preguntas contestadas)
+                  </strong>
+                  Usted está en proceso de evaluación. Su <strong>Certificado Oficial de Validación y Juicio de Expertos</strong> se emitirá y habilitará para descarga oficial en PDF una vez que complete al 100% las 100 preguntas en la pestaña <strong>Instrumentos ({totalAnswered}/100)</strong>.
+                </div>
+              </div>
+            )}
 
             <div className="space-y-6 text-sm">
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
