@@ -291,7 +291,7 @@ const getConsolidatedInvitations = (invites, evals) => {
 
     let estado = (matchingEval?.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
 
-    if (cleanCode === '09091855' || finalDni === '09091855') {
+    if (cleanCode === '09091855') {
       grouped['09091855'] = {
         codigo: '09091855',
         nombreExperto: 'Dr. Luis Alfonso Cruz Gálvez',
@@ -551,7 +551,7 @@ app.post('/api/evaluacion/save', (req, res) => {
     targetKey = payload.inviteCode.trim().toUpperCase()
   }
 
-  const existingEval = evals[targetKey] || evals[cleanCode] || (payload.dni ? evals[payload.dni.trim().toUpperCase()] : null) || {}
+  const existingEval = evals[targetKey] || evals[cleanCode] || {}
 
   // Determinar nombre, cargo y DNI sin sobrescribir datos reales con placeholders
   let finalNombre = (payload.nombre && payload.nombre !== "Experto Validador") ? payload.nombre : (existingEval.nombre || payload.nombre || "Experto Validador")
@@ -565,6 +565,11 @@ app.post('/api/evaluacion/save', (req, res) => {
     finalCargo = "Investigador Principal"
     finalDni = "09091855"
     targetKey = "09091855"
+  } else if (targetKey === 'EXP-23TJ' || cleanCode === 'EXP-23TJ' || finalDni === '21868177') {
+    finalNombre = "Marco Antonio Tipismana Neyra"
+    finalCargo = "Licenciado en Administración"
+    finalDni = "21868177"
+    targetKey = "EXP-23TJ"
   }
 
   // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas
