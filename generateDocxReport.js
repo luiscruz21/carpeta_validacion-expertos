@@ -44,11 +44,7 @@ export async function generateDocxReport(
   preguntasData = {}, 
   selectedEvaluadoresKeys = []
 ) {
-  // 1. Consolidar lista de evaluadores únicos
-  const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
-    ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
-    : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
-
+  // 1. Consolidar lista de evaluadores únicos (INCLUYENDO TODOS LOS REGISTRADOS/SELECCIONADOS)
   const allKeys = [...new Set([...Object.keys(invitacionesMap), ...Object.keys(evaluacionesMap)])]
   
   const rawList = []
@@ -63,11 +59,8 @@ export async function generateDocxReport(
     let firmaImg = ev.firmaExpertoImg || ""
     const respuestas = ev.respuestas || {}
 
-    // Excluir sólo si la entrada coincide exactamente con el nombre Y cargo del Investigador Autor de la tesis
-    const isAutorInvestigador = cleanNombre(nombre).toLowerCase().includes(cleanNombre(nombreInvestigador).toLowerCase()) &&
-                                /investigador\s+principal/i.test(cargo)
-
-    if (!isAutorInvestigador && !rawList.some(e => e.codigo === key || e.dni === dni)) {
+    // Incluir sin ninguna exclusión forzada por DNI o rol
+    if (!rawList.some(e => e.codigo === key || e.dni === dni)) {
       rawList.push({
         codigo: key,
         nombre,

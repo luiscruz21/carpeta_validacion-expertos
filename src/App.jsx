@@ -792,12 +792,23 @@ function App() {
     }
   }
 
-  // Descargar Informe Completo en Word (.docx)
+  // Descargar Informe Completo en Word (.docx) con estado en vivo
   const handleDescargarInformeDocx = async () => {
     try {
       setSyncing(true)
-      const queryParam = selectedEvaluadoresDocx.length > 0 ? `?evaluadores=${selectedEvaluadoresDocx.join(',')}` : ''
-      const res = await fetch('/api/investigador/descargar-informe-docx' + queryParam)
+      const payload = {
+        evaluaciones: evaluacionesData,
+        invitaciones: Object.fromEntries((invitacionesList || []).map(i => [i.codigo, i])),
+        perfil: investigadorPerfil,
+        evaluadores: selectedEvaluadoresDocx.length > 0 ? selectedEvaluadoresDocx : (invitacionesList || []).map(i => i.codigo)
+      }
+
+      const res = await fetch('/api/investigador/descargar-informe-docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
       if (!res.ok) {
         throw new Error('Error al generar el informe en el servidor')
       }
@@ -817,11 +828,22 @@ function App() {
     }
   }
 
-  // Descargar Informe Exclusivo de Alfa de Cronbach en Word (.docx)
+  // Descargar Informe Exclusivo de Alfa de Cronbach en Word (.docx) con estado en vivo
   const handleDescargarInformeCronbachDocx = async () => {
     try {
       setSyncing(true)
-      const res = await fetch('/api/investigador/descargar-informe-cronbach')
+      const payload = {
+        evaluaciones: evaluacionesData,
+        invitaciones: Object.fromEntries((invitacionesList || []).map(i => [i.codigo, i])),
+        perfil: investigadorPerfil
+      }
+
+      const res = await fetch('/api/investigador/descargar-informe-cronbach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
       if (!res.ok) {
         throw new Error('Error al generar el informe de Alfa de Cronbach en el servidor')
       }
