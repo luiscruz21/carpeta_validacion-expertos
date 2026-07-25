@@ -118,7 +118,46 @@ app.post('/api/investigador/perfil', (req, res) => {
   const { perfil } = req.body || {}
   if (!perfil) return res.status(400).json({ success: false, error: 'Sin datos' })
   writeJson(INVESTIGADOR_FILE, perfil)
-  return res.json({ success: true, mensaje: 'Perfil del investigador guardado con éxito', perfil })
+
+  // Sincronizar automáticamente en invitaciones y evaluaciones del Investigador Principal (09091855)
+  try {
+    const invites = readJson(INVITE_FILE) || {}
+    const evals = readJson(EVAL_FILE) || {}
+    const nombreCompleto = `${perfil.nombres || ''} ${perfil.apellidos || ''}`.trim() || perfil.nombre || 'Dr. Luis Alfonso Cruz Gálvez'
+    const targetDni = perfil.dni || '09091855'
+
+    invites['09091855'] = {
+      ...(invites['09091855'] || {}),
+      codigo: '09091855',
+      nombreExperto: nombreCompleto,
+      dni: targetDni,
+      cargo: perfil.cargo || 'Investigador Principal',
+      gradoAcademico: perfil.grado || 'Doctor en Educación / Magíster en Ingeniería',
+      email: perfil.email || 'luiscruz21@gmail.com',
+      estado: 'Completado'
+    }
+    writeJson(INVITE_FILE, invites)
+
+    evals['09091855'] = {
+      ...(evals['09091855'] || {}),
+      codigo: '09091855',
+      inviteCode: '09091855',
+      nombre: nombreCompleto,
+      nombresExperto: perfil.nombres,
+      apellidosExperto: perfil.apellidos,
+      dni: targetDni,
+      cargo: perfil.cargo || 'Investigador Principal',
+      gradoAcademico: perfil.grado || 'Doctor en Educación / Magíster en Ingeniería',
+      email: perfil.email || 'luiscruz21@gmail.com',
+      firmaExpertoImg: perfil.firmaImg || evals['09091855']?.firmaExpertoImg || '',
+      finalizado: true
+    }
+    writeJson(EVAL_FILE, evals)
+  } catch (err) {
+    console.warn("No se pudo sincronizar invitacion/evaluacion del investigador:", err.message)
+  }
+
+  return res.json({ success: true, mensaje: 'Perfil del investigador guardado y sincronizado con éxito', perfil })
 })
 
 // -------------------------------------------------------------
@@ -321,6 +360,12 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
 // Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)
 const getConsolidatedInvitations = (invites, evals) => {
   const grouped = {}
+  const perfilInvestigador = readJson(INVESTIGADOR_FILE, {}) || {}
+  const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
+    ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
+    : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
+  const dniInvestigador = perfilInvestigador.dni || '09091855'
+  const cargoInvestigador = perfilInvestigador.cargo || 'Investigador Principal'
 
   // 1. Procesar todas las invitaciones creadas por el Investigador
   Object.keys(invites).forEach(code => {
@@ -344,12 +389,12 @@ const getConsolidatedInvitations = (invites, evals) => {
 
     let estado = (matchingEval?.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
 
-    if (cleanCode === '09091855') {
+    if (cleanCode === '09091855' || cleanCode === dniInvestigador.toUpperCase()) {
       grouped['09091855'] = {
         codigo: '09091855',
-        nombreExperto: 'Dr. Luis Alfonso Cruz Gálvez',
-        cargo: 'Investigador Principal',
-        dni: '09091855',
+        nombreExperto: (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || nombreInvestigador),
+        cargo: (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || cargoInvestigador),
+        dni: dniInvestigador,
         creadoEn: inv.creadoEn || new Date().toISOString(),
         estado: 'Completado',
         respondidas: 100

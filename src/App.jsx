@@ -207,7 +207,12 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil: payload })
       })
-      alert("¡Perfil, datos y firma del Investigador guardados con éxito!")
+
+      // Actualizar automáticamente los datos del Investigador en las evaluaciones e invitaciones locales
+      await fetchInvestigadorPerfil()
+      await fetchInvestigadorData()
+
+      alert("¡Perfil, datos, título de tesis y firma del Investigador guardados y actualizados con éxito en todo el sistema!")
     } catch (err) {
       alert("¡Datos del Investigador guardados localmente!")
     }

@@ -44,19 +44,33 @@ export async function generateDocxReport(
   selectedEvaluadoresKeys = []
 ) {
   // 1. Consolidar lista de evaluadores únicos
+  const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
+    ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
+    : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
+  const dniInvestigador = perfilInvestigador.dni || '09091855'
+  const cargoInvestigador = perfilInvestigador.cargo || 'Investigador Principal'
+  const gradoInvestigador = perfilInvestigador.grado || 'Doctor en Educación / Magíster en Ingeniería'
+
   const allKeys = [...new Set([...Object.keys(invitacionesMap), ...Object.keys(evaluacionesMap)])]
   
   const evaluadoresList = []
   allKeys.forEach(key => {
     const inv = invitacionesMap[key] || {}
     const ev = evaluacionesMap[key] || {}
-    const dni = inv.dni || ev.dni || key
-    const nombre = (ev.nombre && ev.nombre !== "Experto Validador") ? ev.nombre : (inv.nombreExperto || "Experto Validador")
-    const cargo = (ev.cargo && ev.cargo !== "Especialista Informante") ? ev.cargo : (inv.cargo || "Especialista Informante")
-    const grado = ev.gradoAcademico || "Magíster / Doctor"
-    const institucion = ev.institucion || ev.estudios || "Universidad de Procedencia"
-    const firmaImg = ev.firmaExpertoImg || ""
+    let dni = inv.dni || ev.dni || key
+    let nombre = (ev.nombre && ev.nombre !== "Experto Validador") ? ev.nombre : (inv.nombreExperto || "Experto Validador")
+    let cargo = (ev.cargo && ev.cargo !== "Especialista Informante") ? ev.cargo : (inv.cargo || "Especialista Informante")
+    let grado = ev.gradoAcademico || "Magíster / Doctor"
+    let institucion = ev.institucion || ev.estudios || "Universidad de Procedencia"
+    let firmaImg = ev.firmaExpertoImg || ""
     const respuestas = ev.respuestas || {}
+
+    if (key === '09091855' || dni === dniInvestigador) {
+      nombre = nombreInvestigador
+      cargo = cargoInvestigador
+      grado = gradoInvestigador
+      dni = dniInvestigador
+    }
 
     // Evitar duplicados por DNI si ya fue ingresado
     if (!evaluadoresList.some(e => e.dni === dni || e.nombre.toLowerCase() === nombre.toLowerCase())) {
@@ -73,10 +87,10 @@ export async function generateDocxReport(
     }
   })
 
-  // Garantizar que el Investigador Principal (Luis Alfonso Cruz Gálvez) aparezca primero
+  // Garantizar que el Investigador Principal aparezca primero
   evaluadoresList.sort((a, b) => {
-    if (a.dni === '09091855') return -1
-    if (b.dni === '09091855') return 1
+    if (a.dni === dniInvestigador || a.dni === '09091855') return -1
+    if (b.dni === dniInvestigador || b.dni === '09091855') return 1
     return 0
   })
 
