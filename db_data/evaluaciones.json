@@ -1,14 +1,26 @@
 {
   "09091855": {
     "nombre": "Dr. Luis Alfonso Cruz Gálvez",
-    "nombresExperto": "Luis Alfonso",
-    "apellidosExperto": "Cruz Gálvez",
     "dni": "09091855",
     "cargo": "Investigador Principal",
     "gradoAcademico": "Doctor en Educación / Magíster en Ingeniería",
     "institucion": "Universidad Nacional de Ingeniería (UNI)",
-    "email": "luiscruz21@gmail.com",
+    "experiencia": "",
     "isExtranjero": false,
+    "firmaExpertoImg": "",
+    "ctiVitae": "",
+    "orcid": "",
+    "linkedin": "",
+    "cvFileName": "",
+    "resumenProfesional": "",
+    "email": "luiscruz21@gmail.com",
+    "estudios": "",
+    "experienciaDetallada": "",
+    "cvFileDataUrl": "",
+    "cvTextContent": "",
+    "valoracionGlobal": "",
+    "dictamenFinal": "Aprobado",
+    "observaciones": "",
     "respuestas": {
       "VI_2": {
         "likert": 5,
@@ -714,14 +726,17 @@
         "suficiencia": "Si"
       }
     },
-    "firmaExpertoImg": "",
-    "estado": "Completado",
+    "inviteCode": "09091855",
+    "codigo": "09091855",
+    "lastUpdated": "2026-07-24T23:00:00.309Z",
     "finalizado": true,
-    "inviteCode": "09091855"
+    "nombresExperto": "Luis Alfonso",
+    "apellidosExperto": "Cruz Gálvez",
+    "estado": "Completado"
   },
-  "EXP-1WBD": {
-    "codigo": "EXP-1WBD",
-    "inviteCode": "EXP-1WBD",
+  "EXP-0HTY": {
+    "codigo": "EXP-0HTY",
+    "inviteCode": "EXP-0HTY",
     "nombre": "Marco Antonio Tipismana Neyra",
     "nombresExperto": "Marco Antonio",
     "apellidosExperto": "Tipismana Neyra",
@@ -730,7 +745,6 @@
     "dni": "21868177",
     "institucion": "Universidad de la Amazonía / San Juan Bautista",
     "email": "",
-    "isExtranjero": false,
     "respuestas": {},
     "estado": "Pendiente",
     "finalizado": false
