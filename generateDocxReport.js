@@ -43,7 +43,7 @@ export async function generateDocxReport(
   preguntasData = {}, 
   selectedEvaluadoresKeys = []
 ) {
-  // 1. Consolidar lista de evaluadores únicos
+  // 1. Consolidar lista de evaluadores únicos (FILTRANDO AL INVESTIGADOR PRINCIPAL DE LA LISTA DE VALIDADORES)
   const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
     ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
     : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
@@ -53,7 +53,7 @@ export async function generateDocxReport(
 
   const allKeys = [...new Set([...Object.keys(invitacionesMap), ...Object.keys(evaluacionesMap)])]
   
-  const evaluadoresList = []
+  const rawList = []
   allKeys.forEach(key => {
     const inv = invitacionesMap[key] || {}
     const ev = evaluacionesMap[key] || {}
@@ -65,16 +65,9 @@ export async function generateDocxReport(
     let firmaImg = ev.firmaExpertoImg || ""
     const respuestas = ev.respuestas || {}
 
-    if (key === '09091855' || dni === dniInvestigador) {
-      nombre = nombreInvestigador
-      cargo = cargoInvestigador
-      grado = gradoInvestigador
-      dni = dniInvestigador
-    }
-
     // Evitar duplicados por DNI si ya fue ingresado
-    if (!evaluadoresList.some(e => e.dni === dni || e.nombre.toLowerCase() === nombre.toLowerCase())) {
-      evaluadoresList.push({
+    if (!rawList.some(e => e.dni === dni || e.nombre.toLowerCase() === nombre.toLowerCase())) {
+      rawList.push({
         codigo: key,
         nombre,
         cargo,
@@ -87,12 +80,16 @@ export async function generateDocxReport(
     }
   })
 
-  // Garantizar que el Investigador Principal aparezca primero
-  evaluadoresList.sort((a, b) => {
-    if (a.dni === dniInvestigador || a.dni === '09091855') return -1
-    if (b.dni === dniInvestigador || b.dni === '09091855') return 1
-    return 0
-  })
+  // FILTRAR EXCLUSIVAMENTE A LOS EXPERTOS VALIDADORES EXTERNOS (Excluir al Autor/Investigador Principal)
+  const externalEvaluadores = rawList.filter(e => 
+    e.dni !== '09091855' && 
+    e.dni !== dniInvestigador && 
+    !/investigador\s+principal/i.test(e.cargo) &&
+    !cleanNombre(e.nombre).toLowerCase().includes(cleanNombre(nombreInvestigador).toLowerCase())
+  )
+
+  // Si existen evaluadores externos (ej. Marco Antonio Tipismana Neyra), usamos sólo la lista de expertos validadoras
+  const evaluadoresList = externalEvaluadores.length > 0 ? externalEvaluadores : rawList
 
   // Filtrar si el usuario seleccionó evaluadores específicos en el panel
   let selectedList = evaluadoresList
@@ -252,6 +249,7 @@ export async function generateDocxReport(
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
@@ -455,6 +453,7 @@ export async function generateDocxReport(
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
@@ -672,6 +671,7 @@ export async function generateDocxReport(
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
