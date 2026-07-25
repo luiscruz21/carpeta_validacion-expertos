@@ -118,46 +118,7 @@ app.post('/api/investigador/perfil', (req, res) => {
   const { perfil } = req.body || {}
   if (!perfil) return res.status(400).json({ success: false, error: 'Sin datos' })
   writeJson(INVESTIGADOR_FILE, perfil)
-
-  // Sincronizar automáticamente en invitaciones y evaluaciones del Investigador Principal (09091855)
-  try {
-    const invites = readJson(INVITE_FILE) || {}
-    const evals = readJson(EVAL_FILE) || {}
-    const nombreCompleto = `${perfil.nombres || ''} ${perfil.apellidos || ''}`.trim() || perfil.nombre || 'Dr. Luis Alfonso Cruz Gálvez'
-    const targetDni = perfil.dni || '09091855'
-
-    invites['09091855'] = {
-      ...(invites['09091855'] || {}),
-      codigo: '09091855',
-      nombreExperto: nombreCompleto,
-      dni: targetDni,
-      cargo: perfil.cargo || 'Investigador Principal',
-      gradoAcademico: perfil.grado || 'Doctor en Educación / Magíster en Ingeniería',
-      email: perfil.email || 'luiscruz21@gmail.com',
-      estado: 'Completado'
-    }
-    writeJson(INVITE_FILE, invites)
-
-    evals['09091855'] = {
-      ...(evals['09091855'] || {}),
-      codigo: '09091855',
-      inviteCode: '09091855',
-      nombre: nombreCompleto,
-      nombresExperto: perfil.nombres,
-      apellidosExperto: perfil.apellidos,
-      dni: targetDni,
-      cargo: perfil.cargo || 'Investigador Principal',
-      gradoAcademico: perfil.grado || 'Doctor en Educación / Magíster en Ingeniería',
-      email: perfil.email || 'luiscruz21@gmail.com',
-      firmaExpertoImg: perfil.firmaImg || evals['09091855']?.firmaExpertoImg || '',
-      finalizado: true
-    }
-    writeJson(EVAL_FILE, evals)
-  } catch (err) {
-    console.warn("No se pudo sincronizar invitacion/evaluacion del investigador:", err.message)
-  }
-
-  return res.json({ success: true, mensaje: 'Perfil del investigador guardado y sincronizado con éxito', perfil })
+  return res.json({ success: true, mensaje: 'Perfil del investigador guardado con éxito', perfil })
 })
 
 // -------------------------------------------------------------
