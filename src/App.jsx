@@ -113,12 +113,19 @@ function App() {
   })
   const isReadOnly = userRole === 'EVALUADOR' && isFinalizado
 
-  // NOMBRE DINÁMICO DEL EVALUADOR SEGÚN EL CONTEXTO Y ROL
+  // DATOS REACTIVOS Y DINÁMICOS DEL EVALUADOR SEGÚN EL CONTEXTO (LOGUEADO O INSPECCIONADO)
   const activeNombreExperto = evaluadorInspeccionado
-    ? evaluadorInspeccionado.nombre
+    ? (evaluadorInspeccionado.nombre || `${evaluadorInspeccionado.nombresExperto || ''} ${evaluadorInspeccionado.apellidosExperto || ''}`.trim() || 'Experto Validador')
     : (userRole === 'INVESTIGADOR'
-        ? (nombre && nombre !== 'Marco Antonio Tipismana Neyra' ? nombre : 'Dr. Luis Alfonso Cruz Gálvez')
+        ? (nombre || 'Dr. Luis Alfonso Cruz Gálvez')
         : ((dni === '09091855' || inviteCode === '09091855') ? 'Dr. Luis Alfonso Cruz Gálvez' : (nombre || 'Experto Validador')))
+
+  const activeDni = evaluadorInspeccionado ? (evaluadorInspeccionado.dni || evaluadorInspeccionado.codigo || '') : (dni || inviteCode || '')
+  const activeCargo = evaluadorInspeccionado ? (evaluadorInspeccionado.cargo || 'Especialista Informante') : (cargo || 'Especialista Informante')
+  const activeGrado = evaluadorInspeccionado ? (evaluadorInspeccionado.gradoAcademico || 'Magíster') : (gradoAcademico || 'Magíster')
+  const activeInstitucion = evaluadorInspeccionado ? (evaluadorInspeccionado.institucion || evaluadorInspeccionado.estudios || 'Universidad de Procedencia') : (institucion || 'Universidad de Procedencia')
+  const activeEmail = evaluadorInspeccionado ? (evaluadorInspeccionado.email || '') : (email || '')
+  const activeFirmaImg = evaluadorInspeccionado ? (evaluadorInspeccionado.firmaExpertoImg || '') : firmaExpertoImg
 
   // ESTADOS DEL INVESTIGADOR
   const [pinInput, setPinInput] = useState('')
@@ -506,7 +513,7 @@ function App() {
         setObservaciones(ev.observaciones || '')
         setInviteCode(ev.inviteCode || codigo || '')
 
-        setEvaluadorInspeccionado({ codigo, nombre: ev.nombre || nombreExperto || 'Experto Validador' })
+        setEvaluadorInspeccionado({ codigo, ...ev, nombre: ev.nombre || nombreExperto || 'Experto Validador' })
         setActiveTab('CARTA')
       } else {
         const localInv = invitacionesList.find(i => i.codigo === codigo)
@@ -519,7 +526,7 @@ function App() {
         setValoracionGlobal('')
         setDictamenFinal('Aprobado')
         setObservaciones('')
-        setEvaluadorInspeccionado({ codigo, nombre: localInv?.nombreExperto || nombreExperto || 'Experto Validador' })
+        setEvaluadorInspeccionado({ codigo, ...localInv, nombre: localInv?.nombreExperto || nombreExperto || 'Experto Validador' })
         setActiveTab('CARTA')
       }
     } catch (err) {
@@ -883,13 +890,13 @@ function App() {
   const [cartaEmail, setCartaEmail] = useState('')
 
   const handleAbrirEditarCartaModal = () => {
-    setCartaNombres(nombresExperto || (activeNombreExperto ? activeNombreExperto.split(' ')[0] : ''))
-    setCartaApellidos(apellidosExperto || (activeNombreExperto ? activeNombreExperto.split(' ').slice(1).join(' ') : ''))
-    setCartaDni(dni || inviteCode || '')
-    setCartaCargo(cargo || 'Especialista Informante')
-    setCartaGrado(gradoAcademico || 'Magíster')
-    setCartaInstitucion(institucion || 'Universidad de Procedencia')
-    setCartaEmail(email || '')
+    setCartaNombres(evaluadorInspeccionado ? (evaluadorInspeccionado.nombresExperto || evaluadorInspeccionado.nombre || '') : (nombresExperto || activeNombreExperto || ''))
+    setCartaApellidos(evaluadorInspeccionado ? (evaluadorInspeccionado.apellidosExperto || '') : (apellidosExperto || ''))
+    setCartaDni(activeDni || '')
+    setCartaCargo(activeCargo || 'Especialista Informante')
+    setCartaGrado(activeGrado || 'Magíster')
+    setCartaInstitucion(activeInstitucion || 'Universidad de Procedencia')
+    setCartaEmail(activeEmail || '')
     setShowEditarPerfilCartaModal(true)
   }
 
@@ -903,7 +910,7 @@ function App() {
     const cleanGrado = cartaGrado.trim()
     const cleanInstitucion = cartaInstitucion.trim()
     const cleanEmail = cartaEmail.trim()
-    const keyToSave = inviteCode || cleanDni || '09091855'
+    const keyToSave = (evaluadorInspeccionado ? evaluadorInspeccionado.codigo : (inviteCode || cleanDni || '09091855')).trim().toUpperCase()
 
     setNombre(combinedNombre)
     setNombresExperto(cleanNombres)
@@ -913,6 +920,20 @@ function App() {
     setGradoAcademico(cleanGrado)
     setInstitucion(cleanInstitucion)
     setEmail(cleanEmail)
+
+    if (evaluadorInspeccionado) {
+      setEvaluadorInspeccionado(prev => ({
+        ...prev,
+        nombre: combinedNombre,
+        nombresExperto: cleanNombres,
+        apellidosExperto: cleanApellidos,
+        dni: cleanDni,
+        cargo: cleanCargo,
+        gradoAcademico: cleanGrado,
+        institucion: cleanInstitucion,
+        email: cleanEmail
+      }))
+    }
 
     localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, combinedNombre)
     localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombresExperto`, cleanNombres)
@@ -935,8 +956,31 @@ function App() {
       inviteCode: keyToSave
     })
 
+    if (userRole === 'INVESTIGADOR') {
+      try {
+        await fetch('/api/investigador/editar-evaluador', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            codigoTarget: keyToSave,
+            datosEvaluador: {
+              nombre: combinedNombre,
+              nombresExperto: cleanNombres,
+              apellidosExperto: cleanApellidos,
+              dni: cleanDni,
+              cargo: cleanCargo,
+              gradoAcademico: cleanGrado,
+              institucion: cleanInstitucion,
+              email: cleanEmail
+            }
+          })
+        })
+        await fetchInvestigadorData()
+      } catch (err) {}
+    }
+
     setShowEditarPerfilCartaModal(false)
-    alert("¡Datos del evaluador actualizados con éxito en la Carta de Presentación!")
+    alert("¡Perfil y datos del evaluador actualizados con éxito en todas las secciones!")
   }
 
   // -------------------------------------------------------------
@@ -1494,11 +1538,11 @@ function App() {
 
   // DESCARGAR EXPEDIENTE COMPLETO CONSOLIDADO EN UN SOLO ARCHIVO WORD (.DOC)
   const handleExportExpedienteCompletoWord = () => {
-    const expertName = nombre || "Experto Evaluador"
-    const expertDni = dni || "N/A"
-    const expertCargo = cargo || "Especialista Informante"
-    const expertGrado = gradoAcademico || "Magíster / Doctor"
-    const expertEstudios = estudios || "Universidad de procedencia"
+    const expertName = activeNombreExperto || nombre || "Experto Evaluador"
+    const expertDni = activeDni || dni || "N/A"
+    const expertCargo = activeCargo || cargo || "Especialista Informante"
+    const expertGrado = activeGrado || gradoAcademico || "Magíster"
+    const expertEstudios = activeInstitucion || institucion || "Universidad de procedencia"
     const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
 
     const viList = preguntasData.VI || []
@@ -1760,11 +1804,11 @@ function App() {
       return
     }
 
-    const expertName = nombre || "Experto Evaluador"
-    const expertDni = dni || "N/A"
-    const expertCargo = cargo || "Especialista Informante"
-    const expertGrado = gradoAcademico || "Magíster / Doctor"
-    const expertEstudios = estudios || "Universidad"
+    const expertName = activeNombreExperto || nombre || "Experto Evaluador"
+    const expertDni = activeDni || dni || "N/A"
+    const expertCargo = activeCargo || cargo || "Especialista Informante"
+    const expertGrado = activeGrado || gradoAcademico || "Magíster"
+    const expertEstudios = activeInstitucion || institucion || "Universidad"
     const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
 
     const viList = preguntasData.VI || []
@@ -4510,15 +4554,15 @@ function App() {
               <div className="border-t border-slate-200 pt-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
                 <div className="space-y-2">
                   <p><strong className="text-slate-900">Apellidos y Nombres:</strong> {activeNombreExperto}</p>
-                  <p><strong className="text-slate-900">DNI / Registro Profesional:</strong> {dni || "________________________________"}</p>
-                  <p><strong className="text-slate-900">Grado Académico:</strong> {gradoAcademico || "________________________________"}</p>
+                  <p><strong className="text-slate-900">DNI / Registro Profesional:</strong> {activeDni || "________________________________"}</p>
+                  <p><strong className="text-slate-900">Grado Académico:</strong> {activeGrado || "________________________________"}</p>
                   <p><strong className="text-slate-900">Fecha:</strong> Lima, {new Date().getDate()} de {new Date().toLocaleString('es-ES', { month: 'long' })} del 2026</p>
                 </div>
 
                 <div className="flex flex-col items-center justify-end text-center pt-6 border-t md:border-t-0 md:border-l border-slate-200 min-h-[120px]">
-                  {firmaExpertoImg ? (
+                  {activeFirmaImg ? (
                     <img 
-                      src={firmaExpertoImg} 
+                      src={activeFirmaImg} 
                       alt="Firma del Experto Informante" 
                       className="h-16 w-auto object-contain mb-[-6px]"
                     />
