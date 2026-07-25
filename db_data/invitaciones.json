@@ -11,9 +11,10 @@
   "EXP-1WBD": {
     "codigo": "EXP-1WBD",
     "nombreExperto": "Marco Antonio Tipismana Neyra",
-    "cargo": "Especialista Informante",
-    "creadoEn": "2026-07-25T00:43:04.281Z",
+    "cargo": "Licenciado en Administración",
+    "dni": "21868177",
+    "creadoEn": "2026-07-25T00:58:19.793Z",
     "estado": "Pendiente",
-    "dni": ""
+    "respondidas": 0
   }
 }

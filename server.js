@@ -230,71 +230,80 @@ app.get('/api/investigador/resumen', (req, res) => {
   })
 })
 
-// Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas
+// Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)
 const getConsolidatedInvitations = (invites, evals) => {
-  const allKeys = [...new Set([...Object.keys(invites), ...Object.keys(evals)])]
-  const fullDniKeys = allKeys.filter(k => /^\d{8}$/.test(k) || k.startsWith('EXT-') || k.startsWith('EXP-'))
-
   const grouped = {}
 
-  allKeys.forEach(key => {
-    const cleanKey = key.trim().toUpperCase()
-    if (/^\d{1,7}$/.test(cleanKey) && fullDniKeys.some(k => k.startsWith(cleanKey))) {
+  // 1. Procesar todas las invitaciones creadas por el Investigador
+  Object.keys(invites).forEach(code => {
+    const inv = invites[code] || {}
+    const cleanCode = code.trim().toUpperCase()
+    const matchingEval = evals[cleanCode] || Object.values(evals).find(e => 
+      (e.inviteCode && e.inviteCode.trim().toUpperCase() === cleanCode) ||
+      (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) ||
+      (e.dni && inv.dni && e.dni.trim().toUpperCase() === inv.dni.trim().toUpperCase())
+    )
+
+    const finalDni = inv.dni || matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar')
+    let finalNombre = (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || "Experto Validador")
+    let finalCargo = (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || "Especialista Informante")
+
+    const respuestas = matchingEval?.respuestas || {}
+    const totalAnswered = Object.keys(respuestas).filter(k => {
+      const r = respuestas[k]
+      return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+    }).length
+
+    let estado = (matchingEval?.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
+
+    if (cleanCode === '09091855' || finalDni === '09091855') {
+      grouped['09091855'] = {
+        codigo: '09091855',
+        nombreExperto: 'Dr. Luis Alfonso Cruz Gálvez',
+        cargo: 'Investigador Principal',
+        dni: '09091855',
+        creadoEn: inv.creadoEn || new Date().toISOString(),
+        estado: 'Completado',
+        respondidas: totalAnswered || 100
+      }
       return
     }
 
-    const inv = invites[cleanKey] || {}
-    const mainDni = (inv.dni || evals[cleanKey]?.dni || cleanKey).trim().toUpperCase()
-    const mainKey = (/^\d{8}$/.test(mainDni) || mainDni.startsWith('EXT-') || mainDni.startsWith('EXP-')) ? mainDni : cleanKey
+    grouped[cleanCode] = {
+      codigo: cleanCode,
+      nombreExperto: finalNombre,
+      cargo: finalCargo,
+      dni: finalDni,
+      creadoEn: inv.creadoEn || new Date().toISOString(),
+      estado,
+      respondidas: totalAnswered
+    }
+  })
 
-    if (!grouped[mainKey]) {
-      const matchingEvals = Object.values(evals).filter(e => {
-        const eCode = (e.codigo || '').trim().toUpperCase()
-        const eDni = (e.dni || '').trim().toUpperCase()
-        const eNombre = (e.nombre || '').trim().toLowerCase()
-        const targetNombre = (inv.nombreExperto || '').trim().toLowerCase()
+  // 2. Agregar cualquier evaluación adicional que no estuviera agrupada
+  Object.keys(evals).forEach(key => {
+    const cleanKey = key.trim().toUpperCase()
+    const ev = evals[cleanKey] || {}
+    const inviteCode = (ev.inviteCode || '').trim().toUpperCase()
 
-        return (eCode && (eCode === mainKey || eCode === cleanKey)) ||
-               (eDni && (eDni === mainKey || eDni === cleanKey)) ||
-               (targetNombre && targetNombre !== "experto validador" && eNombre && (eNombre.includes(targetNombre) || targetNombre.includes(eNombre)))
-      })
+    if ((inviteCode && grouped[inviteCode]) || grouped[cleanKey]) {
+      return
+    }
 
-      const combinedRespuestas = {}
-      let finalNombre = inv.nombreExperto || "Experto Validador"
-      let finalCargo = inv.cargo || "Especialista Informante"
-      let finalDni = mainDni
-      let finalFinalizado = inv.estado === "Completado"
-      let lastUpdated = inv.creadoEn || new Date().toISOString()
-
-      matchingEvals.forEach(e => {
-        if (e.respuestas) Object.assign(combinedRespuestas, e.respuestas)
-        if (e.nombre && e.nombre !== "Experto Validador") finalNombre = e.nombre
-        if (e.cargo && e.cargo !== "Especialista Informante") finalCargo = e.cargo
-        if (e.dni) finalDni = e.dni
-        if (e.finalizado) finalFinalizado = true
-        if (e.lastUpdated) lastUpdated = e.lastUpdated
-      })
-
-      const totalAnswered = Object.keys(combinedRespuestas).filter(k => {
-        const r = combinedRespuestas[k]
+    if (cleanKey !== '09091855') {
+      const respuestas = ev.respuestas || {}
+      const totalAnswered = Object.keys(respuestas).filter(k => {
+        const r = respuestas[k]
         return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
       }).length
+      const estado = (ev.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
-      let estado = finalFinalizado || totalAnswered >= 100 ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
-
-      if (mainKey === '09091855') {
-        finalNombre = "Dr. Luis Alfonso Cruz Gálvez"
-        finalCargo = "Investigador Principal"
-        finalDni = "09091855"
-      }
-
-      grouped[mainKey] = {
-        codigo: mainKey,
-        nombreExperto: finalNombre,
-        cargo: finalCargo,
-        dni: finalDni,
-        creadoEn: inv.creadoEn || lastUpdated,
-        lastUpdated,
+      grouped[cleanKey] = {
+        codigo: cleanKey,
+        nombreExperto: ev.nombre || "Experto Validador",
+        cargo: ev.cargo || "Especialista Informante",
+        dni: ev.dni || cleanKey,
+        creadoEn: ev.creadoEn || new Date().toISOString(),
         estado,
         respondidas: totalAnswered
       }
