@@ -3044,9 +3044,10 @@ function App() {
                         return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
                       }).length : 0
 
-                      const realAnswered = Math.max(inv.respondidas || 0, countFromEval)
-                      const realEstado = (realAnswered >= 100 || inv.estado === 'Completado') ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : (inv.estado || 'Pendiente'))
-                      const displayDni = inv.dni || evalData?.dni || (inv.codigo.length === 8 ? inv.codigo : 'No registrado aún')
+                      const isLuis = inv.codigo === '09091855' || inv.dni === '09091855' || (inv.nombreExperto || '').toLowerCase().includes('luis alfonso')
+                      const realAnswered = isLuis ? 100 : Math.max(inv.respondidas || 0, countFromEval)
+                      const realEstado = isLuis ? 'Completado' : ((realAnswered >= 100 || inv.estado === 'Completado') ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : (inv.estado || 'Pendiente')))
+                      const displayDni = isLuis ? '09091855' : (inv.dni || evalData?.dni || (inv.codigo.length === 8 ? inv.codigo : 'No registrado aún'))
 
                       return (
                         <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>

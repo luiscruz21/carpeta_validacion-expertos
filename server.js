@@ -264,7 +264,7 @@ const getConsolidatedInvitations = (invites, evals) => {
         dni: '09091855',
         creadoEn: inv.creadoEn || new Date().toISOString(),
         estado: 'Completado',
-        respondidas: totalAnswered || 100
+        respondidas: 100
       }
       return
     }
