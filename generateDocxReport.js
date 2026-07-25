@@ -8,8 +8,9 @@ import {
  * Genera el documento de Informe Completo de Validación V de Aiken (.docx)
  * siguiendo exactamente el modelo proporcionado y las directrices del usuario:
  * 1. Ficha de Validación sin DNI, Celular ni Dirección Domiciliaria.
- * 2. Evaluación V de Aiken calculada strictly con un número IMPAR de evaluadores (N_odd = 1, 3, 5, ...).
- * 3. Formato profesional listo para adjuntar en la tesis.
+ * 2. Muestra a TODOS los jueces evaluadores con sus veredictos (1 ó 0).
+ * 3. Aplica la regla de evaluadores IMPARES para el cálculo del Coeficiente V de Aiken y Lawshe.
+ * 4. Incluye la explicación detallada de las FÓRMULAS DE AIKEN Y LAWSHE y cómo se utilizan.
  */
 export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap = {}, perfilInvestigador = {}, preguntasData = {}) {
   // 1. Obtener lista de evaluadores activos
@@ -59,9 +60,6 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
   // Evaluadores para Fichas (Se muestran todos los evaluadores disponibles)
   const evaluadoresFichas = evaluadoresList
 
-  // Evaluadores para Matriz de Evaluación V de Aiken (Estrictamente los primeros N_odd evaluadores)
-  const evaluadoresMatriz = evaluadoresList.slice(0, N_odd)
-
   // 2. Extraer lista de preguntas (VI_1..VI_50 y VD_1..VD_50)
   const viList = preguntasData.VI || []
   const vdList = preguntasData.VD || []
@@ -100,14 +98,9 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
     }),
     new Paragraph({
       alignment: AlignmentType.JUSTIFY,
-      spacing: { after: 300 },
+      spacing: { after: 150 },
       children: [
-        new TextRun({
-          text: "TÍTULO DE LA INVESTIGACIÓN: ",
-          bold: true,
-          size: 20,
-          font: "Arial"
-        }),
+        new TextRun({ text: "TÍTULO DE LA INVESTIGACIÓN: ", bold: true, size: 20, font: "Arial" }),
         new TextRun({
           text: perfilInvestigador.tituloTesis || "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024",
           italic: true,
@@ -122,6 +115,96 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
       children: [
         new TextRun({ text: "AUTOR / INVESTIGADOR PRINCIPAL: ", bold: true, size: 20, font: "Arial" }),
         new TextRun({ text: `${perfilInvestigador.nombres || 'Luis Alfonso'} ${perfilInvestigador.apellidos || 'Cruz Gálvez'}`, size: 20, font: "Arial" })
+      ]
+    })
+  )
+
+  // SECCIÓN FÓRMULAS Y FUNDAMENTACIÓN METODOLÓGICA
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({
+          text: "METODOLOGÍA Y FÓRMULAS DE CÁLCULO (V DE AIKEN Y LAWSHE)",
+          bold: true,
+          size: 24,
+          color: "1A365D",
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 150 },
+      children: [
+        new TextRun({
+          text: "Para la evaluación de la validez de contenido de los instrumentos de investigación se utilizan los dos coeficientes psicométricos más rigurosos y reconocidos por la comunidad científica internacional: el Coeficiente V de Aiken y la Razón de Validez de Contenido (CVR) de Lawshe.",
+          size: 20,
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      spacing: { before: 150, after: 100 },
+      children: [
+        new TextRun({ text: "1. FÓRMULA DEL COEFICIENTE V DE AIKEN (Aiken, 1980, 1985):", bold: true, size: 20, color: "2B6CB0", font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 100 },
+      children: [
+        new TextRun({ text: "El coeficiente V de Aiken cuantifica la relevancia e idoneidad de cada ítem en una escala de 0 a 1. Su fórmula general es:", size: 19, font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 100, after: 100 },
+      children: [
+        new TextRun({ text: "V = S / [ N × (c - 1) ]", bold: true, size: 24, color: "1A365D", font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 150 },
+      children: [
+        new TextRun({ text: "Donde:\n", bold: true, size: 19, font: "Arial" }),
+        new TextRun({ text: "• S = Σ (r_i - l) : Suma de las diferencias entre la valoración del juez (r_i) y la calificación mínima posible (l = 1).\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "• N : Número de jueces evaluadores en el grupo impar asignado para el cálculo de validez.\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "• c : Número de categorías o niveles de la escala de evaluación (c = 5 en escala Likert, ó c = 2 para concordancia binaria).\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "• Para evaluación de validez binaria o de criterios (Acuerdos): V = (Total de Acuerdos) / N_impar.\n", italic: true, size: 18, font: "Arial" }),
+        new TextRun({ text: "Criterio de Aceptación: Un valor V ≥ 0.80 indica una validez de contenido perfecta y estadísticamente significativa (p < 0.05).", bold: true, color: "2F855A", size: 19, font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      spacing: { before: 150, after: 100 },
+      children: [
+        new TextRun({ text: "2. FÓRMULA DE LA RAZÓN DE VALIDEZ DE CONTENIDO DE LAWSHE (CVR) (Lawshe, 1975):", bold: true, size: 20, color: "2B6CB0", font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 100 },
+      children: [
+        new TextRun({ text: "Mide el grado de consenso entre los expertos sobre si un ítem es 'Esencial' o 'Válido':", size: 19, font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 100, after: 100 },
+      children: [
+        new TextRun({ text: "CVR = [ n_e - (N / 2) ] / (N / 2)", bold: true, size: 24, color: "1A365D", font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 200 },
+      children: [
+        new TextRun({ text: "Donde:\n", bold: true, size: 19, font: "Arial" }),
+        new TextRun({ text: "• n_e : Número de jueces expertos que evalúan el ítem como 'Válido / Conforme'.\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "• N : Número total de jueces evaluadores del grupo impar.\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "Interpretación: Un CVR = 1.00 indica un consenso unánime del 100% de los jueces (Validez Perfecta).", bold: true, color: "2F855A", size: 19, font: "Arial" })
       ]
     })
   )
@@ -301,14 +384,14 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
     )
   }
 
-  // SECCIÓN 2: MATRIZ DE EVALUACIÓN V DE AIKEN CON EVALUADORES IMPARES (N_odd)
+  // SECCIÓN 2: MATRIZ DE EVALUACIÓN V DE AIKEN MOSTRANDO A TODOS LOS JUECES Y SUS VEREDICTOS
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
-          text: `SECCIÓN II: MATRIZ DE EVALUACIÓN COEFICIENTE V DE AIKEN (${N_odd} EVALUADORES IMPARES)`,
+          text: `SECCIÓN II: MATRIZ DE EVALUACIÓN V DE AIKEN Y CVR DE LAWSHE (TODOS LOS JUECES)`,
           bold: true,
           size: 24,
           color: "1A365D",
@@ -321,7 +404,7 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
       spacing: { after: 200 },
       children: [
         new TextRun({
-          text: `De acuerdo a la metodología estadística de validez de contenido, la matriz de evaluación y el cálculo del coeficiente V de Aiken se realiza estrictamente con un número IMPAR de jueces evaluadores (N = ${N_odd}). Se evalúan 5 criterios por cada ítem: Redacción, Pertinencia, Coherencia, Adecuación y Comprensión:`,
+          text: `En la presente matriz se muestran las calificaciones de TODOS los jueces evaluadores registrados (${K_total} juez/ces) para transparencia de sus veredictos. Para efectos del cálculo estadístico de V de Aiken y Lawshe, se aplica la muestra impar asignada de N_impar = ${N_odd} juez(ces):`,
           size: 20,
           font: "Arial"
         })
@@ -329,12 +412,12 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
     })
   )
 
-  // Construir Encabezados de la Tabla Matriz Aiken V
+  // Encabezado Fila 1 y 2 de la Matriz
   const headerCellsRow1 = [
     new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Ítems", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
     new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Criterios", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ colSpan: N_odd, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Jueces Evaluadores (${N_odd})`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Acuerdos", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+    new TableCell({ colSpan: K_total, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Jueces Evaluadores (${K_total} Jueces)`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Acuerdos (N=${N_odd})`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
     new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Aiken (V)", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
     new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sig. P <0.05", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
     new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Decisión Aiken", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
@@ -343,11 +426,12 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
   ]
 
   const headerCellsRow2 = []
-  for (let j = 1; j <= N_odd; j++) {
+  for (let j = 1; j <= K_total; j++) {
+    const isEvaluated = j <= N_odd
     headerCellsRow2.push(
       new TableCell({
-        shading: { fill: "2B6CB0", type: ShadingType.CLEAR },
-        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j}`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })]
+        shading: { fill: isEvaluated ? "2B6CB0" : "4A5568", type: ShadingType.CLEAR },
+        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j}${isEvaluated ? '' : '*'}`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })]
       })
     )
   }
@@ -361,7 +445,7 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
   let totalSumV = 0
   let totalCountV = 0
 
-  // Generar filas para cada una de las 100 preguntas de los instrumentos
+  // Generar filas para cada una de las 100 preguntas
   allPreguntas.forEach((p, idx) => {
     criteriosList.forEach((crit, critIdx) => {
       const rowChildren = []
@@ -386,10 +470,10 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
         })
       )
 
-      // Evaluación de cada Juez Evaluador Impar (1 para Válido/Si, 0 para No)
-      let acuerdos = 0
-      for (let j = 0; j < N_odd; j++) {
-        const ev = evaluadoresMatriz[j]
+      // MOSTRAR EL VEREDICTO DE TODOS LOS K_TOTAL JUECES EVALUADORES
+      let acuerdosImpar = 0
+      for (let j = 0; j < K_total; j++) {
+        const ev = evaluadoresList[j]
         const rObj = ev && ev.respuestas ? ev.respuestas[p.id] : null
         
         let score = 1
@@ -399,7 +483,11 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
           else if (rObj.likert && rObj.likert < 3) score = 0
         }
 
-        acuerdos += score
+        // Sumar acuerdos solo de los N_odd evaluadores para la fórmula
+        if (j < N_odd) {
+          acuerdosImpar += score
+        }
+
         rowChildren.push(
           new TableCell({
             alignment: AlignmentType.CENTER,
@@ -408,13 +496,13 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
         )
       }
 
-      // Cálculo de Aiken V y Lawshe CVR
-      const aikenV = Number((acuerdos / N_odd).toFixed(2))
+      // Cálculo de Aiken V y Lawshe CVR sobre N_odd
+      const aikenV = Number((acuerdosImpar / N_odd).toFixed(2))
       const sigP = "0.00"
       const decisionAiken = aikenV >= 0.80 ? "Válido" : "Aceptable"
       
       const halfN = N_odd / 2
-      const cvr = Number(((acuerdos - halfN) / halfN).toFixed(2))
+      const cvr = Number(((acuerdosImpar - halfN) / halfN).toFixed(2))
       const decisionLawshe = cvr === 1.0 ? "Validez perfecta" : "Aceptable"
 
       totalSumV += aikenV
@@ -422,7 +510,7 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
 
       // Columnas estadísticas
       rowChildren.push(
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(acuerdos), size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(acuerdosImpar), size: 14, font: "Arial" })] })] }),
         new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: aikenV.toFixed(2), bold: true, size: 14, font: "Arial" })] })] }),
         new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: sigP, size: 14, font: "Arial" })] })] }),
         new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: decisionAiken, bold: true, color: "2B6CB0", size: 14, font: "Arial" })] })] }),
@@ -472,7 +560,7 @@ export async function generateDocxReport(evaluacionesMap = {}, invitacionesMap =
       spacing: { after: 150 },
       children: [
         new TextRun({ text: "• Evaluación Estadística de Jueces Evaluadores: ", bold: true, size: 20, font: "Arial" }),
-        new TextRun({ text: `Evaluado estrictamente sobre ${N_odd} juez(ces) impar(es) en cumplimiento de los estándares econométricos y psicométricos.`, size: 20, font: "Arial" })
+        new TextRun({ text: `Se muestran los veredictos de los ${K_total} jueces registrados. El cálculo econométrico de Aiken V y Lawshe CVR se determinó sobre el subconjunto impar N_impar = ${N_odd} juez(ces) en cumplimiento del estándar psicométrico.`, size: 20, font: "Arial" })
       ]
     }),
     new Paragraph({
