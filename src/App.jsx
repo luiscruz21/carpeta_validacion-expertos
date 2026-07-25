@@ -783,8 +783,27 @@ function App() {
   }
 
   // Descargar Informe Completo en Word (.docx)
-  const handleDescargarInformeDocx = () => {
-    window.location.href = '/api/investigador/descargar-informe-docx'
+  const handleDescargarInformeDocx = async () => {
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/investigador/descargar-informe-docx')
+      if (!res.ok) {
+        throw new Error('Error al generar el informe en el servidor')
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'MODELO_V_DE_AIKEN_VALIDACION_DE_LOS_INSTRUMENTOS.docx'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      alert("Error al descargar el informe en formato Word. Por favor intente nuevamente.")
+    } finally {
+      setSyncing(false)
+    }
   }
 
   // -------------------------------------------------------------
