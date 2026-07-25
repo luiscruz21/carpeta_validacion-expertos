@@ -872,6 +872,73 @@ function App() {
     }
   }
 
+  // ESTADOS Y HANDLERS PARA EDITAR PERFIL DESDE CARTA DE PRESENTACIÓN
+  const [showEditarPerfilCartaModal, setShowEditarPerfilCartaModal] = useState(false)
+  const [cartaNombres, setCartaNombres] = useState('')
+  const [cartaApellidos, setCartaApellidos] = useState('')
+  const [cartaDni, setCartaDni] = useState('')
+  const [cartaCargo, setCartaCargo] = useState('')
+  const [cartaGrado, setCartaGrado] = useState('')
+  const [cartaInstitucion, setCartaInstitucion] = useState('')
+  const [cartaEmail, setCartaEmail] = useState('')
+
+  const handleAbrirEditarCartaModal = () => {
+    setCartaNombres(nombresExperto || (activeNombreExperto ? activeNombreExperto.split(' ')[0] : ''))
+    setCartaApellidos(apellidosExperto || (activeNombreExperto ? activeNombreExperto.split(' ').slice(1).join(' ') : ''))
+    setCartaDni(dni || inviteCode || '')
+    setCartaCargo(cargo || 'Especialista Informante')
+    setCartaGrado(gradoAcademico || 'Magíster')
+    setCartaInstitucion(institucion || 'Universidad de Procedencia')
+    setCartaEmail(email || '')
+    setShowEditarPerfilCartaModal(true)
+  }
+
+  const handleGuardarCartaPerfil = async (e) => {
+    e.preventDefault()
+    const cleanNombres = cartaNombres.trim()
+    const cleanApellidos = cartaApellidos.trim()
+    const combinedNombre = `${cleanNombres} ${cleanApellidos}`.trim() || cleanNombres
+    const cleanDni = cartaDni.trim()
+    const cleanCargo = cartaCargo.trim()
+    const cleanGrado = cartaGrado.trim()
+    const cleanInstitucion = cartaInstitucion.trim()
+    const cleanEmail = cartaEmail.trim()
+    const keyToSave = inviteCode || cleanDni || '09091855'
+
+    setNombre(combinedNombre)
+    setNombresExperto(cleanNombres)
+    setApellidosExperto(cleanApellidos)
+    setDni(cleanDni)
+    setCargo(cleanCargo)
+    setGradoAcademico(cleanGrado)
+    setInstitucion(cleanInstitucion)
+    setEmail(cleanEmail)
+
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, combinedNombre)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombresExperto`, cleanNombres)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_apellidosExperto`, cleanApellidos)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_dni`, cleanDni)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_cargo`, cleanCargo)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_grado`, cleanGrado)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, cleanInstitucion)
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, cleanEmail)
+
+    await saveEvaluationToBackend(keyToSave, {
+      nombre: combinedNombre,
+      nombresExperto: cleanNombres,
+      apellidosExperto: cleanApellidos,
+      dni: cleanDni,
+      cargo: cleanCargo,
+      gradoAcademico: cleanGrado,
+      institucion: cleanInstitucion,
+      email: cleanEmail,
+      inviteCode: keyToSave
+    })
+
+    setShowEditarPerfilCartaModal(false)
+    alert("¡Datos del evaluador actualizados con éxito en la Carta de Presentación!")
+  }
+
   // -------------------------------------------------------------
   // FUNCIONES DE EDICIÓN Y GESTIÓN DE PREGUNTAS (INVESTIGADOR)
   // -------------------------------------------------------------
@@ -3424,22 +3491,47 @@ function App() {
           </div>
         )}
 
-        {/* TAB 1: CARTA DE PRESENTACION */}
+        {/* TAB 1: CARTA DE PRESENTACIÓN */}
         {activeTab === 'CARTA' && (
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8 max-w-4xl mx-auto text-slate-700 leading-relaxed">
-            <div className="border-b border-slate-200 pb-4 mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="text-emerald-600 w-7 h-7" /> CARTA DE PRESENTACIÓN
-              </h2>
-              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full">Oficial</span>
+          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8 max-w-4xl mx-auto text-slate-700 leading-relaxed relative">
+            <div className="border-b border-slate-200 pb-4 mb-6 flex flex-wrap justify-between items-center gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="text-emerald-600 w-7 h-7" /> CARTA DE PRESENTACIÓN
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">Expediente Oficial de Validación por Juicio de Expertos</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleAbrirEditarCartaModal}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Editar nombres, apellidos, DNI, cargo, grado e institución del evaluador"
+                >
+                  <Edit3 className="w-4 h-4" /> Editar Mis Datos en Carta
+                </button>
+                <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full border border-emerald-300">Oficial</span>
+              </div>
             </div>
 
             <div className="space-y-4 text-sm">
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg flex items-center gap-2">
-                <span className="font-bold text-slate-900">Señor(a) Evaluador(a) / Experto(a):</span>
-                <span className="font-extrabold text-sky-900 text-base border-b-2 border-sky-500 px-2 bg-sky-50 rounded">
-                  {activeNombreExperto}
-                </span>
+              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex flex-wrap justify-between items-center gap-3 shadow-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-slate-900">Señor(a) Evaluador(a) / Experto(a):</span>
+                  <span className="font-extrabold text-sky-900 text-base border-b-2 border-sky-500 px-2.5 py-0.5 bg-sky-50 rounded">
+                    {activeNombreExperto}
+                  </span>
+                  {cargo && (
+                    <span className="text-xs text-slate-600 font-semibold italic bg-slate-200/60 px-2 py-0.5 rounded">
+                      ({cargo})
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleAbrirEditarCartaModal}
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-3 py-1.5 rounded-lg text-xs shadow-xs flex items-center gap-1 transition-all cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" /> Modificar Datos
+                </button>
               </div>
 
               <p className="text-right text-xs font-semibold text-slate-500">Asunto: VALIDACIÓN DE INSTRUMENTOS A TRAVÉS DE JUICIO DE EXPERTO.</p>
@@ -3490,21 +3582,24 @@ function App() {
                   <p className="text-[11px] text-slate-500">{investigadorEmail}</p>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 w-full md:w-80 text-xs space-y-2">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="font-bold text-slate-900">Datos Integrados del Experto:</p>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 w-full md:w-85 text-xs space-y-2">
+                  <div className="flex justify-between items-center mb-1 pb-1.5 border-b border-slate-200">
+                    <p className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                      <UserCheck className="w-4 h-4 text-sky-600" /> Datos Integrados del Experto:
+                    </p>
                     <button 
-                      onClick={() => setShowRegistroModal(true)} 
-                      className="text-sky-700 font-bold underline text-[11px]"
+                      onClick={handleAbrirEditarCartaModal} 
+                      className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-2.5 py-1 rounded text-[11px] flex items-center gap-1 transition-all cursor-pointer shadow-xs"
                     >
-                      Editar / Retomar
+                      <Edit3 className="w-3 h-3" /> Editar
                     </button>
                   </div>
-                  <p><strong>Nombres:</strong> {activeNombreExperto}</p>
-                  <p><strong>DNI / Código:</strong> {dni || 'No registrado'}</p>
-                  <p><strong>Cargo:</strong> {cargo || 'No registrado'}</p>
-                  <p><strong>Grado:</strong> {gradoAcademico || 'No especificado'}</p>
-                  <p><strong>Institución:</strong> {institucion || 'No especificada'}</p>
+                  <p><strong>Nombres y Apellidos:</strong> <span className="font-extrabold text-sky-900">{activeNombreExperto}</span></p>
+                  <p><strong>DNI / Documento:</strong> <span className="font-mono font-bold text-slate-800">{dni || 'No registrado'}</span></p>
+                  <p><strong>Cargo / Especialidad:</strong> <span className="font-semibold text-slate-700">{cargo || 'No registrado'}</span></p>
+                  <p><strong>Grado Académico:</strong> <span className="font-semibold text-slate-700">{gradoAcademico || 'No especificado'}</span></p>
+                  <p><strong>Institución:</strong> <span className="font-semibold text-slate-700">{institucion || 'No especificada'}</span></p>
+                  <p><strong>Correo Electrónico:</strong> <span className="font-mono text-slate-600">{email || 'No registrado'}</span></p>
                 </div>
               </div>
 
@@ -3523,6 +3618,139 @@ function App() {
                 </button>
               </div>
             </div>
+
+            {/* MODAL PARA EDITAR PERFIL DIRECTAMENTE DESDE LA CARTA DE PRESENTACIÓN */}
+            {showEditarPerfilCartaModal && (
+              <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-4 z-[110] animate-fade-in">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+                  <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-base font-black flex items-center gap-2 text-amber-400">
+                        <Edit3 className="w-5 h-5 text-amber-400" /> Modificar Datos en Carta de Presentación
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Actualización inmediata de sus nombres, DNI, cargo y grado académico
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowEditarPerfilCartaModal(false)}
+                      className="text-slate-400 hover:text-white text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleGuardarCartaPerfil} className="p-6 space-y-4 text-xs text-slate-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">Nombres del Experto *:</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-slate-50 focus:bg-white"
+                          value={cartaNombres}
+                          onChange={(e) => setCartaNombres(e.target.value)}
+                          placeholder="Ej: Marco Antonio"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">Apellidos del Experto *:</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-slate-50 focus:bg-white"
+                          value={cartaApellidos}
+                          onChange={(e) => setCartaApellidos(e.target.value)}
+                          placeholder="Ej: Tipismana Neyra"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">DNI / Documento Identidad *:</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-mono font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-slate-50 focus:bg-white"
+                          value={cartaDni}
+                          onChange={(e) => setCartaDni(e.target.value)}
+                          placeholder="Ej: 21868177"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">Especialidad / Cargo *:</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-slate-50 focus:bg-white"
+                          value={cartaCargo}
+                          onChange={(e) => setCartaCargo(e.target.value)}
+                          placeholder="Ej: Licenciado en Administración"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">Grado Académico *:</label>
+                        <select
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-bold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-slate-900 bg-white"
+                          value={cartaGrado}
+                          onChange={(e) => setCartaGrado(e.target.value)}
+                        >
+                          <option value="Doctor">Doctor</option>
+                          <option value="Magíster">Magíster / Maestro</option>
+                          <option value="Licenciado">Licenciado / Ingeniero</option>
+                          <option value="Especialista">Especialista</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block font-extrabold text-slate-900 mb-1">Universidad / Institución *:</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white"
+                          value={cartaInstitucion}
+                          onChange={(e) => setCartaInstitucion(e.target.value)}
+                          placeholder="Ej: Universidad de Procedencia"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Correo Electrónico (Opcional):</label>
+                      <input
+                        type="email"
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900 bg-slate-50 focus:bg-white"
+                        value={cartaEmail}
+                        onChange={(e) => setCartaEmail(e.target.value)}
+                        placeholder="ejemplo@correo.com"
+                      />
+                    </div>
+
+                    <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => setShowEditarPerfilCartaModal(false)}
+                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" /> Guardar Cambios en Carta
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
