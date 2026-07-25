@@ -2,7 +2,7 @@ import * as docx from 'docx'
 const { 
   Document, Packer, Paragraph, Table, TableRow, TableCell, 
   TextRun, WidthType, AlignmentType, HeadingLevel, 
-  ShadingType, ImageRun 
+  ShadingType, ImageRun, VerticalMergeType 
 } = docx
 
 /**
@@ -29,13 +29,12 @@ function cleanGrado(grado = '', cargo = '') {
 /**
  * Genera el documento de Informe Completo de Validación V de Aiken (.docx)
  * 1. Selección dinámica de Evaluadores / Jueces.
- * 2. Muestra a TODOS los jueces seleccionados en la Matriz con sus veredictos (J1 (Código), J2 (Código)...).
- * 3. Ficha de Validación adicionando la fila obligatoria con el Código del Validador (J1 (Código)).
- * 4. Muestra Participante basada en el dataset real del Sistema de Riesgos (54,226 obras INFOBRAS / 1,302 muestra analizada).
- * 5. Nombres y Apellidos limpios (sin Dr./Lic./Ing.).
- * 6. Grado Académico únicamente con la denominación del grado (Doctor, Magíster, Licenciado).
- * 7. Firma digital del experto visible en la ficha.
- * 8. Explicación de Fórmulas de Aiken V y Lawshe CVR.
+ * 2. Regla de evaluadores impares (1, 3, 5, 7): Si hay K evaluadores par (ej. K=2 o K=4), se muestran TODOS los jueces J1..JK con sus veredictos, pero la evaluación de Aiken (V) y Lawshe (CVR) toma en cuenta sólo a un número impar N_eval = K-1.
+ * 3. Matriz con 4 Criterios analizados por evaluadores: Claridad, Coherencia, Relevancia, Suficiencia.
+ * 4. Nueva columna obligatoria: Promedio Likert (1-5).
+ * 5. Ficha de Validación con la fila obligatoria: Código del Validador (J1 (Código)).
+ * 6. Muestra Participante basada en el dataset real del Sistema de Riesgos (54,226 obras INFOBRAS / 1,302 muestra analizada).
+ * 7. Encabezados perfectos sin desplazamiento de celdas.
  */
 export async function generateDocxReport(
   evaluacionesMap = {}, 
@@ -94,6 +93,10 @@ export async function generateDocxReport(
   }
 
   const K_total = selectedList.length > 0 ? selectedList.length : 1
+  
+  // REGLA DE EVALUADORES IMPARES: Si K es par (ej. K=2 o K=4), N_eval = K - 1. Si K es impar (ej. 1, 3, 5), N_eval = K.
+  const N_eval = (K_total % 2 === 0 && K_total > 1) ? K_total - 1 : K_total
+
   const evaluadoresFichas = selectedList
   const evaluadoresMatriz = selectedList
 
@@ -176,7 +179,7 @@ export async function generateDocxReport(
       spacing: { after: 150 },
       children: [
         new TextRun({
-          text: "La validez de contenido determina la representatividad teórica y técnica de los reactivos que conforman los instrumentos de evaluación del Sistema Predictivo con Deep Learning. Para ello se aplican los coeficientes V de Aiken y CVR de Lawshe:",
+          text: "La validez de contenido determina la representatividad teórica y técnica de los reactivos que conforman los instrumentos de evaluación del Sistema Predictivo con Deep Learning. Para ello se aplican los coeficientes V de Aiken y CVR de Lawshe sobre los 4 criterios de evaluación (Claridad, Coherencia, Relevancia y Suficiencia):",
           size: 20,
           font: "Arial"
         })
@@ -200,10 +203,10 @@ export async function generateDocxReport(
       spacing: { after: 150 },
       children: [
         new TextRun({ text: "Donde:\n", bold: true, size: 19, font: "Arial" }),
-        new TextRun({ text: "• S = Σ (r_i - l) : Suma de acuerdos y valoraciones de los jueces evaluadores.\n", size: 18, font: "Arial" }),
-        new TextRun({ text: "• N : Número de jueces evaluadores participantes en la matriz de validación.\n", size: 18, font: "Arial" }),
-        new TextRun({ text: "• c : Número de categorías de calificación (c = 5 en escala Likert, c = 2 para concordancia binaria).\n", size: 18, font: "Arial" }),
-        new TextRun({ text: "• Criterio de Aceptación: Un coeficiente V ≥ 0.80 indica una validez de contenido perfecta y estadísticamente significativa (p < 0.05).", bold: true, color: "2F855A", size: 19, font: "Arial" })
+        new TextRun({ text: `• S = Σ (r_i - l) : Suma de acuerdos entre los jueces evaluadores tomados en cuenta (N_eval = ${N_eval}).\n`, size: 18, font: "Arial" }),
+        new TextRun({ text: `• N_eval = ${N_eval} : Número impar de jueces evaluadores considerados para el cálculo del Coeficiente Aiken (según regla metodológica de jueces impares 1, 3, 5, 7).\n`, size: 18, font: "Arial" }),
+        new TextRun({ text: "• c = 2 : Categorías de concordancia binaria (1 = Conforme, 0 = No Conforme).\n", size: 18, font: "Arial" }),
+        new TextRun({ text: "• Criterio de Aceptación: Un coeficiente V ≥ 0.80 (80%) indica validez de contenido perfecta y estadísticamente significativa (p < 0.05).", bold: true, color: "2F855A", size: 19, font: "Arial" })
       ]
     }),
     new Paragraph({
@@ -224,8 +227,8 @@ export async function generateDocxReport(
       spacing: { after: 200 },
       children: [
         new TextRun({ text: "Donde:\n", bold: true, size: 19, font: "Arial" }),
-        new TextRun({ text: "• n_e : Número de jueces expertos que evalúan el ítem como 'Válido / Conforme'.\n", size: 18, font: "Arial" }),
-        new TextRun({ text: "• N : Número total de jueces evaluadores.\n", size: 18, font: "Arial" }),
+        new TextRun({ text: `• n_e : Número de jueces expertos que evalúan el ítem como 'Válido / Conforme' (sobre N_eval = ${N_eval}).\n`, size: 18, font: "Arial" }),
+        new TextRun({ text: `• N = ${N_eval} : Número de jueces evaluadores tomados en cuenta.\n`, size: 18, font: "Arial" }),
         new TextRun({ text: "• Interpretación: CVR = 1.00 indica un consenso unánime del 100% de los expertos (Validez Perfecta).", bold: true, color: "2F855A", size: 19, font: "Arial" })
       ]
     })
@@ -262,7 +265,7 @@ export async function generateDocxReport(
   // Muestra participante oficial obtenida del dataset del Sistema de Riesgos INFOBRAS
   const MUESTRA_SISTEMA_RIESGOS = "54,226 Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República (2020-2024) y muestra experimental analizada de 1,302 obras públicas."
 
-  // Generar Ficha para cada evaluador (CON ADICIÓN DE FILA DE CÓDIGO DEL VALIDADOR QUE LUEGO REFLEJA EN MATRIZ)
+  // Generar Ficha para cada evaluador (CON FILA OBLIGATORIA "Código del Validador")
   for (let i = 0; i < evaluadoresFichas.length; i++) {
     const exp = evaluadoresFichas[i]
     const nombreLimpio = cleanNombre(exp.nombre)
@@ -274,7 +277,7 @@ export async function generateDocxReport(
         spacing: { before: 200, after: 100 },
         children: [
           new TextRun({
-            text: `Ficha de Validación N° ${i + 1}: ${nombreLimpio} [Código: ${codigoValidadorTag}]`,
+            text: `Ficha de Validación N° ${i + 1}: ${nombreLimpio} [Código del Validador: ${codigoValidadorTag}]`,
             bold: true,
             size: 22,
             color: "2D3748",
@@ -441,7 +444,7 @@ export async function generateDocxReport(
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
-          text: `SECCIÓN II: MATRIZ DE EVALUACIÓN V DE AIKEN Y CVR DE LAWSHE (${K_total} JUECES EVALUADORES)`,
+          text: `SECCIÓN II: MATRIZ DE EVALUACIÓN V DE AIKEN Y CVR DE LAWSHE (${K_total} JUECES REGISTRADOS / N=${N_eval} EVALUADOS)`,
           bold: true,
           size: 24,
           color: "1A365D",
@@ -454,7 +457,7 @@ export async function generateDocxReport(
       spacing: { after: 200 },
       children: [
         new TextRun({
-          text: `En la presente matriz se refleja la validación de datos y veredictos (1 ó 0) de cada uno de los ${K_total} jueces evaluadores, identificados por su código asignado en la Ficha de Validación:`,
+          text: `En la presente matriz se muestran las calificaciones de los ${K_total} jueces registrados (J1..J${K_total}). Conforme a la regla metodológica de evaluación impar de expertos (1, 3, 5, 7), el cálculo del Coeficiente V de Aiken y Lawshe (CVR) se realiza sobre los primeros N_eval=${N_eval} evaluadores:`,
           size: 20,
           font: "Arial"
         })
@@ -462,52 +465,108 @@ export async function generateDocxReport(
     })
   )
 
-  // Encabezado Fila 1 y 2 de la Matriz de Evaluación
+  // ENCABEZADOS DE LA MATRIZ CON ALINEACIÓN PERFECTA OPENXML (RESTART / CONTINUE)
   const headerCellsRow1 = [
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Ítems", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Criterios", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ colSpan: K_total, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Jueces Evaluadores (${K_total})`, bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Acuerdos", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Aiken (V)", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sig. P <0.05", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Decisión Aiken", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Lawshe (CVR)", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ rowSpan: 2, shading: { fill: "1A365D", type: ShadingType.CLEAR }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Decisión Lawshe", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Ítems", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Criterios", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })]
+    }),
+    new TableCell({
+      columnSpan: K_total,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Jueces Evaluadores (${K_total})`, bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Prom. Likert (1-5)", bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `Acuerdos (N=${N_eval})`, bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Aiken (V)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sig. P <0.05", bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Decisión Aiken", bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Lawshe (CVR)", bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    }),
+    new TableCell({
+      verticalMerge: VerticalMergeType.RESTART,
+      shading: { fill: "1A365D", type: ShadingType.CLEAR },
+      children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Decisión Lawshe", bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+    })
   ]
 
-  const headerCellsRow2 = []
+  const headerCellsRow2 = [
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] })
+  ]
+
   for (let j = 1; j <= K_total; j++) {
     const exp = evaluadoresMatriz[j - 1]
     const codeTag = exp ? exp.codigo : `J${j}`
     headerCellsRow2.push(
       new TableCell({
         shading: { fill: "2B6CB0", type: ShadingType.CLEAR },
-        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j} (${codeTag})`, bold: true, color: "FFFFFF", size: 13, font: "Arial" })] })]
+        children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `J${j} (${codeTag})`, bold: true, color: "FFFFFF", size: 12, font: "Arial" })] })]
       })
     )
   }
+
+  headerCellsRow2.push(
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] }),
+    new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, children: [] })
+  )
 
   const matrizRows = [
     new TableRow({ children: headerCellsRow1 }),
     new TableRow({ children: headerCellsRow2 })
   ]
 
-  const criteriosList = ["Redacción", "Pertinencia", "Coherencia", "Adecuación", "Comprensión"]
+  // EXACTAMENTE LOS 4 CRITERIOS ANALIZADOS EN EL SISTEMA POR LOS EVALUADORES
+  const criteriosList = ["Claridad", "Coherencia", "Relevancia", "Suficiencia"]
   let totalSumV = 0
   let totalCountV = 0
 
   // Generar filas para cada una de las 100 preguntas
-  allPreguntas.forEach((p, idx) => {
+  allPreguntas.forEach((p) => {
     criteriosList.forEach((crit, critIdx) => {
       const rowChildren = []
 
-      // Celda del texto del ítem (Solo en la primera fila del grupo de 5 criterios)
+      // Celda del texto del ítem (Solo en la primera fila del grupo de 4 criterios)
       if (critIdx === 0) {
         rowChildren.push(
           new TableCell({
-            rowSpan: 5,
-            width: { size: 25, type: WidthType.PERCENTAGE },
-            children: [new Paragraph({ children: [new TextRun({ text: p.texto || `Item ${p.id}`, size: 14, font: "Arial" })] })]
+            rowSpan: 4,
+            width: { size: 22, type: WidthType.PERCENTAGE },
+            children: [new Paragraph({ children: [new TextRun({ text: p.texto || `Item ${p.id}`, size: 13, font: "Arial" })] })]
           })
         )
       }
@@ -515,54 +574,70 @@ export async function generateDocxReport(
       // Nombre del criterio
       rowChildren.push(
         new TableCell({
-          width: { size: 12, type: WidthType.PERCENTAGE },
+          width: { size: 10, type: WidthType.PERCENTAGE },
           shading: { fill: "F7FAFC", type: ShadingType.CLEAR },
-          children: [new Paragraph({ children: [new TextRun({ text: crit, bold: true, size: 14, font: "Arial" })] })]
+          children: [new Paragraph({ children: [new TextRun({ text: crit, bold: true, size: 13, font: "Arial" })] })]
         })
       )
 
-      // MOSTRAR VEREDICTOS DE TODOS LOS K_TOTAL JUECES SELECCIONADOS
-      let acuerdosSum = 0
+      // MOSTRAR VEREDICTOS DE TODOS LOS K_TOTAL JUECES SELECCIONADOS EN SUS RESPECTIVAS COLUMNAS
+      let acuerdosSumN = 0
+      let totalLikertN = 0
+
       for (let j = 0; j < K_total; j++) {
         const ev = evaluadoresMatriz[j]
         const rObj = ev && ev.respuestas ? ev.respuestas[p.id] : null
         
         let score = 1
+        let likertVal = 5
         if (rObj) {
           const keyCrit = crit.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           if (rObj[keyCrit] === 'No') score = 0
           else if (rObj.likert && rObj.likert < 3) score = 0
+          
+          if (rObj.likert && Number(rObj.likert) >= 1) {
+            likertVal = Number(rObj.likert)
+          } else {
+            likertVal = score === 1 ? 5 : 1
+          }
         }
 
-        acuerdosSum += score
+        // Si el juez está dentro de los N_eval impares tomados en cuenta (j < N_eval), suma para el cálculo metodológico de Aiken
+        if (j < N_eval) {
+          acuerdosSumN += score
+          totalLikertN += likertVal
+        }
+
         rowChildren.push(
           new TableCell({
             alignment: AlignmentType.CENTER,
-            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(score), size: 14, font: "Arial" })] })]
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(score), size: 13, font: "Arial" })] })]
           })
         )
       }
 
-      // Cálculo de Aiken V y Lawshe CVR sobre K_total
-      const aikenV = Number((acuerdosSum / K_total).toFixed(2))
+      // CÁLCULO ESTADÍSTICO DE AIKEN V Y LAWSHE CVR SOBRE N_eval JUECES IMPARES
+      const promLikert = (totalLikertN / N_eval).toFixed(2)
+      const aikenV = Number((acuerdosSumN / N_eval).toFixed(2))
       const sigP = "0.00"
       const decisionAiken = aikenV >= 0.80 ? "Válido" : "Aceptable"
       
-      const halfN = K_total / 2
-      const cvr = Number(((acuerdosSum - halfN) / halfN).toFixed(2))
+      const halfN = N_eval / 2
+      const cvr = Number(((acuerdosSumN - halfN) / halfN).toFixed(2))
       const decisionLawshe = cvr === 1.0 ? "Validez perfecta" : "Aceptable"
 
       totalSumV += aikenV
       totalCountV++
 
-      // Columnas estadísticas
+      // Columnas estadísticas agregadas (Prom. Likert, Acuerdos, Aiken V, Sig P, Decisión Aiken, Lawshe CVR, Decisión Lawshe)
       rowChildren.push(
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(acuerdosSum), size: 14, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: aikenV.toFixed(2), bold: true, size: 14, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: sigP, size: 14, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: decisionAiken, bold: true, color: "2B6CB0", size: 14, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(cvr), size: 14, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: decisionLawshe, bold: true, color: "2F855A", size: 14, font: "Arial" })] })] })
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: promLikert, bold: true, color: "1A365D", size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(acuerdosSumN), size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: aikenV.toFixed(2), bold: true, color: "2B6CB0", size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: sigP, size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: decisionAiken, bold: true, color: "2B6CB0", size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(cvr), size: 13, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: decisionLawshe, bold: true, color: "2F855A", size: 13, font: "Arial" })] })] })
       )
 
       matrizRows.push(new TableRow({ children: rowChildren }))
@@ -606,8 +681,8 @@ export async function generateDocxReport(
       alignment: AlignmentType.JUSTIFY,
       spacing: { after: 150 },
       children: [
-        new TextRun({ text: "• Evaluación Estadística de Jueces Evaluadores: ", bold: true, size: 20, font: "Arial" }),
-        new TextRun({ text: `Se integran las evaluaciones y veredictos de los ${K_total} jueces evaluadores seleccionados.`, size: 20, font: "Arial" })
+        new TextRun({ text: "• Regla de Evaluación Impar de Expertos: ", bold: true, size: 20, font: "Arial" }),
+        new TextRun({ text: `Se muestran los ${K_total} jueces registrados (J1..J${K_total}). La evaluación estadística de Aiken (V) y Lawshe (CVR) se calcula sobre N_eval=${N_eval} evaluadores.`, size: 20, font: "Arial" })
       ]
     }),
     new Paragraph({
