@@ -231,8 +231,8 @@ app.get('/api/investigador/resumen', (req, res) => {
   })
 })
 
-// GET Descargar Informe Completo de Validación V de Aiken (.docx Word)
-app.get('/api/investigador/descargar-informe-docx', async (req, res) => {
+// GET / POST Descargar Informe Completo de Validación V de Aiken (.docx Word)
+const handleDescargarDocxHandler = async (req, res) => {
   try {
     const invites = readJson(INVITE_FILE) || {}
     const evals = readJson(EVAL_FILE) || {}
@@ -243,7 +243,15 @@ app.get('/api/investigador/descargar-informe-docx', async (req, res) => {
       preguntas = JSON.parse(fs.readFileSync(DEFAULT_PREGUNTAS_FILE, 'utf8'))
     }
 
-    const docBuffer = await generateDocxReport(evals, invites, perfil, preguntas)
+    const rawSel = req.query.evaluadores || (req.body && req.body.evaluadores)
+    let selectedKeys = []
+    if (typeof rawSel === 'string') {
+      selectedKeys = rawSel.split(',').map(s => s.trim()).filter(Boolean)
+    } else if (Array.isArray(rawSel)) {
+      selectedKeys = rawSel
+    }
+
+    const docBuffer = await generateDocxReport(evals, invites, perfil, preguntas, selectedKeys)
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     res.setHeader('Content-Disposition', 'attachment; filename="MODELO_V_DE_AIKEN_VALIDACION_DE_LOS_INSTRUMENTOS.docx"')
@@ -252,7 +260,10 @@ app.get('/api/investigador/descargar-informe-docx', async (req, res) => {
     console.error("Error generando informe Word:", err)
     return res.status(500).json({ success: false, mensaje: "Error al generar informe Word" })
   }
-})
+}
+
+app.get('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
+app.post('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 
 // Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)
 const getConsolidatedInvitations = (invites, evals) => {

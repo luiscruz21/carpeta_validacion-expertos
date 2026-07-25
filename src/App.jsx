@@ -83,6 +83,9 @@ function App() {
   const [pinSuccessMsg, setPinSuccessMsg] = useState('')
   const [pinErrorMsg, setPinErrorMsg] = useState('')
 
+  // Selección de evaluadores a incluir en el informe Word (.docx)
+  const [selectedEvaluadoresDocx, setSelectedEvaluadoresDocx] = useState([])
+
   // Respuestas del Evaluador (INICIALIZAN VACÍAS)
   const [respuestas, setRespuestas] = useState({})
 
@@ -786,7 +789,8 @@ function App() {
   const handleDescargarInformeDocx = async () => {
     try {
       setSyncing(true)
-      const res = await fetch('/api/investigador/descargar-informe-docx')
+      const queryParam = selectedEvaluadoresDocx.length > 0 ? `?evaluadores=${selectedEvaluadoresDocx.join(',')}` : ''
+      const res = await fetch('/api/investigador/descargar-informe-docx' + queryParam)
       if (!res.ok) {
         throw new Error('Error al generar el informe en el servidor')
       }
@@ -2894,6 +2898,52 @@ function App() {
                 >
                   <Download className="w-4 h-4" /> DESCARGAR CONSOLIDADO GENERAL (EXCEL)
                 </button>
+              </div>
+            </div>
+
+            {/* SECCIÓN SELECCIÓN DE EVALUADORES PARA INFORME WORD (.DOCX) */}
+            <div className="bg-sky-50/80 border border-sky-200 rounded-xl p-4 mb-6 shadow-sm">
+              <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+                <h4 className="text-xs font-black text-sky-950 uppercase flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-sky-700" /> Seleccionar Evaluadores / Jueces a Incluir en el Informe Word (.docx):
+                </h4>
+                <span className="text-[11px] bg-sky-200 text-sky-900 font-bold px-2.5 py-0.5 rounded-full border border-sky-300">
+                  {selectedEvaluadoresDocx.length === 0 ? 'Todos los evaluadores incluidos (Por defecto)' : `${selectedEvaluadoresDocx.length} de ${invitacionesList.length} evaluador(es) seleccionado(s)`}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2.5 mt-2">
+                {invitacionesList.map(inv => {
+                  const isChecked = selectedEvaluadoresDocx.length === 0 || selectedEvaluadoresDocx.includes(inv.codigo) || selectedEvaluadoresDocx.includes(inv.dni)
+                  return (
+                    <label key={inv.codigo} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all ${
+                      isChecked ? 'bg-white border-sky-500 text-sky-950 shadow-sm ring-1 ring-sky-400' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'
+                    }`}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const code = inv.codigo
+                          if (selectedEvaluadoresDocx.length === 0) {
+                            const allCodes = invitacionesList.map(i => i.codigo)
+                            if (e.target.checked) {
+                              setSelectedEvaluadoresDocx(allCodes)
+                            } else {
+                              setSelectedEvaluadoresDocx(allCodes.filter(c => c !== code))
+                            }
+                          } else {
+                            if (e.target.checked) {
+                              setSelectedEvaluadoresDocx([...selectedEvaluadoresDocx, code])
+                            } else {
+                              setSelectedEvaluadoresDocx(selectedEvaluadoresDocx.filter(c => c !== code))
+                            }
+                          }
+                        }}
+                        className="rounded text-sky-600 focus:ring-sky-500 w-3.5 h-3.5"
+                      />
+                      <span>{inv.nombreExperto} ({inv.dni || inv.codigo})</span>
+                    </label>
+                  )
+                })}
               </div>
             </div>
 
