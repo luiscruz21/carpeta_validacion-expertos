@@ -509,6 +509,7 @@ app.post('/api/evaluacion/save', (req, res) => {
       success: false,
       mensaje: 'El DNI 09091855 pertenece exclusivamente al Investigador Principal (Dr. Luis Alfonso Cruz Gálvez). Por favor utilice su propio DNI de evaluador o genere su código de acceso para extranjero.'
     })
+  }
   // Determinar clave canónica (Invitation Code como clave principal)
   let targetKey = cleanCode
   if (payload.inviteCode && payload.inviteCode.trim().toUpperCase().startsWith('EXP-')) {
