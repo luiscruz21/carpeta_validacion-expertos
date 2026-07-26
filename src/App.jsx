@@ -2221,6 +2221,16 @@ function App() {
             {/* Datos del Evaluador registrado */}
             {userRole === 'EVALUADOR' && (
               <div className="flex items-center gap-2">
+                <a
+                  href="/manual_del_evaluador.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-full text-xs flex items-center gap-1.5 shadow border border-emerald-500 transition-all cursor-pointer"
+                  title="Ver o descargar el Manual de Usuario oficial en PDF para Evaluadores"
+                >
+                  <FileText className="w-3.5 h-3.5 text-emerald-200" /> Manual PDF
+                </a>
+
                 <button
                   onClick={() => setShowRegistroModal(true)}
                   className="flex items-center gap-1.5 text-xs text-emerald-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 hover:bg-slate-700"
@@ -2441,14 +2451,25 @@ function App() {
                         </button>
                       </form>
 
-                      <div className="text-center pt-2">
+                      <div className="text-center pt-3 space-y-3 border-t border-slate-200 mt-4">
                         <button
                           type="button"
                           onClick={() => setRegistroTab('RETOMAR')}
-                          className="text-sky-700 font-bold hover:underline text-xs"
+                          className="text-sky-700 font-bold hover:underline text-xs block mx-auto"
                         >
                           ¿Ya se registró anteriormente? Haga clic aquí para ingresar con su DNI
                         </button>
+
+                        <a
+                          href="/manual_del_evaluador.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition-all border border-emerald-500 cursor-pointer transform hover:-translate-y-0.5"
+                          title="Descargar o ver el Manual del Evaluador en formato PDF"
+                        >
+                          <FileText className="w-4 h-4 text-emerald-200 shrink-0" />
+                          <span>📘 DESCARGAR / VER MANUAL DEL EVALUADOR (PDF)</span>
+                        </a>
                       </div>
                     </div>
                   ) : (
