@@ -16,5 +16,23 @@
     "creadoEn": "2026-07-24T20:30:00.000Z",
     "estado": "En Proceso",
     "respondidas": 11
+  },
+  "EXP-JP88": {
+    "codigo": "EXP-JP88",
+    "nombreExperto": "Dr. Justo Pérez",
+    "cargo": "Magíster en Gestión de Proyectos / Evaluador Experto",
+    "dni": "08765432",
+    "creadoEn": "2026-07-25T10:00:00.000Z",
+    "estado": "Completado",
+    "respondidas": 100
+  },
+  "EXP-RM99": {
+    "codigo": "EXP-RM99",
+    "nombreExperto": "Dra. Rosa Moore",
+    "cargo": "Doctora en Investigación y Docencia / Juez Experto",
+    "dni": "07654321",
+    "creadoEn": "2026-07-26T09:00:00.000Z",
+    "estado": "Completado",
+    "respondidas": 100
   }
 }

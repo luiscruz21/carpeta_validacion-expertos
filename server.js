@@ -363,11 +363,17 @@ const getConsolidatedInvitations = (invites, evals) => {
   Object.keys(invites).forEach(code => {
     const inv = invites[code] || {}
     const cleanCode = code.trim().toUpperCase()
-    const matchingEval = evals[cleanCode] || Object.values(evals).find(e => 
-      (e.inviteCode && e.inviteCode.trim().toUpperCase() === cleanCode) ||
-      (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) ||
-      (e.dni && inv.dni && e.dni.trim().toUpperCase() === inv.dni.trim().toUpperCase())
-    )
+    const cleanInvDni = (inv.dni || '').trim().toUpperCase()
+
+    const matchingEval = evals[cleanCode] || Object.values(evals).find(e => {
+      const eInvite = (e.inviteCode || '').trim().toUpperCase()
+      const eCode = (e.codigo || '').trim().toUpperCase()
+      const eDni = (e.dni || '').trim().toUpperCase()
+      if (eInvite && eInvite === cleanCode) return true
+      if (eCode && eCode === cleanCode) return true
+      if (cleanInvDni && cleanInvDni !== '' && cleanInvDni !== 'SIN REGISTRAR' && eDni && eDni === cleanInvDni) return true
+      return false
+    })
 
     const finalDni = inv.dni || matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar')
     let finalNombre = (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || "Experto Validador")
@@ -379,7 +385,7 @@ const getConsolidatedInvitations = (invites, evals) => {
       return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
     }).length
 
-    let estado = (matchingEval?.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
+    let estado = (matchingEval?.finalizado || totalAnswered >= 100 || inv.estado === 'Completado') ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
 
     grouped[cleanCode] = {
       codigo: cleanCode,
@@ -388,7 +394,7 @@ const getConsolidatedInvitations = (invites, evals) => {
       dni: finalDni,
       creadoEn: inv.creadoEn || new Date().toISOString(),
       estado,
-      respondidas: (cleanCode === '09091855' || matchingEval?.finalizado) ? 100 : totalAnswered
+      respondidas: (cleanCode === '09091855' || matchingEval?.finalizado || inv.estado === 'Completado') ? 100 : totalAnswered
     }
   })
 

@@ -3350,7 +3350,7 @@ function App() {
                         return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
                       }).length : 0
 
-                      const realAnswered = Math.max(inv.respondidas || 0, countFromEval, 100)
+                      const realAnswered = (inv.codigo === '09091855' || inv.estado === 'Completado') ? Math.max(inv.respondidas || 0, countFromEval, 100) : Math.max(inv.respondidas || 0, countFromEval)
                       const realEstado = (realAnswered >= 100 || inv.estado === 'Completado') ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : (inv.estado || 'Pendiente'))
                       const displayDni = inv.dni || evalData?.dni || (inv.codigo.length === 8 ? inv.codigo : 'Sin registrar')
 
