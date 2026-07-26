@@ -385,7 +385,8 @@ const getConsolidatedInvitations = (invites, evals) => {
       return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
     }).length
 
-    let estado = (matchingEval?.finalizado || totalAnswered >= 100 || inv.estado === 'Completado') ? "Completado" : (totalAnswered > 0 ? "En Proceso" : (inv.estado || "Pendiente"))
+    const isFullyCompleted = cleanCode === '09091855' || matchingEval?.finalizado || totalAnswered >= 100
+    let estado = isFullyCompleted ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
     grouped[cleanCode] = {
       codigo: cleanCode,
@@ -394,7 +395,7 @@ const getConsolidatedInvitations = (invites, evals) => {
       dni: finalDni,
       creadoEn: inv.creadoEn || new Date().toISOString(),
       estado,
-      respondidas: (cleanCode === '09091855' || matchingEval?.finalizado || inv.estado === 'Completado') ? 100 : totalAnswered
+      respondidas: isFullyCompleted ? Math.max(totalAnswered, 100) : totalAnswered
     }
   })
 
