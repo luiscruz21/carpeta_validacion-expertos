@@ -637,8 +637,9 @@ app.post('/api/evaluacion/save', (req, res) => {
     targetKey = "EXP-23TJ"
   }
 
-  // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas
-  const mergedRespuestas = {
+  // Fusionar respuestas antiguas y nuevas para NUNCA perder respuestas, a menos que sea un nuevo registro o reset explicito
+  const isReset = payload.isNuevoRegistro || (payload.respuestas && Object.keys(payload.respuestas).length === 0)
+  const mergedRespuestas = isReset ? (payload.respuestas || {}) : {
     ...(existingEval.respuestas || {}),
     ...(payload.respuestas || {})
   }

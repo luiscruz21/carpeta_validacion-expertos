@@ -614,7 +614,7 @@ function App() {
       valoracionGlobal,
       dictamenFinal,
       observaciones,
-      respuestas,
+      respuestas: (respuestas && Object.keys(respuestas).length > 0 && (dni === '09091855' || inviteCode === '09091855')) ? respuestas : {},
       inviteCode: inviteCode || cleanDni,
       isNuevoRegistro: true
     })
@@ -665,7 +665,7 @@ function App() {
         setInviteCode(cleanCode)
         setInviteValidado(true)
 
-        if (data.evaluacion) {
+        if (data.evaluacion && data.evaluacion.respuestas && Object.keys(data.evaluacion.respuestas).length > 0) {
           const ev = data.evaluacion
           if (ev.nombre) setNombre(ev.nombre)
           if (ev.nombresExperto) setNombresExperto(ev.nombresExperto)
@@ -675,22 +675,32 @@ function App() {
           if (ev.gradoAcademico) setGradoAcademico(ev.gradoAcademico)
           if (ev.institucion) setInstitucion(ev.institucion)
           if (ev.email) setEmail(ev.email)
-          if (ev.respuestas) setRespuestas(ev.respuestas)
+          setRespuestas(ev.respuestas)
           if (ev.firmaExpertoImg) setFirmaExpertoImg(ev.firmaExpertoImg)
           const isComp = Boolean(ev && (ev.finalizado || ev.estado === 'Completado' || (ev.respuestas && Object.keys(ev.respuestas).filter(k => ev.respuestas[k]?.likert).length >= 100)))
           setIsFinalizado(isComp)
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, isComp ? 'true' : 'false')
-        } else if (data.invitacion) {
-          if (data.invitacion.nombreExperto && data.invitacion.nombreExperto !== "Experto Validador") {
-            setNombre(data.invitacion.nombreExperto)
-            const parts = data.invitacion.nombreExperto.split(' ')
-            if (parts.length >= 2) {
-              setNombresExperto(parts[0])
-              setApellidosExperto(parts.slice(1).join(' '))
+        } else {
+          // ES UNA INVITACIÓN / EVALUACIÓN NUEVA SIN RESPUESTAS PREVIAS -> INSTRUMENTOS VACÍOS (0/100)
+          setRespuestas({})
+          setFirmaExpertoImg('')
+          setIsFinalizado(false)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, 'false')
+          localStorage.removeItem(`${LOCAL_STORAGE_KEY}_respuestas`)
+          localStorage.removeItem(`${LOCAL_STORAGE_KEY}_firma_img`)
+
+          if (data.invitacion) {
+            if (data.invitacion.nombreExperto && data.invitacion.nombreExperto !== "Experto Validador") {
+              setNombre(data.invitacion.nombreExperto)
+              const parts = data.invitacion.nombreExperto.split(' ')
+              if (parts.length >= 2) {
+                setNombresExperto(parts[0])
+                setApellidosExperto(parts.slice(1).join(' '))
+              }
             }
-          }
-          if (data.invitacion.cargo && data.invitacion.cargo !== "Especialista Informante") {
-            setCargo(data.invitacion.cargo)
+            if (data.invitacion.cargo && data.invitacion.cargo !== "Especialista Informante") {
+              setCargo(data.invitacion.cargo)
+            }
           }
         }
         return
