@@ -532,6 +532,15 @@ function App() {
       // Procesar registros locales faltantes
       Object.keys(localDb).forEach(k => {
         const item = localDb[k]
+        
+        // Purga forzada de datos basura/obsoletos cacheados localmente
+        const currentDni = (item?.dni || '').trim().toUpperCase()
+        const currentCode = (item?.codigo || k).trim().toUpperCase()
+        if (currentDni === '09091855' || currentCode === '09091855' || currentDni.startsWith('EXP-') || currentCode.startsWith('EXP-')) {
+          deleteLocalEvaluadorDbKey(k)
+          return
+        }
+
         if (item && item.nombre) {
           const key = (item.dni && !item.dni.startsWith('EXP-')) ? item.dni.trim().toUpperCase() : (item.codigo || k).trim().toUpperCase()
           const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
