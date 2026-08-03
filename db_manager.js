@@ -14,8 +14,8 @@ const T_EVALUADORES = path.join(DATA_DIR, 'tabla_evaluadores.json')
 const T_RESPUESTAS = path.join(DATA_DIR, 'tabla_evaluaciones_respuestas.json')
 const T_HOJAS_VIDA = path.join(DATA_DIR, 'tabla_hojas_de_vida.json')
 
-// Invalidador de caché para Vercel (Fuerza la copia de db_data a /tmp si hay nueva versión)
-const CACHE_VERSION = 'v3-jorge-fix'
+// INCREMENTAR ESTA VERSIÓN PARA FORZAR LA SINCRONIZACIÓN EN VERCEL
+const CACHE_VERSION = 'v4-joo-fix'
 if (IS_VERCEL) {
   try {
     const versionFile = path.join(DATA_DIR, 'cache_version.txt')

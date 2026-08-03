@@ -1,4 +1,20 @@
 {
+  "42151186": {
+    "dni": "42151186",
+    "codigo": "EXP-JOO",
+    "nombre": "Joo",
+    "nombreExperto": "Joo",
+    "nombresExperto": "Joo",
+    "apellidosExperto": "",
+    "cargo": "Experto",
+    "gradoAcademico": "Magíster",
+    "institucion": "Universidad",
+    "email": "",
+    "creadoEn": "2026-08-03T12:00:00.000Z",
+    "estado": "Pendiente",
+    "respondidas": 0,
+    "respuestas": {}
+  },
   "45521462": {
     "dni": "45521462",
     "codigo": "EXP-JORGE",
