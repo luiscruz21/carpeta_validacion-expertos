@@ -59,6 +59,18 @@ const saveEvaluadorToLocalDb = (key, dataObj) => {
   }
 }
 
+const deleteLocalEvaluadorDbKey = (key) => {
+  if (!key) return
+  try {
+    const db = getLocalEvaluadoresDb()
+    const cleanKey = key.trim().toUpperCase()
+    if (db[cleanKey]) {
+      delete db[cleanKey]
+      localStorage.setItem(LOCAL_EVALUADORES_DB_KEY, JSON.stringify(db))
+    }
+  } catch (e) {}
+}
+
 function App() {
   // ROL ACTUAL: 'EVALUADOR' o 'INVESTIGADOR'
   const [userRole, setUserRole] = useState(() => localStorage.getItem(`${LOCAL_STORAGE_KEY}_userRole`) || 'EVALUADOR')
@@ -1090,15 +1102,23 @@ function App() {
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, cleanEmail)
         }
 
-        saveEvaluadorToLocalDb(editingEvalModal.codigo, updatedEval)
-        if (cleanDni) saveEvaluadorToLocalDb(cleanDni, updatedEval)
+        if (cleanDni && cleanDni !== editingEvalModal.codigo) {
+          deleteLocalEvaluadorDbKey(editingEvalModal.codigo)
+          setEvaluacionesData(prev => {
+            const next = { ...prev }
+            delete next[editingEvalModal.codigo]
+            next[cleanDni] = updatedEval
+            return next
+          })
+        } else {
+          setEvaluacionesData(prev => ({
+            ...prev,
+            [editingEvalModal.codigo]: updatedEval,
+            [cleanDni]: updatedEval
+          }))
+        }
 
-        // 3. Actualizar diccionario local de evaluaciones
-        setEvaluacionesData(prev => ({
-          ...prev,
-          [editingEvalModal.codigo]: updatedEval,
-          [cleanDni]: updatedEval
-        }))
+        if (cleanDni) saveEvaluadorToLocalDb(cleanDni, updatedEval)
 
         // 4. Actualizar lista de invitaciones/evaluadores en el estado React
         setInvitacionesList(prev => prev.map(inv => {

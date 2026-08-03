@@ -21,17 +21,6 @@
     "estado": "En Proceso",
     "respondidas": 11
   },
-  "EXP-JP88": {
-    "codigo": "EXP-JP88",
-    "nombreExperto": "Justo Pérez Soncco",
-    "cargo": "Magíster en Gestión de Proyectos / Evaluador Experto",
-    "gradoAcademico": "Magíster",
-    "institucion": "Universidad de Procedencia",
-    "dni": "EXP-JP88",
-    "creadoEn": "2026-07-25T10:00:00.000Z",
-    "estado": "Pendiente",
-    "respondidas": 0
-  },
   "EXP-RM99": {
     "codigo": "EXP-RM99",
     "nombreExperto": "Dra. Rosa Moore",
@@ -42,5 +31,34 @@
     "creadoEn": "2026-07-26T09:00:00.000Z",
     "estado": "Pendiente",
     "respondidas": 0
+  },
+  "06778333": {
+    "codigo": "06778333",
+    "inviteCode": "06778333",
+    "nombreExperto": "Justo Pérez Soncco",
+    "nombre": "Justo Pérez Soncco",
+    "nombresExperto": "Justo",
+    "apellidosExperto": "Pérez Soncco",
+    "cargo": "Ingeniería Industrial",
+    "gradoAcademico": "Magíster",
+    "institucion": "Universidad Nacional Mayor de San Marcos",
+    "email": "jperezso@unmsm.edu.pe",
+    "dni": "06778333",
+    "creadoEn": "2026-07-25T10:00:00.000Z",
+    "estado": "Pendiente",
+    "respondidas": 0,
+    "isExtranjero": false,
+    "firmaExpertoImg": "",
+    "ctiVitae": "",
+    "orcid": "",
+    "linkedin": "",
+    "cvFileName": "",
+    "resumenProfesional": "",
+    "estudios": "Universidad Nacional Mayor de San Marcos",
+    "experienciaDetallada": "",
+    "dictamenFinal": "Pendiente",
+    "observaciones": "",
+    "respuestas": {},
+    "finalizado": false
   }
 }
