@@ -14,6 +14,23 @@ const T_EVALUADORES = path.join(DATA_DIR, 'tabla_evaluadores.json')
 const T_RESPUESTAS = path.join(DATA_DIR, 'tabla_evaluaciones_respuestas.json')
 const T_HOJAS_VIDA = path.join(DATA_DIR, 'tabla_hojas_de_vida.json')
 
+// Invalidador de caché para Vercel (Fuerza la copia de db_data a /tmp si hay nueva versión)
+const CACHE_VERSION = 'v2-balvina-fix'
+if (IS_VERCEL) {
+  try {
+    const versionFile = path.join(DATA_DIR, 'cache_version.txt')
+    if (!fs.existsSync(versionFile) || fs.readFileSync(versionFile, 'utf-8') !== CACHE_VERSION) {
+      if (fs.existsSync(BASE_DB_DIR)) {
+        fs.cpSync(BASE_DB_DIR, DATA_DIR, { recursive: true, force: true })
+      }
+      fs.writeFileSync(versionFile, CACHE_VERSION)
+      console.log('Vercel /tmp/ cache purgado y actualizado con la nueva base de datos.')
+    }
+  } catch (e) {
+    console.error('Error invalidando caché de Vercel:', e)
+  }
+}
+
 // Helper para lectura segura
 const readTable = (filePath, defaultVal = {}) => {
   try {
