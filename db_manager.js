@@ -319,6 +319,8 @@ export const getConsolidatedTable = () => {
       return
     }
 
+    if (cleanDni === '09091855') return
+
     if (seenDnis.has(cleanDni)) return
     seenDnis.add(cleanDni)
     nameMap.set(normName, result.length)

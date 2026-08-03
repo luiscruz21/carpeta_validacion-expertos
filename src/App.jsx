@@ -483,10 +483,11 @@ function App() {
       const finalRows = []
       const nameIndexMap = new Map()
 
-      // Filtrar identificaciones obsoletas tipo EXP-xxxx según petición del usuario
+      // Filtrar identificaciones obsoletas tipo EXP-xxxx y el DNI del investigador
       rawList = rawList.filter(item => {
         const d = (item.dni || '').trim().toUpperCase()
         const c = (item.codigo || '').trim().toUpperCase()
+        if (d === '09091855' || c === '09091855') return false
         if (d.startsWith('EXP-') || c.startsWith('EXP-')) return false
         return true
       })
