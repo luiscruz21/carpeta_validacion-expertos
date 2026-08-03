@@ -624,7 +624,7 @@ function App() {
   const handleRetomarPorKey = async (targetKey = recuperarKeyInput) => {
     const cleanKey = (targetKey || '').trim().toUpperCase()
     if (!cleanKey) {
-      alert("Por favor ingrese su DNI (8 dígitos), Código de Extranjero (EXT-XXXXX) o Código de Invitación (EXP-XXXX).")
+      alert("Por favor ingrese su DNI (8 dígitos) o Documento de Identidad.")
       return
     }
 
@@ -832,15 +832,16 @@ function App() {
     alert(`¡Bienvenido(a) ${combinedNombre}! Sus datos oficiales han sido registrados e integrados. A partir de ahora podrá retomar su avance ingresando su DNI (${cleanDni}).`)
   }
 
-  // Validar Código de Invitación emitido por el Investigador
+  // Validar DNI o Documento de Identidad emitido por el Investigador
   const handleValidarInvitacion = async (e) => {
     if (e) e.preventDefault()
     setInvitationError('')
-    const cleanCode = codigoInvitacionInput.trim().toUpperCase()
-    if (!cleanCode) {
-      setInvitationError('Por favor ingrese su Código de Invitación (ej. EXP-XXXX / 09091855).')
+    if (!codigoInvitacionInput.trim()) {
+      setInvitationError('Por favor ingrese su DNI (ej. 09091855).')
       return
     }
+
+    const cleanCode = codigoInvitacionInput.trim().toUpperCase()
 
     try {
       setSyncing(true)
@@ -945,7 +946,7 @@ function App() {
           if (localInv.cargo) setCargo(localInv.cargo)
         }
       } else {
-        setInvitationError('Código de invitación no encontrado. Solicite al Investigador Principal que le genere su código de invitación.')
+        setInvitationError('DNI no encontrado. Verifique su documento o solicite al Investigador Principal que lo registre en el sistema.')
         setInviteValidado(false)
       }
     } catch (err) {
