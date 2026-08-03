@@ -883,15 +883,27 @@ function App() {
     e.preventDefault()
     if (!editingEvalModal) return
 
+    const combinedNombre = evalNombreModal.trim()
+    const parts = combinedNombre.split(' ')
+    const nombres = parts[0] || combinedNombre
+    const apellidos = parts.slice(1).join(' ') || ''
+    const cleanDni = evalDniModal.trim()
+    const cleanCargo = evalCargoModal.trim()
+    const cleanGrado = evalGradoModal.trim()
+    const cleanInstitucion = evalInstitucionModal.trim()
+    const cleanEmail = evalEmailModal.trim()
+
     const payload = {
       codigoTarget: editingEvalModal.codigo,
       datosEvaluador: {
-        nombre: evalNombreModal.trim(),
-        dni: evalDniModal.trim(),
-        cargo: evalCargoModal.trim(),
-        gradoAcademico: evalGradoModal.trim(),
-        institucion: evalInstitucionModal.trim(),
-        email: evalEmailModal.trim()
+        nombre: combinedNombre,
+        nombresExperto: nombres,
+        apellidosExperto: apellidos,
+        dni: cleanDni,
+        cargo: cleanCargo,
+        gradoAcademico: cleanGrado,
+        institucion: cleanInstitucion,
+        email: cleanEmail
       }
     }
 
@@ -904,9 +916,44 @@ function App() {
       })
       const data = await res.json()
       if (res.ok && data.success) {
-        alert("¡Perfil y datos del Evaluador actualizados con éxito!")
-        setEditingEvalModal(null)
+        // 1. Actualizar evaluadorInspeccionado si coincide
+        if (evaluadorInspeccionado && (evaluadorInspeccionado.codigo === editingEvalModal.codigo || evaluadorInspeccionado.dni === editingEvalModal.dni || evaluadorInspeccionado.dni === cleanDni)) {
+          setEvaluadorInspeccionado(data.evaluacion)
+        }
+
+        // 2. Actualizar estado local si coincide con el usuario activo
+        if (inviteCode === editingEvalModal.codigo || dni === editingEvalModal.dni || dni === cleanDni) {
+          setNombre(combinedNombre)
+          setNombresExperto(nombres)
+          setApellidosExperto(apellidos)
+          setDni(cleanDni)
+          setCargo(cleanCargo)
+          setGradoAcademico(cleanGrado)
+          setInstitucion(cleanInstitucion)
+          setEmail(cleanEmail)
+
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, combinedNombre)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombresExperto`, nombres)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_apellidosExperto`, apellidos)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_dni`, cleanDni)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_cargo`, cleanCargo)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_grado`, cleanGrado)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, cleanInstitucion)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, cleanEmail)
+        }
+
+        // 3. Actualizar diccionario local de evaluaciones
+        if (data.evaluacion) {
+          setEvaluacionesData(prev => ({
+            ...prev,
+            [editingEvalModal.codigo]: data.evaluacion,
+            [cleanDni]: data.evaluacion
+          }))
+        }
+
         await fetchInvestigadorData()
+        alert("¡Perfil y datos del Evaluador actualizados con éxito en todo el sistema!")
+        setEditingEvalModal(null)
       } else {
         alert(data.mensaje || "Error al actualizar los datos del evaluador.")
       }
@@ -948,7 +995,7 @@ function App() {
     const cleanGrado = cartaGrado.trim()
     const cleanInstitucion = cartaInstitucion.trim()
     const cleanEmail = cartaEmail.trim()
-    const keyToSave = (evaluadorInspeccionado ? evaluadorInspeccionado.codigo : (inviteCode || cleanDni || '09091855')).trim().toUpperCase()
+    const keyToSave = (evaluadorInspeccionado ? (evaluadorInspeccionado.codigo || evaluadorInspeccionado.dni) : (inviteCode || cleanDni || '09091855')).trim().toUpperCase()
 
     setNombre(combinedNombre)
     setNombresExperto(cleanNombres)
@@ -959,17 +1006,23 @@ function App() {
     setInstitucion(cleanInstitucion)
     setEmail(cleanEmail)
 
+    const updatedProfileObj = {
+      nombre: combinedNombre,
+      nombresExperto: cleanNombres,
+      apellidosExperto: cleanApellidos,
+      dni: cleanDni,
+      cargo: cleanCargo,
+      gradoAcademico: cleanGrado,
+      institucion: cleanInstitucion,
+      email: cleanEmail,
+      inviteCode: keyToSave,
+      codigo: keyToSave
+    }
+
     if (evaluadorInspeccionado) {
       setEvaluadorInspeccionado(prev => ({
         ...prev,
-        nombre: combinedNombre,
-        nombresExperto: cleanNombres,
-        apellidosExperto: cleanApellidos,
-        dni: cleanDni,
-        cargo: cleanCargo,
-        gradoAcademico: cleanGrado,
-        institucion: cleanInstitucion,
-        email: cleanEmail
+        ...updatedProfileObj
       }))
     }
 
@@ -982,40 +1035,19 @@ function App() {
     localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, cleanInstitucion)
     localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, cleanEmail)
 
-    await saveEvaluationToBackend(keyToSave, {
-      nombre: combinedNombre,
-      nombresExperto: cleanNombres,
-      apellidosExperto: cleanApellidos,
-      dni: cleanDni,
-      cargo: cleanCargo,
-      gradoAcademico: cleanGrado,
-      institucion: cleanInstitucion,
-      email: cleanEmail,
-      inviteCode: keyToSave
-    })
+    await saveEvaluationToBackend(keyToSave, updatedProfileObj)
 
-    if (userRole === 'INVESTIGADOR') {
-      try {
-        await fetch('/api/investigador/editar-evaluador', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            codigoTarget: keyToSave,
-            datosEvaluador: {
-              nombre: combinedNombre,
-              nombresExperto: cleanNombres,
-              apellidosExperto: cleanApellidos,
-              dni: cleanDni,
-              cargo: cleanCargo,
-              gradoAcademico: cleanGrado,
-              institucion: cleanInstitucion,
-              email: cleanEmail
-            }
-          })
+    try {
+      await fetch('/api/investigador/editar-evaluador', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigoTarget: keyToSave,
+          datosEvaluador: updatedProfileObj
         })
-        await fetchInvestigadorData()
-      } catch (err) {}
-    }
+      })
+      await fetchInvestigadorData()
+    } catch (err) {}
 
     setShowEditarPerfilCartaModal(false)
     alert("¡Perfil y datos del evaluador actualizados con éxito en todas las secciones!")

@@ -300,18 +300,23 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
   const evals = readJson(EVAL_FILE) || {}
   const invites = readJson(INVITE_FILE) || {}
 
-  const existingEval = evals[cleanCode] || Object.values(evals).find(e => e.codigo === cleanCode || e.dni === cleanCode) || {}
-  const existingInvite = invites[cleanCode] || Object.values(invites).find(i => i.codigo === cleanCode || i.dni === cleanCode) || {}
+  const existingEval = evals[cleanCode] || Object.values(evals).find(e => (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) || (e.dni && e.dni.trim().toUpperCase() === cleanCode)) || {}
+  const existingInvite = invites[cleanCode] || Object.values(invites).find(i => (i.codigo && i.codigo.trim().toUpperCase() === cleanCode) || (i.dni && i.dni.trim().toUpperCase() === cleanCode)) || {}
 
   const keyToUse = existingEval.codigo || existingInvite.codigo || cleanCode
+
+  const fullNombre = datosEvaluador.nombre || existingEval.nombre || "Experto Validador"
+  const parts = fullNombre.split(' ')
+  const nombres = datosEvaluador.nombresExperto || existingEval.nombresExperto || parts[0] || fullNombre
+  const apellidos = datosEvaluador.apellidosExperto || existingEval.apellidosExperto || parts.slice(1).join(' ') || ""
 
   const updatedEval = {
     ...existingEval,
     codigo: keyToUse,
     inviteCode: keyToUse,
-    nombre: datosEvaluador.nombre || existingEval.nombre || "Experto Validador",
-    nombresExperto: datosEvaluador.nombresExperto || existingEval.nombresExperto || "",
-    apellidosExperto: datosEvaluador.apellidosExperto || existingEval.apellidosExperto || "",
+    nombre: fullNombre,
+    nombresExperto: nombres,
+    apellidosExperto: apellidos,
     cargo: datosEvaluador.cargo || existingEval.cargo || "Especialista Informante",
     gradoAcademico: datosEvaluador.gradoAcademico || existingEval.gradoAcademico || "Magíster",
     institucion: datosEvaluador.institucion || existingEval.institucion || "Universidad de Procedencia",
@@ -330,6 +335,15 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
 
   evals[keyToUse] = updatedEval
   invites[keyToUse] = updatedInvite
+
+  if (updatedEval.dni) {
+    evals[updatedEval.dni] = updatedEval
+    invites[updatedEval.dni] = updatedInvite
+  }
+  if (cleanCode) {
+    evals[cleanCode] = updatedEval
+    invites[cleanCode] = updatedInvite
+  }
 
   writeJson(EVAL_FILE, evals)
   writeJson(INVITE_FILE, invites)
