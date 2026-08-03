@@ -299,23 +299,6 @@ function App() {
       localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cargo`)
     }
 
-    // Purga automática de claves EXP- antiguas en localStorage si existe DNI real para el mismo evaluador
-    try {
-      const localDb = getLocalEvaluadoresDb()
-      Object.keys(localDb).forEach(k => {
-        if (k.startsWith('EXP-')) {
-          const item = localDb[k]
-          if (item && item.nombre) {
-            const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-            const realDniMatch = Object.keys(localDb).find(otherK => !otherK.startsWith('EXP-') && localDb[otherK]?.nombre?.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim() === normName)
-            if (realDniMatch) {
-              deleteLocalEvaluadorDbKey(k)
-            }
-          }
-        }
-      })
-    } catch (e) {}
-
     fetchPreguntasBackend()
     fetchInvestigadorPerfil()
   }, [])
@@ -432,7 +415,7 @@ function App() {
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_cv_text_content`, cvTextContent)
 
       const currentKey = (inviteCode || dni || '').trim().toUpperCase()
-      const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') || currentKey.startsWith('EXP-')
+      const isValidKey = /^\d{8}$/.test(currentKey) || currentKey.startsWith('EXT-') 
       if (userRole === 'EVALUADOR' && evaluadorInspeccionado === null && isValidKey && nombre.trim() && nombre !== 'Experto Validador') {
         saveEvaluationToBackend(currentKey, {
           nombre,
@@ -489,105 +472,14 @@ function App() {
         }
       })
 
-      const finalRows = []
-      const nameIndexMap = new Map()
-
-      // Filtrar identificaciones obsoletas tipo EXP-xxxx y el DNI del investigador
-      rawList = rawList.filter(item => {
+      // Usar directamente los datos consolidados del backend (Firebase)
+      const finalRows = rawList.filter(item => {
         const d = (item.dni || '').trim().toUpperCase()
         const c = (item.codigo || '').trim().toUpperCase()
         if (d === '09091855' || c === '09091855') return false
-        if (d.startsWith('EXP-')) return false // Solo eliminar si el DNI es falso, NO si su código de acceso (inviteCode) es EXP-
         return true
       })
-
-      // Procesar lista del servidor
-      rawList.forEach(item => {
-        const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
-          ? item.dni.trim().toUpperCase()
-          : item.codigo.trim().toUpperCase()
-
-        const localRecord = localDb[key] || Object.values(localDb).find(x => x && (x.dni === key || x.codigo === key))
-        if (localRecord && localRecord.nombre) {
-          item.nombreExperto = localRecord.nombre
-          item.nombre = localRecord.nombre
-          if (localRecord.cargo) item.cargo = localRecord.cargo
-          if (localRecord.gradoAcademico) item.gradoAcademico = localRecord.gradoAcademico
-          if (localRecord.institucion) item.institucion = localRecord.institucion
-          if (localRecord.email) item.email = localRecord.email
-        }
-
-        const normName = (item.nombreExperto || item.nombre || "").toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-
-        if (normName !== 'experto validador' && nameIndexMap.has(normName)) {
-          const idx = nameIndexMap.get(normName)
-          const existing = finalRows[idx]
-          // Si la entrada actual tiene DNI real y la existente no, reemplazarla
-          if (key && !key.startsWith('EXP-')) {
-            if (existing.codigo && existing.codigo.startsWith('EXP-')) {
-              deleteLocalEvaluadorDbKey(existing.codigo)
-            }
-            finalRows[idx] = item
-          } else if (existing.codigo && existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
-            deleteLocalEvaluadorDbKey(key)
-          }
-          return
-        }
-
-        nameIndexMap.set(normName, finalRows.length)
-        finalRows.push(item)
-      })
-
-      // Procesar registros locales faltantes
-      Object.keys(localDb).forEach(k => {
-        const item = localDb[k]
-        
-        // Purga forzada de datos basura/obsoletos cacheados localmente
-        const currentDni = (item?.dni || '').trim().toUpperCase()
-        const currentCode = (item?.codigo || k).trim().toUpperCase()
-        if (currentDni === '09091855' || currentCode === '09091855' || currentDni.startsWith('EXP-')) {
-          deleteLocalEvaluadorDbKey(k)
-          return
-        }
-
-        if (item && item.nombre) {
-          const key = (item.dni && !item.dni.startsWith('EXP-')) ? item.dni.trim().toUpperCase() : (item.codigo || k).trim().toUpperCase()
-          const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-
-          if (normName !== 'experto validador' && nameIndexMap.has(normName)) {
-            const idx = nameIndexMap.get(normName)
-            const existing = finalRows[idx]
-            
-            if (key && !key.startsWith('EXP-')) {
-              if (existing.codigo && existing.codigo.startsWith('EXP-')) {
-                finalRows[idx] = { ...existing, ...item, codigo: key, dni: key, inviteCode: key }
-                deleteLocalEvaluadorDbKey(existing.codigo)
-              }
-            } else if (existing.codigo && !existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
-              deleteLocalEvaluadorDbKey(key)
-            }
-            return
-          }
-
-          const newItem = {
-            codigo: key,
-            nombreExperto: item.nombre || item.nombreExperto,
-            nombre: item.nombre,
-            dni: item.dni || key,
-            cargo: item.cargo || 'Especialista Informante',
-            gradoAcademico: item.gradoAcademico || 'Magíster',
-            institucion: item.institucion || 'Universidad de Procedencia',
-            email: item.email || '',
-            creadoEn: item.actualizadoEn || new Date().toISOString(),
-            estado: item.finalizado ? 'Completado' : 'Pendiente',
-            respondidas: Object.keys(item.respuestas || {}).length
-          }
-
-          nameIndexMap.set(normName, finalRows.length)
-          finalRows.push(newItem)
-        }
-      })
-
+      
       setInvitacionesList(finalRows)
       setEvaluacionesData(mergedEvals)
     } catch (err) {
@@ -938,7 +830,7 @@ function App() {
 
       // Fallback local en caso de desconexión momentánea de servidor local
       const localInv = (invitacionesList || []).find(i => (i.codigo || '').toUpperCase() === cleanCode || (i.dni || '').toUpperCase() === cleanCode)
-      if (localInv || cleanCode === '09091855' || cleanCode.startsWith('EXP-') || cleanCode.startsWith('EXT-')) {
+      if (localInv || cleanCode === '09091855'  || cleanCode.startsWith('EXT-')) {
         setInviteCode(cleanCode)
         setInviteValidado(true)
         if (localInv) {
