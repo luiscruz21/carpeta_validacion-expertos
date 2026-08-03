@@ -4425,21 +4425,33 @@ function App() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-4 border border-slate-200 border-l-4 border-l-sky-600 flex justify-between items-center">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700">
-                  {instrumentoSubTab === 'VI' ? 'Instrumento 1 - Variable Independiente' : 'Instrumento 2 - Variable Dependiente'}
-                </span>
-                <h3 className="text-base font-bold text-slate-900">
-                  {instrumentoSubTab === 'VI' 
-                    ? 'Validación Técnica de la Arquitectura Predictiva con Deep Learning' 
-                    : 'Medición del Impacto Proyectado en la Gestión de Riesgos de Infraestructura Pública'}
-                </h3>
+            <div className="bg-white rounded-xl shadow-sm p-5 mb-4 border border-slate-200 border-l-4 border-l-sky-600 flex flex-col md:flex-row justify-between items-start gap-4">
+              <div className="flex-1">
+                <div className="mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Título de la Tesis</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">
+                    "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024"
+                  </h3>
+                </div>
+                
+                <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700 block mb-1">
+                    {instrumentoSubTab === 'VI' ? 'Instrumento 1 - Variable Independiente' : 'Instrumento 2 - Variable Dependiente'}
+                  </span>
+                  <h4 className="text-base font-bold text-sky-900">
+                    {instrumentoSubTab === 'VI' 
+                      ? 'Variable Independiente: Sistema Predictivo con Deep Learning' 
+                      : 'Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública'}
+                  </h4>
+                </div>
               </div>
 
-              <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full border">
-                {instrumentoSubTab === 'VI' ? `${viAnswered} / ${preguntasData.VI?.length || 0} Respondidas` : `${vdAnswered} / ${preguntasData.VD?.length || 0} Respondidas`}
-              </span>
+              <div className="flex-shrink-0 self-start md:self-center">
+                <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-4 py-2 rounded-full border shadow-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-sky-600" />
+                  {instrumentoSubTab === 'VI' ? `${viAnswered} / ${preguntasData.VI?.length || 0} Respondidas` : `${vdAnswered} / ${preguntasData.VD?.length || 0} Respondidas`}
+                </span>
+              </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-slate-200 text-slate-700 text-xs flex flex-wrap justify-between items-center gap-2">
