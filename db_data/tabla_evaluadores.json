@@ -1,4 +1,20 @@
 {
+  "45521462": {
+    "dni": "45521462",
+    "codigo": "EXP-JORGE",
+    "nombre": "Jorge Alberto Espinoza Chavarri",
+    "nombreExperto": "Jorge Alberto Espinoza Chavarri",
+    "nombresExperto": "Jorge Alberto",
+    "apellidosExperto": "Espinoza Chavarri",
+    "cargo": "Licenciado en Administración",
+    "gradoAcademico": "Licenciado",
+    "institucion": "Universidad ESAN",
+    "email": "jespinozachavarri@gmail.com",
+    "creadoEn": "2026-08-03T12:00:00.000Z",
+    "estado": "Pendiente",
+    "respondidas": 0,
+    "respuestas": {}
+  },
   "12121212": {
     "dni": "12121212",
     "codigo": "12121212",

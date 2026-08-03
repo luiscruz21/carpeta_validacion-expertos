@@ -497,7 +497,7 @@ function App() {
         const d = (item.dni || '').trim().toUpperCase()
         const c = (item.codigo || '').trim().toUpperCase()
         if (d === '09091855' || c === '09091855') return false
-        if (d.startsWith('EXP-') || c.startsWith('EXP-')) return false
+        if (d.startsWith('EXP-')) return false // Solo eliminar si el DNI es falso, NO si su código de acceso (inviteCode) es EXP-
         return true
       })
 
@@ -545,7 +545,7 @@ function App() {
         // Purga forzada de datos basura/obsoletos cacheados localmente
         const currentDni = (item?.dni || '').trim().toUpperCase()
         const currentCode = (item?.codigo || k).trim().toUpperCase()
-        if (currentDni === '09091855' || currentCode === '09091855' || currentDni.startsWith('EXP-') || currentCode.startsWith('EXP-')) {
+        if (currentDni === '09091855' || currentCode === '09091855' || currentDni.startsWith('EXP-')) {
           deleteLocalEvaluadorDbKey(k)
           return
         }
