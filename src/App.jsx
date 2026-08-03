@@ -392,7 +392,17 @@ function App() {
       const res = await fetch('/api/investigador/resumen')
       const data = await res.json()
       if (data.success) {
-        setInvitacionesList(data.invitaciones || [])
+        const rawList = data.invitaciones || []
+        const uniqueMap = new Map()
+        rawList.forEach(item => {
+          const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
+            ? item.dni.trim().toUpperCase()
+            : item.codigo.trim().toUpperCase()
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, item)
+          }
+        })
+        setInvitacionesList(Array.from(uniqueMap.values()))
         setEvaluacionesData(data.evaluaciones || {})
       }
     } catch (err) {

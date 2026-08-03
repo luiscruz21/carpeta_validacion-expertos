@@ -343,16 +343,16 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
     dni: cleanDni
   }
 
+  // Guardar ÚNICAMENTE bajo la clave canónica del código para EVITAR DUPLICAR entradas
   evals[keyToUse] = updatedEval
   invites[keyToUse] = updatedInvite
 
-  if (cleanDni) {
-    evals[cleanDni] = updatedEval
-    invites[cleanDni] = updatedInvite
-  }
-  if (cleanCode) {
-    evals[cleanCode] = updatedEval
-    invites[cleanCode] = updatedInvite
+  // Si existían claves alias alias creadas previamente por DNI, limpiarlas si no difieren
+  if (cleanDni && cleanDni !== keyToUse) {
+    if (invites[cleanDni]) delete invites[cleanDni]
+    if (evals[cleanDni] && (!evals[cleanDni].respuestas || Object.keys(evals[cleanDni].respuestas).length === 0)) {
+      delete evals[cleanDni]
+    }
   }
 
   writeJson(EVAL_FILE, evals)
@@ -368,8 +368,9 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
 
 // Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Invitación/DNI)
 const getConsolidatedInvitations = (invites, evals) => {
-  const grouped = {}
-  const perfilInvestigador = readJson(INVESTIGADOR_FILE, {}) || {}
+  const result = []
+  const seenCodes = new Set()
+  const seenDnis = new Set()
 
   // 1. Procesar todas las invitaciones creadas por el Investigador
   Object.keys(invites).forEach(code => {
@@ -387,7 +388,13 @@ const getConsolidatedInvitations = (invites, evals) => {
       return false
     })
 
-    const finalDni = inv.dni || matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar')
+    const finalDni = (inv.dni && inv.dni !== cleanCode) ? inv.dni : (matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar'))
+    const cleanFinalDni = finalDni.trim().toUpperCase()
+
+    // DEDUPLICACIÓN STRICTA: Si este DNI o Código ya fue procesado, no duplicar la fila
+    if (seenCodes.has(cleanCode)) return
+    if (cleanFinalDni && cleanFinalDni !== 'SIN REGISTRAR' && cleanFinalDni !== '' && !cleanFinalDni.startsWith('EXP-') && seenDnis.has(cleanFinalDni)) return
+
     let finalNombre = (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || "Experto Validador")
     let finalCargo = (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || "Especialista Informante")
     let finalGrado = matchingEval?.gradoAcademico || inv.gradoAcademico || "Magíster"
@@ -405,7 +412,7 @@ const getConsolidatedInvitations = (invites, evals) => {
     const isFullyCompleted = cleanCode === '09091855' || matchingEval?.finalizado || totalAnswered >= 100
     let estado = isFullyCompleted ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
 
-    grouped[cleanCode] = {
+    const item = {
       codigo: cleanCode,
       nombreExperto: finalNombre,
       nombre: finalNombre,
@@ -420,6 +427,13 @@ const getConsolidatedInvitations = (invites, evals) => {
       estado,
       respondidas: isFullyCompleted ? Math.max(totalAnswered, 100) : totalAnswered
     }
+
+    seenCodes.add(cleanCode)
+    if (cleanFinalDni && cleanFinalDni !== 'SIN REGISTRAR' && cleanFinalDni !== '' && !cleanFinalDni.startsWith('EXP-')) {
+      seenDnis.add(cleanFinalDni)
+    }
+
+    result.push(item)
   })
 
   // 2. Agregar cualquier evaluación adicional que no estuviera agrupada
@@ -427,38 +441,44 @@ const getConsolidatedInvitations = (invites, evals) => {
     const cleanKey = key.trim().toUpperCase()
     const ev = evals[cleanKey] || {}
     const inviteCode = (ev.inviteCode || '').trim().toUpperCase()
+    const evDni = (ev.dni || '').trim().toUpperCase()
 
-    if ((inviteCode && grouped[inviteCode]) || grouped[cleanKey]) {
-      return
+    if (seenCodes.has(cleanKey) || (inviteCode && seenCodes.has(inviteCode))) return
+    if (evDni && evDni !== 'SIN REGISTRAR' && evDni !== '' && !evDni.startsWith('EXP-') && seenDnis.has(evDni)) return
+    if (cleanKey === '09091855') return
+
+    const respuestas = ev.respuestas || {}
+    const totalAnswered = Object.keys(respuestas).filter(k => {
+      const r = respuestas[k]
+      return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
+    }).length
+    const estado = (ev.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
+
+    const item = {
+      codigo: cleanKey,
+      nombreExperto: ev.nombre || "Experto Validador",
+      nombre: ev.nombre || "Experto Validador",
+      nombresExperto: ev.nombresExperto || "",
+      apellidosExperto: ev.apellidosExperto || "",
+      cargo: ev.cargo || "Especialista Informante",
+      gradoAcademico: ev.gradoAcademico || "Magíster",
+      institucion: ev.institucion || ev.estudios || "Universidad de Procedencia",
+      email: ev.email || "",
+      dni: ev.dni || cleanKey,
+      creadoEn: ev.creadoEn || new Date().toISOString(),
+      estado,
+      respondidas: totalAnswered
     }
 
-    if (cleanKey !== '09091855') {
-      const respuestas = ev.respuestas || {}
-      const totalAnswered = Object.keys(respuestas).filter(k => {
-        const r = respuestas[k]
-        return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
-      }).length
-      const estado = (ev.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
-
-      grouped[cleanKey] = {
-        codigo: cleanKey,
-        nombreExperto: ev.nombre || "Experto Validador",
-        nombre: ev.nombre || "Experto Validador",
-        nombresExperto: ev.nombresExperto || "",
-        apellidosExperto: ev.apellidosExperto || "",
-        cargo: ev.cargo || "Especialista Informante",
-        gradoAcademico: ev.gradoAcademico || "Magíster",
-        institucion: ev.institucion || ev.estudios || "Universidad de Procedencia",
-        email: ev.email || "",
-        dni: ev.dni || cleanKey,
-        creadoEn: ev.creadoEn || new Date().toISOString(),
-        estado,
-        respondidas: totalAnswered
-      }
+    seenCodes.add(cleanKey)
+    if (evDni && evDni !== 'SIN REGISTRAR' && evDni !== '' && !evDni.startsWith('EXP-')) {
+      seenDnis.add(evDni)
     }
+
+    result.push(item)
   })
 
-  return Object.values(grouped)
+  return result
 }
 
 // GET Obtener todas las invitaciones (Consolidadas y agrupadas por Evaluador)
