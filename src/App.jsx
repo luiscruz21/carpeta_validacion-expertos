@@ -1813,9 +1813,11 @@ function App() {
     }
   }
 
-  const handleResetForm = () => {
-    if (window.confirm("¿Está seguro de reiniciar todas las respuestas y borrar los datos ingresados?")) {
-      localStorage.clear()
+  const handleLogout = () => {
+    if (window.confirm("¿Está seguro de que desea cerrar sesión? Su avance ya está guardado automáticamente.")) {
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_respuestas`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_nombre`)
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY}_dni`)
       setRespuestas({})
       setNombre('')
       setDni('')
@@ -2640,7 +2642,7 @@ function App() {
 
                 {(nombre || dni) && (
                   <button
-                    onClick={handleResetForm}
+                    onClick={handleLogout}
                     title="Cerrar sesión activa y permitir el ingreso de un nuevo evaluador"
                     className="px-3 py-1.5 bg-red-900/80 hover:bg-red-800 text-red-100 font-bold rounded-lg text-xs flex items-center gap-1.5 border border-red-700 transition-all shadow"
                   >
