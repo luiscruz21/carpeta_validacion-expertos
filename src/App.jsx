@@ -298,6 +298,24 @@ function App() {
       localStorage.removeItem(`${LOCAL_STORAGE_KEY}_nombre`)
       localStorage.removeItem(`${LOCAL_STORAGE_KEY}_cargo`)
     }
+
+    // Purga automática de claves EXP- antiguas en localStorage si existe DNI real para el mismo evaluador
+    try {
+      const localDb = getLocalEvaluadoresDb()
+      Object.keys(localDb).forEach(k => {
+        if (k.startsWith('EXP-')) {
+          const item = localDb[k]
+          if (item && item.nombre) {
+            const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
+            const realDniMatch = Object.keys(localDb).find(otherK => !otherK.startsWith('EXP-') && localDb[otherK]?.nombre?.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim() === normName)
+            if (realDniMatch) {
+              deleteLocalEvaluadorDbKey(k)
+            }
+          }
+        }
+      })
+    } catch (e) {}
+
     fetchPreguntasBackend()
     fetchInvestigadorPerfil()
   }, [])
@@ -431,7 +449,7 @@ function App() {
     }
   }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, email, estudios, experienciaDetallada, cvFileDataUrl, cvTextContent, inviteCode, userRole])
 
-  // Cargar datos para el Panel del Investigador (Fusionando Servidor y DB Local)
+  // Cargar datos para el Panel del Investigador (Fusionando Servidor y DB Local con Deduplicación Estricta por Nombre)
   const fetchInvestigadorData = async () => {
     try {
       setSyncing(true)
@@ -462,14 +480,16 @@ function App() {
         }
       })
 
-      const uniqueMap = new Map()
+      const finalRows = []
+      const nameIndexMap = new Map()
+
+      // Procesar lista del servidor
       rawList.forEach(item => {
         const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
           ? item.dni.trim().toUpperCase()
           : item.codigo.trim().toUpperCase()
-        
-        // Si la DB local tiene un nombre actualizado, usarlo
-        const localRecord = localDb[key] || Object.values(localDb).find(x => x && x.dni === key)
+
+        const localRecord = localDb[key] || Object.values(localDb).find(x => x && (x.dni === key || x.codigo === key))
         if (localRecord && localRecord.nombre) {
           item.nombreExperto = localRecord.nombre
           item.nombre = localRecord.nombre
@@ -479,35 +499,63 @@ function App() {
           if (localRecord.email) item.email = localRecord.email
         }
 
-        if (!uniqueMap.has(key)) {
-          uniqueMap.set(key, item)
+        const normName = (item.nombreExperto || item.nombre || "").toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
+
+        if (nameIndexMap.has(normName)) {
+          const idx = nameIndexMap.get(normName)
+          const existing = finalRows[idx]
+          // Si la entrada actual tiene DNI real y la existente no, reemplazarla
+          if (key && !key.startsWith('EXP-')) {
+            if (existing.codigo.startsWith('EXP-')) {
+              deleteLocalEvaluadorDbKey(existing.codigo)
+            }
+            finalRows[idx] = item
+          } else if (existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
+            deleteLocalEvaluadorDbKey(key)
+          }
+          return
         }
+
+        nameIndexMap.set(normName, finalRows.length)
+        finalRows.push(item)
       })
 
-      // Agregar cualquier evaluador registrado localmente que falte
+      // Procesar registros locales faltantes
       Object.keys(localDb).forEach(k => {
         const item = localDb[k]
         if (item && item.nombre && item.nombre !== 'Experto Validador') {
-          const key = (item.dni || item.codigo || k).trim().toUpperCase()
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, {
-              codigo: key,
-              nombreExperto: item.nombre || item.nombreExperto,
-              nombre: item.nombre,
-              dni: item.dni || key,
-              cargo: item.cargo || 'Especialista Informante',
-              gradoAcademico: item.gradoAcademico || 'Magíster',
-              institucion: item.institucion || 'Universidad de Procedencia',
-              email: item.email || '',
-              creadoEn: item.actualizadoEn || new Date().toISOString(),
-              estado: item.finalizado ? 'Completado' : 'Pendiente',
-              respondidas: Object.keys(item.respuestas || {}).length
-            })
+          const key = (item.dni && !item.dni.startsWith('EXP-')) ? item.dni.trim().toUpperCase() : (item.codigo || k).trim().toUpperCase()
+          const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
+
+          if (nameIndexMap.has(normName)) {
+            const idx = nameIndexMap.get(normName)
+            const existing = finalRows[idx]
+            if (k.startsWith('EXP-') && existing.codigo && !existing.codigo.startsWith('EXP-')) {
+              deleteLocalEvaluadorDbKey(k)
+            }
+            return
           }
+
+          const newItem = {
+            codigo: key,
+            nombreExperto: item.nombre || item.nombreExperto,
+            nombre: item.nombre,
+            dni: item.dni || key,
+            cargo: item.cargo || 'Especialista Informante',
+            gradoAcademico: item.gradoAcademico || 'Magíster',
+            institucion: item.institucion || 'Universidad de Procedencia',
+            email: item.email || '',
+            creadoEn: item.actualizadoEn || new Date().toISOString(),
+            estado: item.finalizado ? 'Completado' : 'Pendiente',
+            respondidas: Object.keys(item.respuestas || {}).length
+          }
+
+          nameIndexMap.set(normName, finalRows.length)
+          finalRows.push(newItem)
         }
       })
 
-      setInvitacionesList(Array.from(uniqueMap.values()))
+      setInvitacionesList(finalRows)
       setEvaluacionesData(mergedEvals)
     } catch (err) {
       console.warn("No se pudo conectar al backend:", err)
