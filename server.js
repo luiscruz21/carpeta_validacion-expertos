@@ -197,8 +197,6 @@ app.post('/api/invitacion/validar', (req, res) => {
     return res.status(400).json({ success: false, mensaje: 'Debe ingresar su DNI o Documento de Identidad.' })
   }
   const cleanCode = codigo.trim().toUpperCase()
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
   const revocados = readJson(REVOCADOS_FILE) || []
 
   if (revocados.includes(cleanCode)) {
@@ -209,13 +207,12 @@ app.post('/api/invitacion/validar', (req, res) => {
     })
   }
 
-  let invite = invites[cleanCode] || Object.values(invites).find(i => (i.codigo && i.codigo.trim().toUpperCase() === cleanCode) || (i.dni && i.dni.trim().toUpperCase() === cleanCode))
-  let evalData = evals[cleanCode] || Object.values(evals).find(e => (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) || (e.dni && e.dni.trim().toUpperCase() === cleanCode))
+  const evalData = dbManager.getEvaluadorByDni(cleanCode)
 
   return res.json({
     success: true,
     mensaje: 'DNI verificado con éxito',
-    invitacion: invite || { codigo: cleanCode, dni: cleanCode },
+    invitacion: evalData || { codigo: cleanCode, dni: cleanCode },
     evaluacion: evalData || null
   })
 })
