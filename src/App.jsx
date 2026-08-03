@@ -468,14 +468,23 @@ function App() {
         console.warn("Error consultando /api/investigador/resumen:", err)
       }
 
-      // Fusionar evaluaciones del servidor con la tabla DB local del navegador
+      // Fusionar evaluaciones del servidor con la tabla DB local del navegador inteligentemente
       const mergedEvals = { ...serverEvals }
       Object.keys(localDb).forEach(k => {
         const localItem = localDb[k]
         if (localItem && localItem.nombre) {
+          const serverItem = mergedEvals[k] || {}
+          
+          // Preservar las respuestas que tengan más avance (evita que un local vacío borre un server completo)
+          const serverResp = serverItem.respuestas || {}
+          const localResp = localItem.respuestas || {}
+          const mergedResp = Object.keys(serverResp).length >= Object.keys(localResp).length ? serverResp : localResp
+
           mergedEvals[k] = {
-            ...(mergedEvals[k] || {}),
-            ...localItem
+            ...serverItem,
+            ...localItem,
+            respuestas: mergedResp,
+            finalizado: serverItem.finalizado || localItem.finalizado || false
           }
         }
       })
