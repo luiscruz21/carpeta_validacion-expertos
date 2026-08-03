@@ -133,8 +133,12 @@ function App() {
   const [investigadorAutenticado, setInvestigadorAutenticado] = useState(false)
   const [invitacionesList, setInvitacionesList] = useState([])
   const [evaluacionesData, setEvaluacionesData] = useState({})
+  const [nuevoExpertoDni, setNuevoExpertoDni] = useState('')
   const [nuevoExpertoNombre, setNuevoExpertoNombre] = useState('')
   const [nuevoExpertoCargo, setNuevoExpertoCargo] = useState('')
+  const [nuevoExpertoGrado, setNuevoExpertoGrado] = useState('Magíster')
+  const [nuevoExpertoInstitucion, setNuevoExpertoInstitucion] = useState('')
+  const [nuevoExpertoEmail, setNuevoExpertoEmail] = useState('')
 
   // DATOS DEL INVESTIGADOR PRINCIPAL (PERFIL CONFIGURABLE)
   const [investigadorNombres, setInvestigadorNombres] = useState('Luis Alfonso')
@@ -957,8 +961,24 @@ function App() {
       const data = await res.json()
       if (res.ok && data.success) {
         // 1. Actualizar evaluadorInspeccionado si coincide
+        const updatedEval = data.evaluacion || {
+          nombre: combinedNombre,
+          nombresExperto: nombres,
+          apellidosExperto: apellidos,
+          dni: cleanDni,
+          cargo: cleanCargo,
+          gradoAcademico: cleanGrado,
+          institucion: cleanInstitucion,
+          email: cleanEmail,
+          codigo: editingEvalModal.codigo
+        }
+
+        // 1. Actualizar evaluadorInspeccionado si coincide
         if (evaluadorInspeccionado && (evaluadorInspeccionado.codigo === editingEvalModal.codigo || evaluadorInspeccionado.dni === editingEvalModal.dni || evaluadorInspeccionado.dni === cleanDni)) {
-          setEvaluadorInspeccionado(data.evaluacion)
+          setEvaluadorInspeccionado(prev => ({
+            ...prev,
+            ...updatedEval
+          }))
         }
 
         // 2. Actualizar estado local si coincide con el usuario activo
@@ -983,16 +1003,33 @@ function App() {
         }
 
         // 3. Actualizar diccionario local de evaluaciones
-        if (data.evaluacion) {
-          setEvaluacionesData(prev => ({
-            ...prev,
-            [editingEvalModal.codigo]: data.evaluacion,
-            [cleanDni]: data.evaluacion
-          }))
-        }
+        setEvaluacionesData(prev => ({
+          ...prev,
+          [editingEvalModal.codigo]: updatedEval,
+          [cleanDni]: updatedEval
+        }))
+
+        // 4. Actualizar lista de invitaciones/evaluadores en el estado React
+        setInvitacionesList(prev => prev.map(inv => {
+          if (inv.codigo === editingEvalModal.codigo || inv.dni === editingEvalModal.dni || (cleanDni && inv.dni === cleanDni)) {
+            return {
+              ...inv,
+              nombreExperto: combinedNombre,
+              nombre: combinedNombre,
+              nombresExperto: nombres,
+              apellidosExperto: apellidos,
+              dni: cleanDni,
+              cargo: cleanCargo,
+              gradoAcademico: cleanGrado,
+              institucion: cleanInstitucion,
+              email: cleanEmail
+            }
+          }
+          return inv
+        }))
 
         await fetchInvestigadorData()
-        alert("¡Perfil y datos del Evaluador actualizados con éxito en todo el sistema!")
+        alert(`💾 ¡Datos del evaluador "${combinedNombre}" actualizados con éxito en todo el sistema!`)
         setEditingEvalModal(null)
       } else {
         alert(data.mensaje || "Error al actualizar los datos del evaluador.")
@@ -1278,11 +1315,15 @@ function App() {
     }
   }
 
-  // Crear Nueva Invitación (Investigador)
+  // Registrar y Crear Nuevo Evaluador (Investigador)
   const handleCrearInvitacion = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
+    if (!nuevoExpertoDni.trim()) {
+      alert("Por favor ingrese el DNI o Documento de Identidad del nuevo evaluador.")
+      return
+    }
     if (!nuevoExpertoNombre.trim()) {
-      alert("Por favor ingrese el nombre del experto a invitar.")
+      alert("Por favor ingrese el Nombre y Apellidos del nuevo evaluador.")
       return
     }
 
@@ -1292,19 +1333,29 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          dni: nuevoExpertoDni.trim(),
           nombreExperto: nuevoExpertoNombre.trim(),
-          cargo: nuevoExpertoCargo.trim()
+          cargo: nuevoExpertoCargo.trim(),
+          gradoAcademico: nuevoExpertoGrado.trim(),
+          institucion: nuevoExpertoInstitucion.trim(),
+          email: nuevoExpertoEmail.trim()
         })
       })
       const data = await res.json()
       if (data.success) {
-        alert(`¡Invitación creada exitosamente!\nCódigo asignado: ${data.invitación.codigo}`)
+        alert(`¡Evaluador registrado exitosamente!\nDNI asignado: ${data.invitación.dni || data.invitación.codigo}\nNombre: ${data.invitación.nombreExperto}\n\nEl evaluador ya puede ingresar en la pantalla de inicio colocando su DNI.`)
+        setNuevoExpertoDni('')
         setNuevoExpertoNombre('')
         setNuevoExpertoCargo('')
-        fetchInvestigadorData()
+        setNuevoExpertoGrado('Magíster')
+        setNuevoExpertoInstitucion('')
+        setNuevoExpertoEmail('')
+        await fetchInvestigadorData()
+      } else {
+        alert(data.mensaje || "Error al registrar el evaluador.")
       }
     } catch (err) {
-      alert("Error al crear la invitación.")
+      alert("Error de conexión al registrar el evaluador.")
     } finally {
       setSyncing(false)
     }
@@ -3335,68 +3386,123 @@ function App() {
               </form>
             </div>
 
-            {/* SECCIÓN 1: FORMULARIO PARA CREAR INVITACIONES */}
-            <div className="bg-purple-50/60 border border-purple-200 rounded-xl p-5 mb-8">
-              <h3 className="text-sm font-extrabold text-purple-900 flex items-center gap-2 mb-3">
-                <UserPlus className="w-4 h-4 text-purple-700" /> Crear Nueva Invitación para Experto Validador
+            {/* SECCIÓN 1: FORMULARIO PARA CREAR Y REGISTRAR NUEVOS EVALUADORES */}
+            <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-5 mb-8 shadow-sm">
+              <h3 className="text-sm font-extrabold text-purple-950 flex items-center gap-2 mb-3">
+                <UserPlus className="w-5 h-5 text-purple-700" /> Registrar y Crear Nuevo Evaluador Experto
               </h3>
 
-              <form onSubmit={handleCrearInvitacion} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input 
-                  type="text" 
-                  placeholder="Nombre Apellidos del Experto *"
-                  className="p-2.5 border rounded-lg text-xs bg-white text-slate-900 font-semibold"
-                  value={nuevoExpertoNombre}
-                  onChange={(e) => setNuevoExpertoNombre(e.target.value)}
-                />
-                <input 
-                  type="text" 
-                  placeholder="Especialidad / Cargo (ej: Experto en IA / Infraestructura)"
-                  className="p-2.5 border rounded-lg text-xs bg-white text-slate-900"
-                  value={nuevoExpertoCargo}
-                  onChange={(e) => setNuevoExpertoCargo(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow transition-all flex items-center justify-center gap-2"
-                >
-                  <Key className="w-4 h-4" /> Generar Código de Invitación
-                </button>
+              <form onSubmit={handleCrearInvitacion} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">DNI / Doc. Identidad *:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. 45678912"
+                      className="w-full p-2.5 border rounded-lg text-xs bg-white text-slate-900 font-mono font-bold border-purple-300 focus:outline-none focus:border-purple-600"
+                      value={nuevoExpertoDni}
+                      onChange={(e) => setNuevoExpertoDni(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Nombres y Apellidos del Experto *:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Dr. Carlos Mendoza Sotomayor"
+                      className="w-full p-2.5 border rounded-lg text-xs bg-white text-slate-900 font-semibold border-purple-300 focus:outline-none focus:border-purple-600"
+                      value={nuevoExpertoNombre}
+                      onChange={(e) => setNuevoExpertoNombre(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Especialidad / Cargo / Título *:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Doctor en Ingeniería de Software"
+                      className="w-full p-2.5 border rounded-lg text-xs bg-white text-slate-900 border-purple-300 focus:outline-none focus:border-purple-600"
+                      value={nuevoExpertoCargo}
+                      onChange={(e) => setNuevoExpertoCargo(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Grado Académico *:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Doctor / Magíster"
+                      className="w-full p-2.5 border rounded-lg text-xs bg-white text-slate-900 border-purple-300 focus:outline-none focus:border-purple-600"
+                      value={nuevoExpertoGrado}
+                      onChange={(e) => setNuevoExpertoGrado(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Universidad / Institución:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Universidad Nacional Mayor de San Marcos"
+                      className="w-full p-2.5 border rounded-lg text-xs bg-white text-slate-900 border-purple-300 focus:outline-none focus:border-purple-600"
+                      value={nuevoExpertoInstitucion}
+                      onChange={(e) => setNuevoExpertoInstitucion(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={syncing}
+                      className="w-full bg-purple-700 hover:bg-purple-800 active:scale-98 text-white font-extrabold px-4 py-2.5 rounded-lg text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4" /> ➕ REGISTRAR / CREAR NUEVO EVALUADOR
+                    </button>
+                  </div>
+                </div>
               </form>
             </div>
 
-            {/* SECCIÓN 2: TABLA DE INVITACIONES Y AVANCE EN TIEMPO REAL */}
+            {/* SECCIÓN 2: TABLA DE EVALUADORES Y AVANCE EN TIEMPO REAL */}
             <div className="mb-8">
-              <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
                 <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-sky-600" /> Registro de Evaluadores e Invitaciones ({invitacionesList.length})
+                  <Users className="w-5 h-5 text-sky-600" /> Registro Oficial de Evaluadores e Investigadores ({invitacionesList.length})
                 </h3>
                 <button 
-                  onClick={fetchInvestigadorData} 
-                  className="text-xs text-sky-700 font-bold hover:underline flex items-center gap-1"
+                  onClick={async () => {
+                    await fetchInvestigadorData()
+                    alert("🔄 Lista de evaluadores actualizada exitosamente desde el servidor.")
+                  }}
+                  className="bg-sky-100 hover:bg-sky-200 text-sky-800 border border-sky-300 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  title="Haga clic para sincronizar y actualizar la lista de evaluadores en vivo"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Actualizar Lista
+                  <RefreshCw className={`w-4 h-4 text-sky-700 ${syncing ? 'animate-spin' : ''}`} /> Actualizar Lista
                 </button>
               </div>
 
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
                 <table className="w-full text-xs text-left border-collapse">
-                  <thead className="bg-slate-800 text-white uppercase text-[11px]">
+                  <thead className="bg-slate-900 text-white uppercase text-[11px] tracking-wider">
                     <tr>
-                      <th className="px-4 py-3 border-r border-slate-700">Código Invitación</th>
-                      <th className="px-4 py-3 border-r border-slate-700">Experto / Quién lo usa</th>
-                      <th className="px-4 py-3 border-r border-slate-700">DNI del Experto</th>
-                      <th className="px-4 py-3 border-r border-slate-700">Especialidad / Cargo</th>
+                      <th className="px-4 py-3 border-r border-slate-700">DNI / Doc. Identidad</th>
+                      <th className="px-4 py-3 border-r border-slate-700">Experto / Evaluador</th>
+                      <th className="px-4 py-3 border-r border-slate-700">Especialidad / Cargo / Universidad</th>
                       <th className="px-4 py-3 border-r border-slate-700 text-center">Estado de Uso</th>
                       <th className="px-4 py-3 border-r border-slate-700 text-center">Avance (Preguntas)</th>
-                      <th className="px-4 py-3 text-center">Acciones / Enlace</th>
+                      <th className="px-4 py-3 text-center">Acciones / Expediente</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {invitacionesList.map((inv, idx) => {
                       const evalData = evaluacionesData[inv.codigo] || Object.values(evaluacionesData).find(e => 
-                        (e.dni && e.dni.trim().toUpperCase() === inv.codigo.trim().toUpperCase()) || 
-                        (e.nombre && e.nombre.trim().toLowerCase() === (inv.nombreExperto || '').trim().toLowerCase())
+                        (e.dni && e.dni.trim().toUpperCase() === (inv.dni || inv.codigo).trim().toUpperCase()) || 
+                        (e.nombre && e.nombre.trim().toLowerCase() === (inv.nombreExperto || inv.nombre || '').trim().toLowerCase())
                       )
 
                       const countFromEval = evalData ? Object.keys(evalData.respuestas || {}).filter(k => {
@@ -3404,40 +3510,42 @@ function App() {
                         return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
                       }).length : 0
 
-                      const isFullyComp = inv.codigo === '09091855' || evalData?.finalizado || (countFromEval >= 100)
+                      const isFullyComp = inv.codigo === '09091855' || inv.dni === '09091855' || evalData?.finalizado || (countFromEval >= 100)
                       const realAnswered = isFullyComp ? Math.max(countFromEval, 100) : Math.max(inv.respondidas || 0, countFromEval)
                       const realEstado = isFullyComp ? 'Completado' : (realAnswered > 0 ? 'En Proceso' : 'Pendiente')
                       const displayDni = inv.dni || evalData?.dni || (inv.codigo.length === 8 ? inv.codigo : 'Sin registrar')
+                      const displayName = inv.nombreExperto || inv.nombre || evalData?.nombre || 'Experto Validador'
+                      const displayCargo = inv.cargo || evalData?.cargo || 'Especialista Informante'
+                      const displayInstitucion = inv.institucion || evalData?.institucion || evalData?.estudios || ''
 
                       return (
-                        <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                          <td className="px-4 py-3 font-black text-sky-900 border-r border-slate-200">
-                            <span className="bg-sky-100 text-sky-800 px-2.5 py-1 rounded font-mono text-xs border border-sky-300">
-                              {inv.codigo}
+                        <tr key={inv.codigo} className={idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/60 hover:bg-slate-100/80'}>
+                          <td className="px-4 py-3 font-mono font-black text-sky-900 border-r border-slate-200 text-sm">
+                            <span className="bg-sky-100 text-sky-900 px-2.5 py-1 rounded-md border border-sky-300 shadow-2xs">
+                              {displayDni}
                             </span>
                           </td>
                           <td className="px-4 py-3 font-bold text-slate-900 border-r border-slate-200">
                             <button
-                              onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
-                              className="text-left hover:text-purple-700 hover:underline flex items-center gap-1.5 font-extrabold text-sky-900"
-                              title="Haz clic para ver la Carta, Instrumentos, Certificado y Hoja de Vida de este evaluador"
+                              onClick={() => handleInspeccionarEvaluador(inv.codigo, displayName)}
+                              className="text-left hover:text-purple-700 hover:underline flex items-center gap-1.5 font-extrabold text-sky-900 cursor-pointer"
+                              title="Haz clic para inspeccionar la Carta, Instrumentos, Certificado y Hoja de Vida de este evaluador"
                             >
-                              <Eye className="w-3.5 h-3.5 text-purple-600 shrink-0" /> {inv.nombreExperto}
+                              <Eye className="w-4 h-4 text-purple-600 shrink-0" /> {displayName}
                             </button>
+                            {inv.email && <div className="text-[11px] text-slate-500 font-mono font-normal">{inv.email}</div>}
                           </td>
-                          <td className="px-4 py-3 font-mono font-bold text-slate-800 border-r border-slate-200">
-                            {displayDni}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 border-r border-slate-200">
-                            {inv.cargo || 'No especificado'}
+                          <td className="px-4 py-3 text-slate-700 border-r border-slate-200">
+                            <div className="font-semibold text-slate-900">{displayCargo}</div>
+                            {displayInstitucion && <div className="text-[11px] text-slate-500">{displayInstitucion}</div>}
                           </td>
                           <td className="px-4 py-3 text-center border-r border-slate-200">
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
                               realEstado === 'Completado' 
-                                ? 'bg-emerald-100 text-emerald-800' 
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                                 : realEstado === 'En Proceso' 
-                                  ? 'bg-amber-100 text-amber-800' 
-                                  : 'bg-slate-100 text-slate-600'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                                  : 'bg-slate-100 text-slate-600 border border-slate-300'
                             }`}>
                               {realEstado}
                             </span>
@@ -3445,45 +3553,38 @@ function App() {
                           <td className="px-4 py-3 text-center font-bold border-r border-slate-200">
                             <span className="text-sky-700 font-black text-sm">{realAnswered}</span> / 100
                           </td>
-                        <td className="px-4 py-3 text-center flex justify-center gap-2">
-                          <button
-                            onClick={() => handleInspeccionarEvaluador(inv.codigo, inv.nombreExperto)}
-                            className="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
-                            title="Ver Carta, Instrumentos, Certificado con Firma y Hoja de Vida de este evaluador"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Ver Expediente
-                          </button>
+                          <td className="px-4 py-3 text-center flex justify-center gap-1.5 flex-wrap">
+                            <button
+                              onClick={() => handleInspeccionarEvaluador(inv.codigo, displayName)}
+                              className="bg-purple-700 hover:bg-purple-800 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
+                              title="Ver Expediente Completo de este evaluador"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Ver Expediente
+                            </button>
 
-                          <button
-                            onClick={() => handleAbrirEditarEvaluadorModal(inv)}
-                            className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
-                            title="Editar nombres, DNI, cargo, grado e institución de este evaluador"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" /> Editar Datos
-                          </button>
+                            <button
+                              onClick={() => handleAbrirEditarEvaluadorModal(inv)}
+                              className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow transition-all cursor-pointer"
+                              title="Editar nombres, DNI, cargo, grado e institución de este evaluador"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" /> Editar Datos
+                            </button>
 
-                          <button
-                            onClick={() => handleCopiarEnlace(inv.codigo)}
-                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded border border-slate-300 font-semibold text-[11px] flex items-center gap-1 transition-all cursor-pointer"
-                          >
-                            <Copy className="w-3 h-3" /> Copiar Enlace
-                          </button>
-
-                          <button
-                            onClick={() => handleEliminarInvitacion(inv.codigo, inv.nombreExperto)}
-                            className="text-red-600 hover:bg-red-50 p-1.5 rounded transition-all cursor-pointer"
-                            title="Eliminar registro de evaluador o invitación"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                            <button
+                              onClick={() => handleEliminarInvitacion(inv.codigo, displayName)}
+                              className="text-red-600 hover:bg-red-100 p-1.5 rounded-lg transition-all cursor-pointer border border-red-200"
+                              title="Eliminar evaluador"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
           {/* MODAL PARA EDITAR DATOS Y PERFIL DE EVALUADOR POR EL INVESTIGADOR */}
           {editingEvalModal && (

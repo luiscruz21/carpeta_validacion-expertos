@@ -505,27 +505,52 @@ app.get('/api/invitaciones', (req, res) => {
   return res.json({ success: true, invitaciones: result })
 })
 
-// POST Crear una nueva invitación con código único
+// POST Crear un nuevo evaluador con DNI
 app.post('/api/invitaciones/crear', (req, res) => {
-  const { nombreExperto, cargo } = req.body
+  const { dni, nombreExperto, cargo, gradoAcademico, institucion, email } = req.body
   const invites = readJson(INVITE_FILE) || {}
+  const evals = readJson(EVAL_FILE) || {}
 
-  const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase()
-  const codigo = `EXP-${randomSuffix}`
-
-  const newInvite = {
-    codigo,
-    nombreExperto: nombreExperto || "Experto Validador",
-    cargo: cargo || "Especialista Informante",
-    creadoEn: new Date().toISOString(),
-    estado: "Pendiente",
-    dni: ""
+  const cleanDni = (dni || '').trim().toUpperCase()
+  if (!cleanDni) {
+    return res.status(400).json({ success: false, mensaje: 'El DNI o Documento de Identidad del evaluador es obligatorio.' })
   }
 
-  invites[codigo] = newInvite
-  writeJson(INVITE_FILE, invites)
+  const cleanNombre = (nombreExperto || '').trim() || "Experto Validador"
+  const parts = cleanNombre.split(' ')
+  const cleanNombres = parts[0] || cleanNombre
+  const cleanApellidos = parts.slice(1).join(' ') || ""
+  const cleanCargo = (cargo || '').trim() || "Especialista Informante"
+  const cleanGrado = (gradoAcademico || '').trim() || "Magíster"
+  const cleanInstitucion = (institucion || '').trim() || "Universidad de Procedencia"
+  const cleanEmail = (email || '').trim()
 
-  return res.json({ success: true, mensaje: 'Invitación creada con éxito', invitación: newInvite })
+  const newEvaluator = {
+    codigo: cleanDni,
+    inviteCode: cleanDni,
+    dni: cleanDni,
+    nombre: cleanNombre,
+    nombreExperto: cleanNombre,
+    nombresExperto: cleanNombres,
+    apellidosExperto: cleanApellidos,
+    cargo: cleanCargo,
+    gradoAcademico: cleanGrado,
+    institucion: cleanInstitucion,
+    estudios: cleanInstitucion,
+    email: cleanEmail,
+    creadoEn: new Date().toISOString(),
+    estado: "Pendiente",
+    respondidas: 0,
+    respuestas: {}
+  }
+
+  invites[cleanDni] = newEvaluator
+  evals[cleanDni] = newEvaluator
+
+  writeJson(INVITE_FILE, invites)
+  writeJson(EVAL_FILE, evals)
+
+  return res.json({ success: true, mensaje: 'Evaluador registrado con éxito', invitación: newEvaluator, evaluacion: newEvaluator })
 })
 
 // DELETE Eliminar una invitación o evaluador registrado
