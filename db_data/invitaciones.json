@@ -21,17 +21,6 @@
     "estado": "En Proceso",
     "respondidas": 11
   },
-  "EXP-RM99": {
-    "codigo": "EXP-RM99",
-    "nombreExperto": "Dra. Rosa Moore",
-    "cargo": "Doctora en Investigación y Docencia / Juez Experto",
-    "gradoAcademico": "Doctora",
-    "institucion": "Universidad de Procedencia",
-    "dni": "EXP-RM99",
-    "creadoEn": "2026-07-26T09:00:00.000Z",
-    "estado": "Pendiente",
-    "respondidas": 0
-  },
   "06778333": {
     "codigo": "06778333",
     "inviteCode": "06778333",

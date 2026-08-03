@@ -13,6 +13,22 @@
     "creadoEn": "2026-07-24T20:30:00.000Z",
     "estado": "Pendiente"
   },
+  "31680729": {
+    "dni": "31680729",
+    "codigo": "31680729",
+    "nombre": "Rosa Karol Moore Torres",
+    "nombreExperto": "Rosa Karol Moore Torres",
+    "nombresExperto": "Rosa Karol",
+    "apellidosExperto": "Moore Torres",
+    "cargo": "Licenciada en Administración",
+    "gradoAcademico": "Doctora",
+    "institucion": "Universidad Nacional Mayor de San Marcos",
+    "email": "kmooret@unmsm.edu.pe",
+    "creadoEn": "2026-07-26T09:00:00.000Z",
+    "estado": "Pendiente",
+    "respondidas": 0,
+    "respuestas": {}
+  },
   "09091855": {
     "dni": "09091855",
     "codigo": "09091855",
@@ -26,20 +42,6 @@
     "email": "",
     "creadoEn": "2026-07-24T02:04:36.871Z",
     "estado": "Completado"
-  },
-  "EXP-RM99": {
-    "dni": "EXP-RM99",
-    "codigo": "EXP-RM99",
-    "nombre": "Dra. Rosa Moore",
-    "nombreExperto": "Dra. Rosa Moore",
-    "nombresExperto": "Rosa",
-    "apellidosExperto": "Moore",
-    "cargo": "Doctora en Investigación y Docencia / Juez Experto",
-    "gradoAcademico": "Doctora",
-    "institucion": "Universidad de Procedencia",
-    "email": "",
-    "creadoEn": "2026-07-26T09:00:00.000Z",
-    "estado": "Pendiente"
   },
   "06778333": {
     "dni": "06778333",

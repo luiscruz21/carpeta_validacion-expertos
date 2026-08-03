@@ -483,6 +483,14 @@ function App() {
       const finalRows = []
       const nameIndexMap = new Map()
 
+      // Filtrar identificaciones obsoletas tipo EXP-xxxx según petición del usuario
+      rawList = rawList.filter(item => {
+        const d = (item.dni || '').trim().toUpperCase()
+        const c = (item.codigo || '').trim().toUpperCase()
+        if (d.startsWith('EXP-') || c.startsWith('EXP-')) return false
+        return true
+      })
+
       // Procesar lista del servidor
       rawList.forEach(item => {
         const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
