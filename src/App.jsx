@@ -4247,7 +4247,7 @@ function App() {
                     matrizSubTab === 'VI' ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  Variable Independiente (VI): {perfilInvestigador?.variableIndependiente || 'Cargando...'}
+                  Variable Independiente (VI): Arquitectura Predictiva con Deep Learning
                 </button>
                 <button
                   onClick={() => setMatrizSubTab('VD')}
@@ -4255,7 +4255,7 @@ function App() {
                     matrizSubTab === 'VD' ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  Variable Dependiente (VD): {perfilInvestigador?.variableDependiente || 'Cargando...'}
+                  Variable Dependiente (VD): Gestión de Riesgos
                 </button>
               </div>
             </div>

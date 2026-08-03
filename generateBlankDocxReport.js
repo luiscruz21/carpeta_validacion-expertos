@@ -1,14 +1,36 @@
 import * as docx from 'docx'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
 const { 
   Document, Packer, Paragraph, Table, TableRow, TableCell, 
-  TextRun, WidthType, AlignmentType, HeadingLevel, 
-  ShadingType, VerticalMergeType, BorderStyle 
+  TextRun, WidthType, AlignmentType, HeadingLevel
 } = docx
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export async function generateBlankDocxReport(perfilInvestigador = {}, preguntasData = {}) {
   const viList = preguntasData.VI || []
   const vdList = preguntasData.VD || []
   const allPreguntas = [...viList, ...vdList]
+
+  // Cargar Matrices locales
+  let consistenciaData = []
+  let matrizData = { VI: [], VD: [] }
+  try {
+    const consistenciaRaw = fs.readFileSync(path.join(__dirname, 'src', 'consistencia_data.json'), 'utf8')
+    consistenciaData = JSON.parse(consistenciaRaw)
+  } catch (e) {
+    console.error("Error leyendo consistencia_data.json", e)
+  }
+  try {
+    const matrizRaw = fs.readFileSync(path.join(__dirname, 'src', 'matriz_data.json'), 'utf8')
+    matrizData = JSON.parse(matrizRaw)
+  } catch (e) {
+    console.error("Error leyendo matriz_data.json", e)
+  }
 
   const children = []
 
@@ -87,7 +109,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     ]})
   )
 
-  // ESCALA LIKERT
+  // SECCION: MATRIZ DE CONSISTENCIA
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -95,7 +117,110 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
-          text: "II. INSTRUCCIONES Y ESCALA DE EVALUACIÓN",
+          text: "II. MATRIZ DE CONSISTENCIA",
+          bold: true,
+          size: 24,
+          color: "1A365D",
+          font: "Arial"
+        })
+      ]
+    })
+  )
+
+  const consistenciaRows = [
+    new TableRow({
+      children: [
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PROBLEMA", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "OBJETIVO", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "HIPÓTESIS", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "VARIABLES", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
+      ]
+    })
+  ]
+
+  consistenciaData.forEach(item => {
+    consistenciaRows.push(new TableRow({
+      children: [
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.tipo || '', size: 16, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.problema || '', size: 16, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.objetivo || '', size: 16, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.hipotesis || '', size: 16, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.variables || '', size: 16, font: "Arial" })] })] })
+      ]
+    }))
+  })
+
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: consistenciaRows }), new Paragraph({ spacing: { before: 200, after: 200 } }))
+
+  // SECCION: MATRIZ DE OPERACIONALIZACIÓN
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({
+          text: "III. MATRIZ DE OPERACIONALIZACIÓN DE VARIABLES",
+          bold: true,
+          size: 24,
+          color: "1A365D",
+          font: "Arial"
+        })
+      ]
+    })
+  )
+
+  const buildMatrizTable = (dataArray, title) => {
+    const rows = [
+      new TableRow({
+        children: [
+          new TableCell({ columnSpan: 4, shading: { fill: "E2E8F0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: title, bold: true, size: 18, font: "Arial" })] })] })
+        ]
+      }),
+      new TableRow({
+        children: [
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Dimensión", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Indicador", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Definición Operacional", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sustento Teórico", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
+        ]
+      })
+    ]
+
+    dataArray.forEach(dim => {
+      dim.indicadores.forEach((ind, i) => {
+        rows.push(new TableRow({
+          children: [
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: i === 0 ? dim.dimension : '', size: 16, font: "Arial", bold: true })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.indicador || '', size: 16, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.definicion || '', size: 16, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.sustento || '', size: 16, font: "Arial", italic: true })] })] })
+          ]
+        }))
+      })
+    })
+    return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows })
+  }
+
+  if (matrizData.VI && matrizData.VI.length > 0) {
+    children.push(buildMatrizTable(matrizData.VI, "VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva con Deep Learning"))
+    children.push(new Paragraph({ spacing: { after: 300 } }))
+  }
+  if (matrizData.VD && matrizData.VD.length > 0) {
+    children.push(buildMatrizTable(matrizData.VD, "VARIABLE DEPENDIENTE (VD): Gestión de Riesgos"))
+    children.push(new Paragraph({ spacing: { after: 300 } }))
+  }
+
+  // ESCALA LIKERT Y CUESTIONARIO
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({
+          text: "IV. INSTRUCCIONES Y ESCALA DE EVALUACIÓN",
           bold: true,
           size: 24,
           color: "1A365D",
@@ -148,14 +273,13 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   questionRows.push(new TableRow({ children: headerCells }))
 
   allPreguntas.forEach((p, index) => {
-    // Check if we switch from VI to VD to add a divider
     if (index === 0) {
        questionRows.push(new TableRow({
          children: [
            new TableCell({
              columnSpan: 6,
              shading: { fill: "E2E8F0" },
-             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE INDEPENDIENTE (VI): ${perfilInvestigador.variableIndependiente || ''}`, bold: true, size: 16, font: "Arial" })]})]
+             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva con Deep Learning`, bold: true, size: 16, font: "Arial" })]})]
            })
          ]
        }))
@@ -165,7 +289,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
            new TableCell({
              columnSpan: 6,
              shading: { fill: "E2E8F0" },
-             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE DEPENDIENTE (VD): ${perfilInvestigador.variableDependiente || ''}`, bold: true, size: 16, font: "Arial" })]})]
+             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE DEPENDIENTE (VD): Gestión de Riesgos`, bold: true, size: 16, font: "Arial" })]})]
            })
          ]
        }))
@@ -196,7 +320,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
-          text: "III. CUESTIONARIO DE VALIDACIÓN",
+          text: "V. CUESTIONARIO DE VALIDACIÓN",
           bold: true,
           size: 24,
           color: "1A365D",
@@ -215,7 +339,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
-          text: "IV. CONSTANCIA Y DICTAMEN DE VALIDACIÓN",
+          text: "VI. CONSTANCIA Y DICTAMEN DE VALIDACIÓN",
           bold: true,
           size: 24,
           color: "1A365D",
