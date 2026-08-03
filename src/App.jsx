@@ -2397,294 +2397,196 @@ function App() {
                 </button>
               </div>
 
-              <div className="flex bg-slate-100 p-1 rounded-xl mb-6 border border-slate-200">
-                <button
-                  onClick={() => {
-                    setRegistroTab('NUEVO')
-                    setNombre('')
-                    setDni('')
-                    setCargo('')
-                    setRespuestas({})
-                  }}
-                  className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                    registroTab === 'NUEVO' ? 'bg-white text-slate-900 shadow' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <UserPlus className="w-4 h-4 text-emerald-600" /> Primera Vez (Nuevo Registro)
-                </button>
-                <button
-                  onClick={() => setRegistroTab('RETOMAR')}
-                  className={`flex-1 py-2 rounded-lg font-extrabold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                    registroTab === 'RETOMAR' ? 'bg-white text-slate-900 shadow' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <RefreshCw className="w-4 h-4 text-sky-600" /> Retomar mi Avance (Ya registrado)
-                </button>
-              </div>
+              {!inviteValidado ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-900 font-extrabold text-lg mb-1">
+                    <UserCheck className="w-6 h-6 text-sky-600" /> Ingreso de Experto Evaluador
+                  </div>
+                  <p className="text-xs text-slate-600 mb-3">
+                    Ingrese su <strong>DNI / Documento de Identidad</strong> para acceder a la plataforma e iniciar o continuar su evaluación.
+                  </p>
 
-              {registroTab === 'NUEVO' ? (
+                  {invitationError && (
+                    <div className="bg-red-50 border border-red-300 p-3 rounded-lg text-xs text-red-700 font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{invitationError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleValidarInvitacion} className="bg-sky-50/70 border border-sky-200 p-5 rounded-xl space-y-4">
+                    <label className="block font-bold text-sky-950 text-xs">
+                      Ingrese su DNI / Documento de Identidad *:
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. 09091855 / 21868177"
+                      className="w-full p-3.5 border-2 border-sky-300 rounded-xl text-center font-black text-slate-900 tracking-wider text-lg bg-white focus:outline-none focus:border-sky-600"
+                      value={codigoInvitacionInput || recuperarKeyInput}
+                      onChange={(e) => {
+                        setCodigoInvitacionInput(e.target.value)
+                        setRecuperarKeyInput(e.target.value)
+                      }}
+                      required
+                    />
+
+                    <button
+                      type="submit"
+                      className="w-full bg-sky-600 hover:bg-sky-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-md transition-all text-xs flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+                    >
+                      <UserCheck className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} /> 🔑 INGRESAR A EVALUAR / RETOMAR
+                    </button>
+                  </form>
+
+                  <div className="text-center pt-3 border-t border-slate-200 mt-4">
+                    <a
+                      href="/manual_del_evaluador.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition-all border border-emerald-500 cursor-pointer transform hover:-translate-y-0.5"
+                      title="Descargar o ver el Manual del Evaluador en formato PDF"
+                    >
+                      <FileText className="w-4 h-4 text-emerald-200 shrink-0" />
+                      <span>📘 DESCARGAR / VER MANUAL DEL EVALUADOR (PDF)</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
                 <div>
-                  {!inviteValidado ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-slate-900 font-extrabold text-lg mb-1">
-                        <Key className="w-6 h-6 text-amber-600" /> Ingreso por Invitación Oficial
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-slate-900 font-extrabold text-base">
+                        <UserCheck className="w-5 h-5 text-emerald-600" /> Registro de Datos del Experto Evaluador
                       </div>
-                      <p className="text-xs text-slate-600 mb-3">
-                        El acceso a la plataforma es <strong>exclusivamente por invitación previa</strong> generada por el Investigador Principal. Ingrese su <strong>Código de Invitación (EXP-XXXX / 09091855)</strong> para desbloquear su registro.
-                      </p>
+                      <p className="text-[11px] text-slate-500"> Complete sus datos para generar su Carta de Presentación y Certificado. </p>
+                    </div>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-700" /> DNI: {dni || inviteCode}
+                    </span>
+                  </div>
 
-                      {invitationError && (
-                        <div className="bg-red-50 border border-red-300 p-3 rounded-lg text-xs text-red-700 font-bold flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-                          <span>{invitationError}</span>
-                        </div>
-                      )}
-
-                      <form onSubmit={handleValidarInvitacion} className="bg-amber-50/60 border border-amber-200 p-4 rounded-xl space-y-3">
-                        <label className="block font-bold text-amber-900 text-xs">
-                          Código de Invitación Expedido por el Investigador *:
+                  <form onSubmit={handleCompletarRegistroEvaluador} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Nombres del Experto <span className="text-red-600">*</span>:
                         </label>
                         <input 
                           type="text" 
-                          placeholder="Ej. EXP-1001 / 09091855"
-                          className="w-full p-3 border-2 border-amber-300 rounded-xl text-center font-black text-slate-900 tracking-wider uppercase text-base bg-white focus:outline-none focus:border-amber-600"
-                          value={codigoInvitacionInput}
-                          onChange={(e) => setCodigoInvitacionInput(e.target.value)}
+                          placeholder="Ej. Carlos Alberto"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={nombresExperto}
+                          onChange={(e) => setNombresExperto(e.target.value)}
                           required
                         />
-
-                        <button
-                          type="submit"
-                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-md transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <CheckCircle2 className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} /> VALIDAR MI CÓDIGO DE INVITACIÓN
-                        </button>
-                      </form>
-
-                      <div className="text-center pt-3 space-y-3 border-t border-slate-200 mt-4">
-                        <button
-                          type="button"
-                          onClick={() => setRegistroTab('RETOMAR')}
-                          className="text-sky-700 font-bold hover:underline text-xs block mx-auto"
-                        >
-                          ¿Ya se registró anteriormente? Haga clic aquí para ingresar con su DNI
-                        </button>
-
-                        <a
-                          href="/manual_del_evaluador.pdf"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition-all border border-emerald-500 cursor-pointer transform hover:-translate-y-0.5"
-                          title="Descargar o ver el Manual del Evaluador en formato PDF"
-                        >
-                          <FileText className="w-4 h-4 text-emerald-200 shrink-0" />
-                          <span>📘 DESCARGAR / VER MANUAL DEL EVALUADOR (PDF)</span>
-                        </a>
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Apellidos del Experto <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Mendoza Silva"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={apellidosExperto}
+                          onChange={(e) => setApellidosExperto(e.target.value)}
+                          required
+                        />
                       </div>
                     </div>
-                  ) : (
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Título Profesional <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Ingeniero de Sistemas / Licenciado"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={cargo}
+                          onChange={(e) => setCargo(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Grado Académico <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Magíster / Doctor"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={gradoAcademico}
+                          onChange={(e) => setGradoAcademico(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          DNI / Doc. Identidad <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. 09091855"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 font-mono font-bold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={dni}
+                          onChange={(e) => setDni(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-slate-800 mb-1">
+                          Universidad de Procedencia <span className="text-red-600">*</span>:
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Ej. Universidad Nacional de Ingeniería"
+                          className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
+                          value={institucion}
+                          onChange={(e) => setInstitucion(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 text-slate-900 font-extrabold text-base">
-                            <UserCheck className="w-5 h-5 text-emerald-600" /> Registro de Datos del Experto Evaluador
-                          </div>
-                          <p className="text-[11px] text-slate-500"> Complete sus datos para generar su Carta de Presentación y Certificado. </p>
-                        </div>
-                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Código: {inviteCode}
-                        </span>
-                      </div>
-
-                      <form onSubmit={handleCompletarRegistroEvaluador} className="space-y-4 text-xs">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block font-bold text-slate-800 mb-1">
-                              Nombres del Experto <span className="text-red-600">*</span>:
-                            </label>
-                            <input 
-                              type="text" 
-                              placeholder="Ej. Carlos Alberto"
-                              className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                              value={nombresExperto}
-                              onChange={(e) => setNombresExperto(e.target.value)}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block font-bold text-slate-800 mb-1">
-                              Apellidos del Experto <span className="text-red-600">*</span>:
-                            </label>
-                            <input 
-                              type="text" 
-                              placeholder="Ej. Mendoza Silva"
-                              className="w-full p-2.5 border rounded-lg text-slate-900 font-semibold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                              value={apellidosExperto}
-                              onChange={(e) => setApellidosExperto(e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block font-bold text-slate-800 mb-1">
-                              Título Profesional <span className="text-red-600">*</span>:
-                            </label>
-                            <input 
-                              type="text" 
-                              placeholder="Ej. Ingeniero de Sistemas / Licenciado"
-                              className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                              value={cargo}
-                              onChange={(e) => setCargo(e.target.value)}
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-bold text-slate-800 mb-1">
-                              Grado Académico <span className="text-red-600">*</span>:
-                            </label>
-                            <input 
-                              type="text" 
-                              placeholder="Ej. Magíster / Doctor"
-                              className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                              value={gradoAcademico}
-                              onChange={(e) => setGradoAcademico(e.target.value)}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <label className="font-bold text-slate-900 flex items-center gap-1.5">
-                              <Globe className="w-4 h-4 text-sky-600" /> DNI / Documento de Identidad <span className="text-red-600">*</span>:
-                            </label>
-
-                            <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer font-medium">
-                              <input 
-                                type="checkbox" 
-                                checked={isExtranjero}
-                                onChange={(e) => {
-                                  setIsExtranjero(e.target.checked)
-                                  if (e.target.checked && !dni.startsWith('EXT-')) {
-                                    handleGenerarCodigoExtranjero()
-                                  }
-                                }}
-                                className="rounded text-sky-600 focus:ring-sky-500"
-                              />
-                              Soy experto extranjero (Sin DNI peruano)
-                            </label>
-                          </div>
-
-                          {!isExtranjero ? (
-                            <div>
-                              <input 
-                                type="text" 
-                                maxLength={8}
-                                placeholder="DNI del Experto (8 dígitos) *"
-                                className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest bg-white border-slate-300 focus:outline-none focus:border-sky-600"
-                                value={dni}
-                                onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
-                                required
-                              />
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <div className="flex gap-2">
-                                <input 
-                                  type="text" 
-                                  placeholder="Código de Acceso Extranjero *"
-                                  className="w-full p-2.5 border rounded-lg text-slate-900 font-bold tracking-widest uppercase bg-amber-50 border-amber-300 focus:outline-none"
-                                  value={dni}
-                                  onChange={(e) => setDni(e.target.value.toUpperCase())}
-                                  required
-                                />
-                                <button
-                                  type="button"
-                                  onClick={handleGenerarCodigoExtranjero}
-                                  className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shrink-0 cursor-pointer"
-                                >
-                                  Generar Código
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <label className="block font-bold text-slate-800 mb-1">
-                            Universidad de Procedencia / Institución <span className="text-red-600">*</span>:
-                          </label>
-                          <input 
-                            type="text" 
-                            placeholder="Ej. Universidad Nacional de Ingeniería (UNI) / UNMSM"
-                            className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
-                            value={institucion}
-                            onChange={(e) => setInstitucion(e.target.value)}
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block font-semibold text-slate-600 mb-1">
-                            Correo Electrónico (Opcional):
-                          </label>
-                          <input 
-                            type="email" 
-                            placeholder="Ej. experto@ejemplo.com (Opcional)"
-                            className="w-full p-2.5 border rounded-lg text-slate-800 bg-white focus:outline-none focus:border-sky-600"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="pt-3 flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setInviteValidado(false)}
-                            className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition-all"
-                          >
-                            Volver
-                          </button>
-
-                          <button 
-                            type="submit"
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 cursor-pointer"
-                          >
-                            <Check className="w-5 h-5" /> GRABAR DATOS Y ACCEDER A EVALUAR
-                          </button>
-                        </div>
-                      </form>
+                      <label className="block font-bold text-slate-800 mb-1">
+                        Correo Electrónico (Opcional):
+                      </label>
+                      <input 
+                        type="email" 
+                        placeholder="ejemplo@correo.com"
+                        className="w-full p-2.5 border rounded-lg text-slate-900 bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white font-mono"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-slate-900 font-extrabold text-lg mb-1">
-                    <RefreshCw className="w-6 h-6 text-sky-600" /> Recuperar / Retomar Evaluación
-                  </div>
-                  <p className="text-xs text-slate-600 mb-4">
-                    Ingrese su <strong>DNI</strong>, <strong>Código de Extranjero (EXT-XXXXX)</strong> o <strong>Código de Invitación (EXP-XXXX)</strong> para restaurar su avance.
-                  </p>
 
-                  <div className="bg-sky-50 border border-sky-200 p-4 rounded-xl space-y-3">
-                    <input 
-                      type="text" 
-                      placeholder="Ej. 09091855 / EXT-48210 / EXP-1001"
-                      className="w-full p-3 border-2 border-sky-300 rounded-xl text-center font-black text-slate-900 tracking-wider uppercase text-base bg-white focus:outline-none focus:border-sky-600"
-                      value={recuperarKeyInput}
-                      onChange={(e) => setRecuperarKeyInput(e.target.value)}
-                    />
-                    
-                    <button
-                      onClick={() => handleRetomarPorKey()}
-                      className="w-full bg-sky-600 hover:bg-sky-700 text-white font-extrabold py-3 px-6 rounded-xl shadow transition-all text-xs flex items-center justify-center gap-2"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} /> RESTAURAR Y CONTINUAR MI EVALUACIÓN
-                    </button>
-                  </div>
+                    <div className="pt-3 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInviteValidado(false)
+                          setShowRegistroModal(true)
+                        }}
+                        className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-xs cursor-pointer"
+                      >
+                        Atrás / Cambiar DNI
+                      </button>
+
+                      <button 
+                        type="submit"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+                      >
+                        <Check className="w-5 h-5" /> GRABAR DATOS Y ACCEDER A EVALUAR
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
             </div>

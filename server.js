@@ -179,11 +179,11 @@ app.post('/api/investigador/cambiar-pin', (req, res) => {
   return res.json({ success: true, mensaje: 'Clave PIN del Investigador actualizada con éxito', pin: perfil.pin })
 })
 
-// VALIDACIÓN STRICTA DE CÓDIGO DE INVITACIÓN
+// INGRESO / VALIDACIÓN DE EVALUADOR POR DNI O DOCUMENTO DE IDENTIDAD
 app.post('/api/invitacion/validar', (req, res) => {
   const { codigo } = req.body
   if (!codigo) {
-    return res.status(400).json({ success: false, mensaje: 'Debe ingresar un código de invitación.' })
+    return res.status(400).json({ success: false, mensaje: 'Debe ingresar su DNI o Documento de Identidad.' })
   }
   const cleanCode = codigo.trim().toUpperCase()
   const invites = readJson(INVITE_FILE) || {}
@@ -194,24 +194,17 @@ app.post('/api/invitacion/validar', (req, res) => {
     return res.status(403).json({
       success: false,
       revocado: true,
-      mensaje: 'Acceso Denegado: Su invitación ha sido revocada por el Investigador Principal.'
+      mensaje: 'Acceso Denegado: Su acceso ha sido revocado por el Investigador Principal.'
     })
   }
 
-  let invite = invites[cleanCode] || Object.values(invites).find(i => i.codigo === cleanCode || i.dni === cleanCode)
-  let evalData = evals[cleanCode] || Object.values(evals).find(e => e.codigo === cleanCode || e.dni === cleanCode)
-
-  if (!invite && !evalData && cleanCode !== '09091855') {
-    return res.status(404).json({
-      success: false,
-      mensaje: 'Código de invitación NO VÁLIDO o no encontrado. El acceso es exclusivamente por invitación previa generada por el Investigador Principal.'
-    })
-  }
+  let invite = invites[cleanCode] || Object.values(invites).find(i => (i.codigo && i.codigo.trim().toUpperCase() === cleanCode) || (i.dni && i.dni.trim().toUpperCase() === cleanCode))
+  let evalData = evals[cleanCode] || Object.values(evals).find(e => (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) || (e.dni && e.dni.trim().toUpperCase() === cleanCode))
 
   return res.json({
     success: true,
-    mensaje: 'Código de invitación verificado con éxito',
-    invitacion: invite || { codigo: cleanCode },
+    mensaje: 'DNI verificado con éxito',
+    invitacion: invite || { codigo: cleanCode, dni: cleanCode },
     evaluacion: evalData || null
   })
 })
