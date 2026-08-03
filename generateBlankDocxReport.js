@@ -270,11 +270,18 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   // CUESTIONARIO (MATRIZ EN BLANCO)
   const headerCells = [
     new TableCell({ shading: { fill: "1A365D" }, width: { size: 40, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Ítem / Pregunta", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Claridad\n(Sí / No)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
-    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Coherencia\n(Sí / No)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
-    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Relevancia\n(Sí / No)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
-    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Suficiencia\n(Sí / No)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
-    new TableCell({ shading: { fill: "2C7A7B" }, width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Escala Likert\n(1 - 5)", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] })
+    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Claridad", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Coherencia", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Relevancia", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+    new TableCell({ shading: { fill: "2B6CB0" }, width: { size: 10, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Suficiencia", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+    new TableCell({ shading: { fill: "2C7A7B" }, width: { size: 20, type: WidthType.PERCENTAGE }, children: [
+      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Escala Likert", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] }),
+      new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: "1=Totalmente en Desacuerdo", color: "FFFFFF", size: 10, font: "Arial" })] }),
+      new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: "2=En Desacuerdo", color: "FFFFFF", size: 10, font: "Arial" })] }),
+      new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: "3=Ni de Acuerdo ni en Desacuerdo", color: "FFFFFF", size: 10, font: "Arial" })] }),
+      new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: "4=De Acuerdo", color: "FFFFFF", size: 10, font: "Arial" })] }),
+      new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: "5=Totalmente de Acuerdo", color: "FFFFFF", size: 10, font: "Arial" })] })
+    ] })
   ]
 
   const questionRows = []
@@ -307,11 +314,11 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       new TableRow({
         children: [
           new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${p.id}: ${p.texto || ''}`, size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "     /     ", size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "     /     ", size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "     /     ", size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "     /     ", size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[1]  [2]  [3]  [4]  [5]", size: 16, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[ 1 ]   [ 2 ]   [ 3 ]   [ 4 ]   [ 5 ]", size: 14, font: "Arial" })] })] }),
         ]
       })
     )
