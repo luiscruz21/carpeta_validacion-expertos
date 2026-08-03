@@ -28,6 +28,36 @@ const VALORACION_OPCIONES = [
 const TITULO_TESIS_OFICIAL = "Sistema Predictivo con Deep Learning para la Gestión de Riesgos en Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República, Perú, 2020-2024"
 
 const LOCAL_STORAGE_KEY = 'juicio_expertos_autosave_v1'
+const LOCAL_EVALUADORES_DB_KEY = 'SISTEMA_RIESGOS_EVALUADORES_DB'
+
+const getLocalEvaluadoresDb = () => {
+  try {
+    const raw = localStorage.getItem(LOCAL_EVALUADORES_DB_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch (e) {
+    return {}
+  }
+}
+
+const saveEvaluadorToLocalDb = (key, dataObj) => {
+  if (!key || !dataObj) return
+  try {
+    const db = getLocalEvaluadoresDb()
+    const cleanKey = key.trim().toUpperCase()
+    db[cleanKey] = {
+      ...(db[cleanKey] || {}),
+      ...dataObj,
+      actualizadoEn: new Date().toISOString()
+    }
+    if (dataObj.dni) {
+      const cleanDni = dataObj.dni.trim().toUpperCase()
+      db[cleanDni] = db[cleanKey]
+    }
+    localStorage.setItem(LOCAL_EVALUADORES_DB_KEY, JSON.stringify(db))
+  } catch (e) {
+    console.warn("No se pudo guardar en DB local:", e)
+  }
+}
 
 function App() {
   // ROL ACTUAL: 'EVALUADOR' o 'INVESTIGADOR'
@@ -389,26 +419,84 @@ function App() {
     }
   }, [respuestas, nombre, dni, cargo, gradoAcademico, institucion, experiencia, isExtranjero, firmaExpertoImg, valoracionGlobal, dictamenFinal, observaciones, ctiVitae, orcid, linkedin, cvFileName, resumenProfesional, email, estudios, experienciaDetallada, cvFileDataUrl, cvTextContent, inviteCode, userRole])
 
-  // Cargar datos para el Panel del Investigador
+  // Cargar datos para el Panel del Investigador (Fusionando Servidor y DB Local)
   const fetchInvestigadorData = async () => {
     try {
       setSyncing(true)
-      const res = await fetch('/api/investigador/resumen')
-      const data = await res.json()
-      if (data.success) {
-        const rawList = data.invitaciones || []
-        const uniqueMap = new Map()
-        rawList.forEach(item => {
-          const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
-            ? item.dni.trim().toUpperCase()
-            : item.codigo.trim().toUpperCase()
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, item)
-          }
-        })
-        setInvitacionesList(Array.from(uniqueMap.values()))
-        setEvaluacionesData(data.evaluaciones || {})
+      const localDb = getLocalEvaluadoresDb()
+      let serverEvals = {}
+      let rawList = []
+
+      try {
+        const res = await fetch('/api/investigador/resumen')
+        const data = await res.json()
+        if (data.success) {
+          rawList = data.invitaciones || []
+          serverEvals = data.evaluaciones || {}
+        }
+      } catch (err) {
+        console.warn("Error consultando /api/investigador/resumen:", err)
       }
+
+      // Fusionar evaluaciones del servidor con la tabla DB local del navegador
+      const mergedEvals = { ...serverEvals }
+      Object.keys(localDb).forEach(k => {
+        const localItem = localDb[k]
+        if (localItem && localItem.nombre && localItem.nombre !== 'Experto Validador') {
+          mergedEvals[k] = {
+            ...(mergedEvals[k] || {}),
+            ...localItem
+          }
+        }
+      })
+
+      const uniqueMap = new Map()
+      rawList.forEach(item => {
+        const key = (item.dni && item.dni !== 'Sin registrar' && item.dni !== '' && !item.dni.startsWith('EXP-'))
+          ? item.dni.trim().toUpperCase()
+          : item.codigo.trim().toUpperCase()
+        
+        // Si la DB local tiene un nombre actualizado, usarlo
+        const localRecord = localDb[key] || Object.values(localDb).find(x => x && x.dni === key)
+        if (localRecord && localRecord.nombre) {
+          item.nombreExperto = localRecord.nombre
+          item.nombre = localRecord.nombre
+          if (localRecord.cargo) item.cargo = localRecord.cargo
+          if (localRecord.gradoAcademico) item.gradoAcademico = localRecord.gradoAcademico
+          if (localRecord.institucion) item.institucion = localRecord.institucion
+          if (localRecord.email) item.email = localRecord.email
+        }
+
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, item)
+        }
+      })
+
+      // Agregar cualquier evaluador registrado localmente que falte
+      Object.keys(localDb).forEach(k => {
+        const item = localDb[k]
+        if (item && item.nombre && item.nombre !== 'Experto Validador') {
+          const key = (item.dni || item.codigo || k).trim().toUpperCase()
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, {
+              codigo: key,
+              nombreExperto: item.nombre || item.nombreExperto,
+              nombre: item.nombre,
+              dni: item.dni || key,
+              cargo: item.cargo || 'Especialista Informante',
+              gradoAcademico: item.gradoAcademico || 'Magíster',
+              institucion: item.institucion || 'Universidad de Procedencia',
+              email: item.email || '',
+              creadoEn: item.actualizadoEn || new Date().toISOString(),
+              estado: item.finalizado ? 'Completado' : 'Pendiente',
+              respondidas: Object.keys(item.respuestas || {}).length
+            })
+          }
+        }
+      })
+
+      setInvitacionesList(Array.from(uniqueMap.values()))
+      setEvaluacionesData(mergedEvals)
     } catch (err) {
       console.warn("No se pudo conectar al backend:", err)
     } finally {
@@ -1002,6 +1090,9 @@ function App() {
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, cleanEmail)
         }
 
+        saveEvaluadorToLocalDb(editingEvalModal.codigo, updatedEval)
+        if (cleanDni) saveEvaluadorToLocalDb(cleanDni, updatedEval)
+
         // 3. Actualizar diccionario local de evaluaciones
         setEvaluacionesData(prev => ({
           ...prev,
@@ -1299,10 +1390,11 @@ function App() {
     }
   }
 
-  // Guardar en Backend Evaluaciones
+  // Guardar en Backend Evaluaciones y DB Local en el Navegador
   const saveEvaluationToBackend = async (key, payload) => {
     try {
       setSyncing(true)
+      saveEvaluadorToLocalDb(key, payload)
       await fetch('/api/evaluacion/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

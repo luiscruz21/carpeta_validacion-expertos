@@ -95,7 +95,17 @@ const writeJson = (filePath, data) => {
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
   } catch (err) {
-    console.warn(`Autoguardado en disco omitido para ${filePath}:`, err.message)
+    console.warn(`Autoguardado en tmp omitido para ${filePath}:`, err.message)
+  }
+
+  // Escribir siempre también en el directorio db_data del proyecto para evitar reseteos en reinicios
+  try {
+    const baseFile = path.join(__dirname, 'db_data', path.basename(filePath))
+    if (baseFile !== filePath) {
+      fs.writeFileSync(baseFile, JSON.stringify(data, null, 2), 'utf-8')
+    }
+  } catch (e) {
+    console.warn(`No se pudo actualizar db_data/${path.basename(filePath)}:`, e.message)
   }
 }
 
