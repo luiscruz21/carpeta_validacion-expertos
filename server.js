@@ -305,10 +305,15 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
 
   const keyToUse = existingEval.codigo || existingInvite.codigo || cleanCode
 
-  const fullNombre = datosEvaluador.nombre || existingEval.nombre || "Experto Validador"
+  const fullNombre = datosEvaluador.nombre || existingEval.nombre || existingInvite.nombreExperto || "Experto Validador"
   const parts = fullNombre.split(' ')
   const nombres = datosEvaluador.nombresExperto || existingEval.nombresExperto || parts[0] || fullNombre
   const apellidos = datosEvaluador.apellidosExperto || existingEval.apellidosExperto || parts.slice(1).join(' ') || ""
+  const cleanDni = datosEvaluador.dni || existingEval.dni || existingInvite.dni || keyToUse
+  const cleanCargo = datosEvaluador.cargo || existingEval.cargo || existingInvite.cargo || "Especialista Informante"
+  const cleanGrado = datosEvaluador.gradoAcademico || existingEval.gradoAcademico || existingInvite.gradoAcademico || "Magíster"
+  const cleanInstitucion = datosEvaluador.institucion || existingEval.institucion || existingInvite.institucion || "Universidad de Procedencia"
+  const cleanEmail = datosEvaluador.email || existingEval.email || existingInvite.email || ""
 
   const updatedEval = {
     ...existingEval,
@@ -317,28 +322,33 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
     nombre: fullNombre,
     nombresExperto: nombres,
     apellidosExperto: apellidos,
-    cargo: datosEvaluador.cargo || existingEval.cargo || "Especialista Informante",
-    gradoAcademico: datosEvaluador.gradoAcademico || existingEval.gradoAcademico || "Magíster",
-    institucion: datosEvaluador.institucion || existingEval.institucion || "Universidad de Procedencia",
-    dni: datosEvaluador.dni || existingEval.dni || keyToUse,
-    email: datosEvaluador.email || existingEval.email || "",
+    cargo: cleanCargo,
+    gradoAcademico: cleanGrado,
+    institucion: cleanInstitucion,
+    dni: cleanDni,
+    email: cleanEmail,
     lastUpdated: new Date().toISOString()
   }
 
   const updatedInvite = {
     ...existingInvite,
     codigo: keyToUse,
-    nombreExperto: updatedEval.nombre,
-    cargo: updatedEval.cargo,
-    dni: updatedEval.dni
+    nombreExperto: fullNombre,
+    nombresExperto: nombres,
+    apellidosExperto: apellidos,
+    cargo: cleanCargo,
+    gradoAcademico: cleanGrado,
+    institucion: cleanInstitucion,
+    email: cleanEmail,
+    dni: cleanDni
   }
 
   evals[keyToUse] = updatedEval
   invites[keyToUse] = updatedInvite
 
-  if (updatedEval.dni) {
-    evals[updatedEval.dni] = updatedEval
-    invites[updatedEval.dni] = updatedInvite
+  if (cleanDni) {
+    evals[cleanDni] = updatedEval
+    invites[cleanDni] = updatedInvite
   }
   if (cleanCode) {
     evals[cleanCode] = updatedEval
@@ -360,11 +370,6 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
 const getConsolidatedInvitations = (invites, evals) => {
   const grouped = {}
   const perfilInvestigador = readJson(INVESTIGADOR_FILE, {}) || {}
-  const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
-    ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
-    : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
-  const dniInvestigador = perfilInvestigador.dni || '09091855'
-  const cargoInvestigador = perfilInvestigador.cargo || 'Investigador Principal'
 
   // 1. Procesar todas las invitaciones creadas por el Investigador
   Object.keys(invites).forEach(code => {
@@ -385,6 +390,11 @@ const getConsolidatedInvitations = (invites, evals) => {
     const finalDni = inv.dni || matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar')
     let finalNombre = (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || "Experto Validador")
     let finalCargo = (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || "Especialista Informante")
+    let finalGrado = matchingEval?.gradoAcademico || inv.gradoAcademico || "Magíster"
+    let finalInstitucion = matchingEval?.institucion || matchingEval?.estudios || inv.institucion || "Universidad de Procedencia"
+    let finalEmail = matchingEval?.email || inv.email || ""
+    let finalNombresExperto = matchingEval?.nombresExperto || inv.nombresExperto || ""
+    let finalApellidosExperto = matchingEval?.apellidosExperto || inv.apellidosExperto || ""
 
     const respuestas = matchingEval?.respuestas || {}
     const totalAnswered = Object.keys(respuestas).filter(k => {
@@ -398,7 +408,13 @@ const getConsolidatedInvitations = (invites, evals) => {
     grouped[cleanCode] = {
       codigo: cleanCode,
       nombreExperto: finalNombre,
+      nombre: finalNombre,
+      nombresExperto: finalNombresExperto,
+      apellidosExperto: finalApellidosExperto,
       cargo: finalCargo,
+      gradoAcademico: finalGrado,
+      institucion: finalInstitucion,
+      email: finalEmail,
       dni: finalDni,
       creadoEn: inv.creadoEn || new Date().toISOString(),
       estado,
@@ -427,7 +443,13 @@ const getConsolidatedInvitations = (invites, evals) => {
       grouped[cleanKey] = {
         codigo: cleanKey,
         nombreExperto: ev.nombre || "Experto Validador",
+        nombre: ev.nombre || "Experto Validador",
+        nombresExperto: ev.nombresExperto || "",
+        apellidosExperto: ev.apellidosExperto || "",
         cargo: ev.cargo || "Especialista Informante",
+        gradoAcademico: ev.gradoAcademico || "Magíster",
+        institucion: ev.institucion || ev.estudios || "Universidad de Procedencia",
+        email: ev.email || "",
         dni: ev.dni || cleanKey,
         creadoEn: ev.creadoEn || new Date().toISOString(),
         estado,
@@ -584,6 +606,7 @@ app.post('/api/evaluador/ingresar', (req, res) => {
 app.get('/api/evaluacion/:key', (req, res) => {
   const { key } = req.params
   const evals = readJson(EVAL_FILE) || {}
+  const invites = readJson(INVITE_FILE) || {}
   const revocados = readJson(REVOCADOS_FILE) || []
 
   const cleanKey = key.trim().toUpperCase()
@@ -596,18 +619,43 @@ app.get('/api/evaluacion/:key', (req, res) => {
     })
   }
 
-  const found = evals[cleanKey] || Object.values(evals).find(e => e.dni === key.trim())
-  
-  if (found) {
-    if (found.dni && revocados.includes(found.dni.trim().toUpperCase())) {
+  let foundEval = evals[cleanKey] || Object.values(evals).find(e => 
+    (e.codigo && e.codigo.trim().toUpperCase() === cleanKey) || 
+    (e.inviteCode && e.inviteCode.trim().toUpperCase() === cleanKey) ||
+    (e.dni && e.dni.trim().toUpperCase() === cleanKey)
+  )
+
+  let foundInvite = invites[cleanKey] || Object.values(invites).find(i => 
+    (i.codigo && i.codigo.trim().toUpperCase() === cleanKey) || 
+    (i.dni && i.dni.trim().toUpperCase() === cleanKey)
+  )
+
+  if (foundEval || foundInvite) {
+    const merged = {
+      ...(foundInvite || {}),
+      ...(foundEval || {}),
+      nombre: (foundEval && foundEval.nombre) || (foundInvite && foundInvite.nombreExperto) || "Experto Validador",
+      nombresExperto: (foundEval && foundEval.nombresExperto) || (foundInvite && foundInvite.nombresExperto) || "",
+      apellidosExperto: (foundEval && foundEval.apellidosExperto) || (foundInvite && foundInvite.apellidosExperto) || "",
+      cargo: (foundEval && foundEval.cargo) || (foundInvite && foundInvite.cargo) || "Especialista Informante",
+      gradoAcademico: (foundEval && foundEval.gradoAcademico) || (foundInvite && foundInvite.gradoAcademico) || "Magíster",
+      institucion: (foundEval && (foundEval.institucion || foundEval.estudios)) || (foundInvite && foundInvite.institucion) || "Universidad de Procedencia",
+      email: (foundEval && foundEval.email) || (foundInvite && foundInvite.email) || "",
+      dni: (foundEval && foundEval.dni) || (foundInvite && foundInvite.dni) || cleanKey,
+      codigo: cleanKey,
+      inviteCode: cleanKey
+    }
+
+    if (merged.dni && revocados.includes(merged.dni.trim().toUpperCase())) {
       return res.status(403).json({
         success: false,
         revocado: true,
         mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
       })
     }
-    return res.json({ success: true, data: found })
+    return res.json({ success: true, data: merged })
   }
+
   return res.json({ success: false, message: 'No encontrado' })
 })
 
