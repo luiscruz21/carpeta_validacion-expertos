@@ -2720,7 +2720,7 @@ function App() {
                     </button>
                   </form>
 
-                  <div className="text-center pt-3 border-t border-slate-200 mt-4">
+                  <div className="text-center pt-3 border-t border-slate-200 mt-4 space-y-3">
                     <a
                       href="/manual_del_evaluador.pdf"
                       target="_blank"
@@ -2731,6 +2731,35 @@ function App() {
                       <FileText className="w-4 h-4 text-emerald-200 shrink-0" />
                       <span>📘 DESCARGAR / VER MANUAL DEL EVALUADOR (PDF)</span>
                     </a>
+                    
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/investigador/descargar-informe-blanco-docx?blank=true')
+                          if (res.ok) {
+                            const blob = await res.blob()
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = 'EXPEDIENTE_DE_VALIDACION_EN_BLANCO.docx'
+                            document.body.appendChild(a)
+                            a.click()
+                            a.remove()
+                            window.URL.revokeObjectURL(url)
+                          } else {
+                            alert("Error al descargar el informe en blanco.")
+                          }
+                        } catch (err) {
+                          alert("No se pudo contactar al servidor. Revisa tu conexión.")
+                        }
+                      }}
+                      className="inline-flex items-center justify-center gap-2 w-full bg-white hover:bg-slate-50 text-slate-800 font-extrabold py-3 px-4 rounded-xl text-xs shadow-sm transition-all border border-slate-300 cursor-pointer transform hover:-translate-y-0.5"
+                      title="Descargar los instrumentos y fichas en blanco para imprimir"
+                    >
+                      <FileText className="w-4 h-4 text-slate-600 shrink-0" />
+                      <span>🖨️ DESCARGAR EXPEDIENTE EN BLANCO (WORD)</span>
+                    </button>
                   </div>
                 </div>
               ) : (
