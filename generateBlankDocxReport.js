@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 const { 
   Document, Packer, Paragraph, Table, TableRow, TableCell, 
-  TextRun, WidthType, AlignmentType, HeadingLevel
+  TextRun, WidthType, AlignmentType, HeadingLevel, PageOrientation, convertMillimetersToTwip
 } = docx
 
 const __filename = fileURLToPath(import.meta.url)
@@ -130,11 +130,12 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   const consistenciaRows = [
     new TableRow({
       children: [
-        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "TIPO", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "PROBLEMA", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "OBJETIVO", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "HIPÓTESIS", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "VARIABLES", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Nivel", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Problemas de Investigación", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Objetivos de Investigación", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Hipótesis de Investigación", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Variables y Dimensiones", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
+        new TableCell({ shading: { fill: "1A365D" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Técnicas e Instrumentos", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
       ]
     })
   ]
@@ -142,11 +143,12 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   consistenciaData.forEach(item => {
     consistenciaRows.push(new TableRow({
       children: [
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.tipo || '', size: 16, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.problema || '', size: 16, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.objetivo || '', size: 16, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.hipotesis || '', size: 16, font: "Arial" })] })] }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.variables || '', size: 16, font: "Arial" })] })] })
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.tipo || '', size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.problema || '', size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.objetivo || '', size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.hipotesis || '', size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.variables || '', size: 14, font: "Arial" })] })] }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: item.tecnica || '', size: 14, font: "Arial" })] })] })
       ]
     }))
   })
@@ -175,15 +177,18 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     const rows = [
       new TableRow({
         children: [
-          new TableCell({ columnSpan: 4, shading: { fill: "E2E8F0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: title, bold: true, size: 18, font: "Arial" })] })] })
+          new TableCell({ columnSpan: 7, shading: { fill: "E2E8F0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: title, bold: true, size: 18, font: "Arial" })] })] })
         ]
       }),
       new TableRow({
         children: [
-          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Dimensión", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Indicador", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Definición Operacional", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] }),
-          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sustento Teórico", bold: true, color: "FFFFFF", size: 16, font: "Arial" })] })] })
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Dimensión", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Indicador", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Definición Operacional", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Sustento Teórico", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Validez del Constructo", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Técnica e Instrumento", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] }),
+          new TableCell({ shading: { fill: "2B6CB0" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Escala", bold: true, color: "FFFFFF", size: 14, font: "Arial" })] })] })
         ]
       })
     ]
@@ -192,10 +197,13 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       dim.indicadores.forEach((ind, i) => {
         rows.push(new TableRow({
           children: [
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: i === 0 ? dim.dimension : '', size: 16, font: "Arial", bold: true })] })] }),
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.indicador || '', size: 16, font: "Arial" })] })] }),
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.definicion || '', size: 16, font: "Arial" })] })] }),
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.sustento || '', size: 16, font: "Arial", italic: true })] })] })
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: i === 0 ? dim.dimension : '', size: 14, font: "Arial", bold: true })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.nombre || '', size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.definicion || '', size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.sustento || '', size: 14, font: "Arial", italic: true })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.validez || '', size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${ind.tecnica} / ${ind.instrumento}`, size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ind.escala || '', size: 14, font: "Arial" })] })] })
           ]
         }))
       })
@@ -410,7 +418,21 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   const doc = new Document({
     sections: [
       {
-        properties: {},
+        properties: {
+          page: {
+            size: {
+              orientation: PageOrientation.LANDSCAPE,
+              width: convertMillimetersToTwip(297),
+              height: convertMillimetersToTwip(210)
+            },
+            margin: {
+              top: convertMillimetersToTwip(12.7),
+              bottom: convertMillimetersToTwip(12.7),
+              left: convertMillimetersToTwip(12.7),
+              right: convertMillimetersToTwip(12.7)
+            }
+          }
+        },
         children
       }
     ]
