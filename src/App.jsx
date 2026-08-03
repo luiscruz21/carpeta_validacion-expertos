@@ -4438,11 +4438,16 @@ function App() {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-sky-700 block mb-1">
                     {instrumentoSubTab === 'VI' ? 'Instrumento 1 - Variable Independiente' : 'Instrumento 2 - Variable Dependiente'}
                   </span>
-                  <h4 className="text-base font-bold text-sky-900">
+                  <h4 className="text-base font-bold text-sky-900 mb-1">
                     {instrumentoSubTab === 'VI' 
                       ? 'Variable Independiente: Sistema Predictivo con Deep Learning' 
                       : 'Variable Dependiente: Gestión de Riesgos en Proyectos de Infraestructura Pública'}
                   </h4>
+                  <p className="text-sm font-semibold text-slate-700">
+                    <span className="font-bold">Nombre del Instrumento:</span> {instrumentoSubTab === 'VI' 
+                      ? '"Validación Técnica de la Arquitectura Predictiva con Deep Learning"' 
+                      : '"Medición del Impacto Proyectado en la Gestión de Riesgos de Infraestructura Pública"'}
+                  </p>
                 </div>
               </div>
 
