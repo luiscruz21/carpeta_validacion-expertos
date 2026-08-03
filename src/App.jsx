@@ -663,28 +663,53 @@ function App() {
 
       if (data && data.success) {
         setInviteCode(cleanCode)
-        setInviteValidado(true)
+        setDni(cleanCode)
 
-        if (data.evaluacion && data.evaluacion.respuestas && Object.keys(data.evaluacion.respuestas).length > 0) {
+        // CASO 1: EVALUADOR YA REGISTRADO ANTERIORMENTE (TIENE DATOS DE EVALUACIÓN) -> INGRESAR DIRECTAMENTE
+        if (data.evaluacion && data.evaluacion.nombre && data.evaluacion.nombre !== "Experto Validador") {
           const ev = data.evaluacion
-          if (ev.nombre) setNombre(ev.nombre)
-          if (ev.nombresExperto) setNombresExperto(ev.nombresExperto)
-          if (ev.apellidosExperto) setApellidosExperto(ev.apellidosExperto)
-          if (ev.dni) setDni(ev.dni)
-          if (ev.cargo) setCargo(ev.cargo)
-          if (ev.gradoAcademico) setGradoAcademico(ev.gradoAcademico)
-          if (ev.institucion) setInstitucion(ev.institucion)
-          if (ev.email) setEmail(ev.email)
-          setRespuestas(ev.respuestas)
+          setNombre(ev.nombre || '')
+          setNombresExperto(ev.nombresExperto || '')
+          setApellidosExperto(ev.apellidosExperto || '')
+          setDni(ev.dni || cleanCode)
+          setCargo(ev.cargo || '')
+          setGradoAcademico(ev.gradoAcademico || '')
+          setInstitucion(ev.institucion || '')
+          setEmail(ev.email || '')
+          setRespuestas(ev.respuestas || {})
           if (ev.firmaExpertoImg) setFirmaExpertoImg(ev.firmaExpertoImg)
+
           const isComp = Boolean(ev && (ev.finalizado || ev.estado === 'Completado' || (ev.respuestas && Object.keys(ev.respuestas).filter(k => ev.respuestas[k]?.likert).length >= 100)))
           setIsFinalizado(isComp)
+
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, isComp ? 'true' : 'false')
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, ev.nombre || '')
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_dni`, ev.dni || cleanCode)
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_cargo`, ev.cargo || '')
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_grado`, ev.gradoAcademico || '')
+          localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, ev.institucion || '')
+
+          setEvaluadorInspeccionado(ev)
+          setShowRegistroModal(false)
+          setInviteValidado(false)
+          setActiveTab('CARTA')
+
+          const count = Object.keys(ev.respuestas || {}).filter(k => ev.respuestas[k]?.likert).length
+          alert(`¡Bienvenido(a) de nuevo, ${ev.nombre}!\nIngresando a su evaluación (${count}/100 preguntas evaluadas).`)
+          return
         } else {
-          // ES UNA INVITACIÓN / EVALUACIÓN NUEVA SIN RESPUESTAS PREVIAS -> INSTRUMENTOS VACÍOS (0/100)
+          // CASO 2: DNI NUEVO (PRIMERA VEZ) -> LIMPIAR FORZOSAMENTE TODOS LOS CAMPOS DE PERFIL PREVIOS
+          setNombre('')
+          setNombresExperto('')
+          setApellidosExperto('')
+          setCargo('')
+          setGradoAcademico('')
+          setInstitucion('')
+          setEmail('')
           setRespuestas({})
           setFirmaExpertoImg('')
           setIsFinalizado(false)
+
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_finalizado`, 'false')
           localStorage.removeItem(`${LOCAL_STORAGE_KEY}_respuestas`)
           localStorage.removeItem(`${LOCAL_STORAGE_KEY}_firma_img`)
@@ -701,7 +726,12 @@ function App() {
             if (data.invitacion.cargo && data.invitacion.cargo !== "Especialista Informante") {
               setCargo(data.invitacion.cargo)
             }
+            if (data.invitacion.gradoAcademico) setGradoAcademico(data.invitacion.gradoAcademico)
+            if (data.invitacion.institucion) setInstitucion(data.invitacion.institucion)
+            if (data.invitacion.email) setEmail(data.invitacion.email)
           }
+
+          setInviteValidado(true)
         }
         return
       } else if (data && !data.success && data.mensaje) {
