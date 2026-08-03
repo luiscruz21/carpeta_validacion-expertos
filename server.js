@@ -222,17 +222,18 @@ app.post('/api/invitacion/validar', (req, res) => {
 
 // GET Resumen Consolidado Completo para el Investigador
 app.get('/api/investigador/resumen', (req, res) => {
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-  const invitacionesConsolidadas = getConsolidatedInvitations(invites, evals)
-
+  const consolidated = dbManager.getConsolidatedTable()
+  const evalsDict = {}
+  consolidated.forEach(item => {
+    evalsDict[item.dni] = dbManager.getEvaluadorByDni(item.dni)
+  })
   return res.json({
     success: true,
-    totalInvitaciones: invitacionesConsolidadas.length,
-    totalEvaluacionesIniciadas: invitacionesConsolidadas.filter(i => i.respondidas > 0).length,
-    evaluacionesCompletadas: invitacionesConsolidadas.filter(i => i.estado === "Completado" || i.respondidas >= 100).length,
-    invitaciones: invitacionesConsolidadas,
-    evaluaciones: evals
+    totalInvitaciones: consolidated.length,
+    totalEvaluacionesIniciadas: consolidated.filter(i => i.respondidas > 0).length,
+    evaluacionesCompletadas: consolidated.filter(i => i.estado === "Completado" || i.respondidas >= 100).length,
+    invitaciones: consolidated,
+    evaluaciones: evalsDict
   })
 })
 
@@ -307,302 +308,47 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
     return res.status(400).json({ success: false, mensaje: 'Faltan datos obligatorios' })
   }
 
-  const cleanCode = codigoTarget.trim().toUpperCase()
-  const evals = readJson(EVAL_FILE) || {}
-  const invites = readJson(INVITE_FILE) || {}
+  const cleanTarget = codigoTarget.trim().toUpperCase()
+  const cleanDni = (datosEvaluador.dni || cleanTarget).trim().toUpperCase()
 
-  const existingEval = evals[cleanCode] || Object.values(evals).find(e => (e.codigo && e.codigo.trim().toUpperCase() === cleanCode) || (e.dni && e.dni.trim().toUpperCase() === cleanCode)) || {}
-  const existingInvite = invites[cleanCode] || Object.values(invites).find(i => (i.codigo && i.codigo.trim().toUpperCase() === cleanCode) || (i.dni && i.dni.trim().toUpperCase() === cleanCode)) || {}
-
-  const fullNombre = (datosEvaluador.nombre || existingEval.nombre || existingInvite.nombreExperto || "Experto Validador").trim()
-  const parts = fullNombre.split(' ')
-  const nombres = (datosEvaluador.nombresExperto || existingEval.nombresExperto || parts[0] || fullNombre).trim()
-  const apellidos = (datosEvaluador.apellidosExperto || existingEval.apellidosExperto || parts.slice(1).join(' ') || "").trim()
-  const cleanDni = (datosEvaluador.dni || existingEval.dni || existingInvite.dni || cleanCode).trim().toUpperCase()
-  
-  // Clave canónica preferida: El DNI real si existe y no empieza por EXP-, sino el codigoTarget
-  const canonicalKey = (cleanDni && cleanDni !== 'SIN REGISTRAR' && !cleanDni.startsWith('EXP-')) ? cleanDni : (existingEval.codigo || existingInvite.codigo || cleanCode)
-
-  const cleanCargo = (datosEvaluador.cargo || existingEval.cargo || existingInvite.cargo || "Especialista Informante").trim()
-  const cleanGrado = (datosEvaluador.gradoAcademico || existingEval.gradoAcademico || existingInvite.gradoAcademico || "Magíster").trim()
-  const cleanInstitucion = (datosEvaluador.institucion || datosEvaluador.estudios || existingEval.institucion || existingEval.estudios || existingInvite.institucion || "Universidad de Procedencia").trim()
-  const cleanEmail = (datosEvaluador.email || existingEval.email || existingInvite.email || "").trim()
-  const cleanEstudios = cleanInstitucion
-  const cleanExperienciaDetallada = datosEvaluador.experienciaDetallada !== undefined ? datosEvaluador.experienciaDetallada : (existingEval.experienciaDetallada || "")
-  const cleanCtiVitae = datosEvaluador.ctiVitae !== undefined ? datosEvaluador.ctiVitae : (existingEval.ctiVitae || "")
-  const cleanOrcid = datosEvaluador.orcid !== undefined ? datosEvaluador.orcid : (existingEval.orcid || "")
-  const cleanLinkedin = datosEvaluador.linkedin !== undefined ? datosEvaluador.linkedin : (existingEval.linkedin || "")
-  const cleanResumenProfesional = datosEvaluador.resumenProfesional !== undefined ? datosEvaluador.resumenProfesional : (existingEval.resumenProfesional || "")
-
-  const updatedEval = {
-    ...existingEval,
-    codigo: canonicalKey,
-    inviteCode: canonicalKey,
-    nombre: fullNombre,
-    nombresExperto: nombres,
-    apellidosExperto: apellidos,
-    cargo: cleanCargo,
-    gradoAcademico: cleanGrado,
-    institucion: cleanInstitucion,
-    estudios: cleanEstudios,
-    dni: cleanDni,
-    email: cleanEmail,
-    experienciaDetallada: cleanExperienciaDetallada,
-    ctiVitae: cleanCtiVitae,
-    orcid: cleanOrcid,
-    linkedin: cleanLinkedin,
-    resumenProfesional: cleanResumenProfesional,
-    lastUpdated: new Date().toISOString()
+  if (cleanTarget !== cleanDni && cleanTarget.startsWith('EXP-')) {
+    dbManager.deleteEvaluador(cleanTarget)
   }
 
-  const updatedInvite = {
-    ...existingInvite,
-    codigo: canonicalKey,
-    nombreExperto: fullNombre,
-    nombresExperto: nombres,
-    apellidosExperto: apellidos,
-    cargo: cleanCargo,
-    gradoAcademico: cleanGrado,
-    institucion: cleanInstitucion,
-    estudios: cleanEstudios,
-    email: cleanEmail,
-    dni: cleanDni,
-    ctiVitae: cleanCtiVitae,
-    orcid: cleanOrcid,
-    linkedin: cleanLinkedin
-  }
-
-  // Eliminar la clave original antigua si ha sido migrada a una clave DNI canónica
-  if (cleanCode !== canonicalKey) {
-    delete evals[cleanCode]
-    delete invites[cleanCode]
-  }
-
-  // Eliminar cualquier otra clave duplicada que tenga el mismo DNI o el mismo nombre completo
-  const normTargetName = fullNombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-  Object.keys(invites).forEach(k => {
-    if (k === canonicalKey) return
-    const kInv = invites[k] || {}
-    const kDni = (kInv.dni || k).trim().toUpperCase()
-    const kName = (kInv.nombreExperto || kInv.nombre || '').toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-    if ((cleanDni && kDni === cleanDni) || (normTargetName && kName === normTargetName)) {
-      delete invites[k]
-    }
-  })
-
-  Object.keys(evals).forEach(k => {
-    if (k === canonicalKey) return
-    const kEv = evals[k] || {}
-    const kDni = (kEv.dni || k).trim().toUpperCase()
-    const kName = (kEv.nombre || kEv.nombreExperto || '').toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-    if ((cleanDni && kDni === cleanDni) || (normTargetName && kName === normTargetName)) {
-      if (kEv.respuestas && Object.keys(kEv.respuestas).length > 0) {
-        updatedEval.respuestas = { ...kEv.respuestas, ...(updatedEval.respuestas || {}) }
-      }
-      delete evals[k]
-    }
-  })
-
-  // Guardar ÚNICAMENTE la entrada canónica deduplicada
-  evals[canonicalKey] = updatedEval
-  invites[canonicalKey] = updatedInvite
-
-  writeJson(EVAL_FILE, evals)
-  writeJson(INVITE_FILE, invites)
+  const updated = dbManager.upsertEvaluador(cleanDni, datosEvaluador)
 
   return res.json({
     success: true,
     mensaje: 'Perfil y datos del evaluador actualizados con éxito por el Investigador',
-    evaluacion: updatedEval,
-    invitacion: updatedInvite
+    evaluacion: updated,
+    invitacion: updated
   })
 })
 
-// Función Auxiliar para Consolidar Evaluadores Únicos y sus Respuestas (1 Fila por Evaluador Único)
-const getConsolidatedInvitations = (invites, evals) => {
-  const result = []
-  const seenCodes = new Set()
-  const seenDnis = new Set()
-  const nameToResultIndex = new Map()
-
-  // 1. Procesar todas las invitaciones creadas por el Investigador
-  Object.keys(invites).forEach(code => {
-    const inv = invites[code] || {}
-    const cleanCode = code.trim().toUpperCase()
-    const cleanInvDni = (inv.dni || '').trim().toUpperCase()
-
-    const matchingEval = evals[cleanCode] || Object.values(evals).find(e => {
-      const eInvite = (e.inviteCode || '').trim().toUpperCase()
-      const eCode = (e.codigo || '').trim().toUpperCase()
-      const eDni = (e.dni || '').trim().toUpperCase()
-      if (eInvite && eInvite === cleanCode) return true
-      if (eCode && eCode === cleanCode) return true
-      if (cleanInvDni && cleanInvDni !== '' && cleanInvDni !== 'SIN REGISTRAR' && eDni && eDni === cleanInvDni) return true
-      return false
-    })
-
-    const finalDni = (inv.dni && inv.dni !== cleanCode) ? inv.dni : (matchingEval?.dni || (cleanCode.length === 8 ? cleanCode : 'Sin registrar'))
-    const cleanFinalDni = finalDni.trim().toUpperCase()
-
-    let finalNombre = (matchingEval?.nombre && matchingEval.nombre !== "Experto Validador") ? matchingEval.nombre : (inv.nombreExperto || "Experto Validador")
-    let finalCargo = (matchingEval?.cargo && matchingEval.cargo !== "Especialista Informante") ? matchingEval.cargo : (inv.cargo || "Especialista Informante")
-    let finalGrado = matchingEval?.gradoAcademico || inv.gradoAcademico || "Magíster"
-    let finalInstitucion = matchingEval?.institucion || matchingEval?.estudios || inv.institucion || "Universidad de Procedencia"
-    let finalEmail = matchingEval?.email || inv.email || ""
-    let finalNombresExperto = matchingEval?.nombresExperto || inv.nombresExperto || ""
-    let finalApellidosExperto = matchingEval?.apellidosExperto || inv.apellidosExperto || ""
-
-    const normName = finalNombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-
-    const respuestas = matchingEval?.respuestas || {}
-    const totalAnswered = Object.keys(respuestas).filter(k => {
-      const r = respuestas[k]
-      return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
-    }).length
-
-    const isFullyCompleted = cleanCode === '09091855' || matchingEval?.finalizado || totalAnswered >= 100
-    let estado = isFullyCompleted ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
-
-    const item = {
-      codigo: cleanCode,
-      nombreExperto: finalNombre,
-      nombre: finalNombre,
-      nombresExperto: finalNombresExperto,
-      apellidosExperto: finalApellidosExperto,
-      cargo: finalCargo,
-      gradoAcademico: finalGrado,
-      institucion: finalInstitucion,
-      email: finalEmail,
-      dni: finalDni,
-      creadoEn: inv.creadoEn || new Date().toISOString(),
-      estado,
-      respondidas: isFullyCompleted ? Math.max(totalAnswered, 100) : totalAnswered
-    }
-
-    // Si este nombre o DNI ya existe, consolidar reemplazando si este nuevo tiene DNI real
-    if (nameToResultIndex.has(normName)) {
-      const idx = nameToResultIndex.get(normName)
-      const existing = result[idx]
-      if (cleanFinalDni && cleanFinalDni !== 'SIN REGISTRAR' && !cleanFinalDni.startsWith('EXP-')) {
-        result[idx] = item
-      }
-      return
-    }
-
-    if (seenCodes.has(cleanCode)) return
-    if (cleanFinalDni && cleanFinalDni !== 'SIN REGISTRAR' && cleanFinalDni !== '' && !cleanFinalDni.startsWith('EXP-') && seenDnis.has(cleanFinalDni)) return
-
-    seenCodes.add(cleanCode)
-    if (cleanFinalDni && cleanFinalDni !== 'SIN REGISTRAR' && cleanFinalDni !== '' && !cleanFinalDni.startsWith('EXP-')) {
-      seenDnis.add(cleanFinalDni)
-    }
-    nameToResultIndex.set(normName, result.length)
-
-    result.push(item)
-  })
-
-  // 2. Agregar cualquier evaluación adicional que no estuviera agrupada
-  Object.keys(evals).forEach(key => {
-    const cleanKey = key.trim().toUpperCase()
-    const ev = evals[cleanKey] || {}
-    const inviteCode = (ev.inviteCode || '').trim().toUpperCase()
-    const evDni = (ev.dni || '').trim().toUpperCase()
-
-    if (seenCodes.has(cleanKey) || (inviteCode && seenCodes.has(inviteCode))) return
-    if (evDni && evDni !== 'SIN REGISTRAR' && evDni !== '' && !evDni.startsWith('EXP-') && seenDnis.has(evDni)) return
-    if (cleanKey === '09091855') return
-
-    const finalNombre = ev.nombre || "Experto Validador"
-    const normName = finalNombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-    if (nameToResultIndex.has(normName)) return
-
-    const respuestas = ev.respuestas || {}
-    const totalAnswered = Object.keys(respuestas).filter(k => {
-      const r = respuestas[k]
-      return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
-    }).length
-    const estado = (ev.finalizado || totalAnswered >= 100) ? "Completado" : (totalAnswered > 0 ? "En Proceso" : "Pendiente")
-
-    const item = {
-      codigo: cleanKey,
-      nombreExperto: finalNombre,
-      nombre: finalNombre,
-      nombresExperto: ev.nombresExperto || "",
-      apellidosExperto: ev.apellidosExperto || "",
-      cargo: ev.cargo || "Especialista Informante",
-      gradoAcademico: ev.gradoAcademico || "Magíster",
-      institucion: ev.institucion || ev.estudios || "Universidad de Procedencia",
-      email: ev.email || "",
-      dni: ev.dni || cleanKey,
-      creadoEn: ev.creadoEn || new Date().toISOString(),
-      estado,
-      respondidas: totalAnswered
-    }
-
-    seenCodes.add(cleanKey)
-    if (evDni && evDni !== 'SIN REGISTRAR' && evDni !== '' && !evDni.startsWith('EXP-')) {
-      seenDnis.add(evDni)
-    }
-    nameToResultIndex.set(normName, result.length)
-
-    result.push(item)
-  })
-
-  return result
-}
 
 // GET Obtener todas las invitaciones (Consolidadas y agrupadas por Evaluador)
 app.get('/api/invitaciones', (req, res) => {
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-  const result = getConsolidatedInvitations(invites, evals)
+  const result = dbManager.getConsolidatedTable()
   return res.json({ success: true, invitaciones: result })
 })
 
 // POST Crear un nuevo evaluador con DNI
 app.post('/api/invitaciones/crear', (req, res) => {
   const { dni, nombreExperto, cargo, gradoAcademico, institucion, email } = req.body
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-
   const cleanDni = (dni || '').trim().toUpperCase()
   if (!cleanDni) {
     return res.status(400).json({ success: false, mensaje: 'El DNI o Documento de Identidad del evaluador es obligatorio.' })
   }
 
-  const cleanNombre = (nombreExperto || '').trim() || "Experto Validador"
-  const parts = cleanNombre.split(' ')
-  const cleanNombres = parts[0] || cleanNombre
-  const cleanApellidos = parts.slice(1).join(' ') || ""
-  const cleanCargo = (cargo || '').trim() || "Especialista Informante"
-  const cleanGrado = (gradoAcademico || '').trim() || "Magíster"
-  const cleanInstitucion = (institucion || '').trim() || "Universidad de Procedencia"
-  const cleanEmail = (email || '').trim()
-
-  const newEvaluator = {
-    codigo: cleanDni,
-    inviteCode: cleanDni,
+  const newEvaluator = dbManager.upsertEvaluador(cleanDni, {
     dni: cleanDni,
-    nombre: cleanNombre,
-    nombreExperto: cleanNombre,
-    nombresExperto: cleanNombres,
-    apellidosExperto: cleanApellidos,
-    cargo: cleanCargo,
-    gradoAcademico: cleanGrado,
-    institucion: cleanInstitucion,
-    estudios: cleanInstitucion,
-    email: cleanEmail,
-    creadoEn: new Date().toISOString(),
-    estado: "Pendiente",
-    respondidas: 0,
-    respuestas: {}
-  }
-
-  invites[cleanDni] = newEvaluator
-  evals[cleanDni] = newEvaluator
-
-  writeJson(INVITE_FILE, invites)
-  writeJson(EVAL_FILE, evals)
+    nombre: nombreExperto || 'Experto Validador',
+    nombreExperto: nombreExperto || 'Experto Validador',
+    cargo,
+    gradoAcademico,
+    institucion,
+    email
+  })
 
   return res.json({ success: true, mensaje: 'Evaluador registrado con éxito', invitación: newEvaluator, evaluacion: newEvaluator })
 })
@@ -611,56 +357,9 @@ app.post('/api/invitaciones/crear', (req, res) => {
 app.delete('/api/invitaciones/:codigo', (req, res) => {
   const { codigo } = req.params
   const cleanCode = (codigo || '').trim().toUpperCase()
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-  const revocados = readJson(REVOCADOS_FILE) || []
-
-  let found = false
-
-  if (invites[cleanCode]) {
-    if (invites[cleanCode].dni && !revocados.includes(invites[cleanCode].dni.trim().toUpperCase())) {
-      revocados.push(invites[cleanCode].dni.trim().toUpperCase())
-    }
-    delete invites[cleanCode]
-    found = true
-  }
-
-  if (evals[cleanCode]) {
-    if (evals[cleanCode].dni && !revocados.includes(evals[cleanCode].dni.trim().toUpperCase())) {
-      revocados.push(evals[cleanCode].dni.trim().toUpperCase())
-    }
-    delete evals[cleanCode]
-    found = true
-  }
-
-  Object.keys(evals).forEach(k => {
-    const kClean = k.toUpperCase()
-    if (kClean === cleanCode || (evals[k].dni && evals[k].dni.toUpperCase() === cleanCode) || (/^\d+$/.test(kClean) && (cleanCode.startsWith(kClean) || kClean.startsWith(cleanCode)))) {
-      if (evals[k].dni && !revocados.includes(evals[k].dni.trim().toUpperCase())) {
-        revocados.push(evals[k].dni.trim().toUpperCase())
-      }
-      delete evals[k]
-      found = true
-    }
-  })
-
-  Object.keys(invites).forEach(k => {
-    const kClean = k.toUpperCase()
-    if (kClean === cleanCode || (invites[k].dni && invites[k].dni.toUpperCase() === cleanCode) || (/^\d+$/.test(kClean) && (cleanCode.startsWith(kClean) || kClean.startsWith(cleanCode)))) {
-      delete invites[k]
-      found = true
-    }
-  })
-
-  if (!revocados.includes(cleanCode)) {
-    revocados.push(cleanCode)
-  }
-
-  writeJson(INVITE_FILE, invites)
-  writeJson(EVAL_FILE, evals)
-  writeJson(REVOCADOS_FILE, revocados)
-
-  if (found) {
+  const deleted = dbManager.deleteEvaluador(cleanCode)
+  
+  if (deleted) {
     return res.json({ success: true, mensaje: 'Evaluador o invitación eliminada correctamente' })
   }
   return res.status(404).json({ success: false, mensaje: 'Registro no encontrado' })
@@ -676,43 +375,26 @@ app.post('/api/evaluador/extranjero-codigo', (req, res) => {
 // ENDPOINTS PARA EVALUADORES (VALIDACIÓN Y GUARDADO)
 app.post('/api/evaluador/ingresar', (req, res) => {
   const { codigo, dni } = req.body
-  const invites = readJson(INVITE_FILE) || {}
-  const evals = readJson(EVAL_FILE) || {}
-  const revocados = readJson(REVOCADOS_FILE) || []
-
   const cleanCode = (codigo || '').trim().toUpperCase()
-  const cleanDni = (dni || '').trim()
+  const cleanDni = (dni || '').trim().toUpperCase()
 
-  if (revocados.includes(cleanCode) || (cleanDni && revocados.includes(cleanDni.toUpperCase()))) {
-    return res.status(403).json({
-      success: false,
-      revocado: true,
-      mensaje: 'Acceso Denegado: Su registro o invitación ha sido retirado del sistema por el Investigador.'
+  let evalData = dbManager.getEvaluadorByDni(cleanCode)
+  if (!evalData && cleanDni) {
+    evalData = dbManager.getEvaluadorByDni(cleanDni)
+  }
+  
+  if (!evalData && cleanDni) {
+    evalData = dbManager.upsertEvaluador(cleanDni, {
+      dni: cleanDni,
+      codigo: cleanCode || cleanDni,
+      nombre: 'Experto Validador',
+      nombreExperto: 'Experto Validador'
     })
   }
 
-  let invite = invites[cleanCode]
-  
-  if (!invite && cleanDni) {
-    invite = Object.values(invites).find(i => i.dni === cleanDni)
-  }
-
-  if (!invite && cleanDni) {
-    invite = {
-      codigo: cleanCode || `ACC-${cleanDni}`,
-      nombreExperto: "",
-      cargo: "",
-      creadoEn: new Date().toISOString(),
-      estado: "En Proceso",
-      dni: cleanDni
-    }
-  }
-
-  const evalData = evals[cleanCode] || (cleanDni ? evals[cleanCode] : null) || null
-
   return res.json({
     success: true,
-    invitacion: invite || { codigo: cleanCode || 'DIRECTO' },
+    invitacion: evalData || { codigo: cleanCode || 'DIRECTO' },
     evaluacion: evalData
   })
 })
@@ -720,57 +402,12 @@ app.post('/api/evaluador/ingresar', (req, res) => {
 // GET Consulta por DNI / Código
 app.get('/api/evaluacion/:key', (req, res) => {
   const { key } = req.params
-  const evals = readJson(EVAL_FILE) || {}
-  const invites = readJson(INVITE_FILE) || {}
-  const revocados = readJson(REVOCADOS_FILE) || []
-
-  const cleanKey = key.trim().toUpperCase()
-
-  if (revocados.includes(cleanKey)) {
-    return res.status(403).json({
-      success: false,
-      revocado: true,
-      mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
-    })
+  const cleanKey = (key || '').trim().toUpperCase()
+  const ev = dbManager.getEvaluadorByDni(cleanKey)
+  
+  if (ev) {
+    return res.json({ success: true, data: ev })
   }
-
-  let foundEval = evals[cleanKey] || Object.values(evals).find(e => 
-    (e.codigo && e.codigo.trim().toUpperCase() === cleanKey) || 
-    (e.inviteCode && e.inviteCode.trim().toUpperCase() === cleanKey) ||
-    (e.dni && e.dni.trim().toUpperCase() === cleanKey)
-  )
-
-  let foundInvite = invites[cleanKey] || Object.values(invites).find(i => 
-    (i.codigo && i.codigo.trim().toUpperCase() === cleanKey) || 
-    (i.dni && i.dni.trim().toUpperCase() === cleanKey)
-  )
-
-  if (foundEval || foundInvite) {
-    const merged = {
-      ...(foundInvite || {}),
-      ...(foundEval || {}),
-      nombre: (foundEval && foundEval.nombre) || (foundInvite && foundInvite.nombreExperto) || "Experto Validador",
-      nombresExperto: (foundEval && foundEval.nombresExperto) || (foundInvite && foundInvite.nombresExperto) || "",
-      apellidosExperto: (foundEval && foundEval.apellidosExperto) || (foundInvite && foundInvite.apellidosExperto) || "",
-      cargo: (foundEval && foundEval.cargo) || (foundInvite && foundInvite.cargo) || "Especialista Informante",
-      gradoAcademico: (foundEval && foundEval.gradoAcademico) || (foundInvite && foundInvite.gradoAcademico) || "Magíster",
-      institucion: (foundEval && (foundEval.institucion || foundEval.estudios)) || (foundInvite && foundInvite.institucion) || "Universidad de Procedencia",
-      email: (foundEval && foundEval.email) || (foundInvite && foundInvite.email) || "",
-      dni: (foundEval && foundEval.dni) || (foundInvite && foundInvite.dni) || cleanKey,
-      codigo: cleanKey,
-      inviteCode: cleanKey
-    }
-
-    if (merged.dni && revocados.includes(merged.dni.trim().toUpperCase())) {
-      return res.status(403).json({
-        success: false,
-        revocado: true,
-        mensaje: 'Acceso Denegado: Este registro fue eliminado por el Investigador.'
-      })
-    }
-    return res.json({ success: true, data: merged })
-  }
-
   return res.json({ success: false, message: 'No encontrado' })
 })
 

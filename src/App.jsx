@@ -472,7 +472,7 @@ function App() {
       const mergedEvals = { ...serverEvals }
       Object.keys(localDb).forEach(k => {
         const localItem = localDb[k]
-        if (localItem && localItem.nombre && localItem.nombre !== 'Experto Validador') {
+        if (localItem && localItem.nombre) {
           mergedEvals[k] = {
             ...(mergedEvals[k] || {}),
             ...localItem
@@ -501,16 +501,16 @@ function App() {
 
         const normName = (item.nombreExperto || item.nombre || "").toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
 
-        if (nameIndexMap.has(normName)) {
+        if (normName !== 'experto validador' && nameIndexMap.has(normName)) {
           const idx = nameIndexMap.get(normName)
           const existing = finalRows[idx]
           // Si la entrada actual tiene DNI real y la existente no, reemplazarla
           if (key && !key.startsWith('EXP-')) {
-            if (existing.codigo.startsWith('EXP-')) {
+            if (existing.codigo && existing.codigo.startsWith('EXP-')) {
               deleteLocalEvaluadorDbKey(existing.codigo)
             }
             finalRows[idx] = item
-          } else if (existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
+          } else if (existing.codigo && existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
             deleteLocalEvaluadorDbKey(key)
           }
           return
@@ -523,15 +523,21 @@ function App() {
       // Procesar registros locales faltantes
       Object.keys(localDb).forEach(k => {
         const item = localDb[k]
-        if (item && item.nombre && item.nombre !== 'Experto Validador') {
+        if (item && item.nombre) {
           const key = (item.dni && !item.dni.startsWith('EXP-')) ? item.dni.trim().toUpperCase() : (item.codigo || k).trim().toUpperCase()
           const normName = item.nombre.toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
 
-          if (nameIndexMap.has(normName)) {
+          if (normName !== 'experto validador' && nameIndexMap.has(normName)) {
             const idx = nameIndexMap.get(normName)
             const existing = finalRows[idx]
-            if (k.startsWith('EXP-') && existing.codigo && !existing.codigo.startsWith('EXP-')) {
-              deleteLocalEvaluadorDbKey(k)
+            
+            if (key && !key.startsWith('EXP-')) {
+              if (existing.codigo && existing.codigo.startsWith('EXP-')) {
+                finalRows[idx] = { ...existing, ...item, codigo: key, dni: key, inviteCode: key }
+                deleteLocalEvaluadorDbKey(existing.codigo)
+              }
+            } else if (existing.codigo && !existing.codigo.startsWith('EXP-') && key.startsWith('EXP-')) {
+              deleteLocalEvaluadorDbKey(key)
             }
             return
           }
@@ -1530,18 +1536,20 @@ function App() {
         const data = await res.json()
         if (data.success) {
           alert(`¡Registro eliminado exitosamente!`)
-          localStorage.clear()
-          setNombre('')
-          setDni('')
-          setCargo('')
-          setGradoAcademico('')
-          setInstitucion('')
-          setExperiencia('')
-          setFirmaExpertoImg('')
-          setCvFileName('')
-          setRespuestas({})
-          setInviteCode('')
-          setEvaluadorInspeccionado(null)
+          deleteLocalEvaluadorDbKey(codigo)
+          if (evaluadorInspeccionado && (evaluadorInspeccionado.codigo === codigo || evaluadorInspeccionado.dni === codigo)) {
+            setNombre('')
+            setDni('')
+            setCargo('')
+            setGradoAcademico('')
+            setInstitucion('')
+            setExperiencia('')
+            setFirmaExpertoImg('')
+            setCvFileName('')
+            setRespuestas({})
+            setInviteCode('')
+            setEvaluadorInspeccionado(null)
+          }
           fetchInvestigadorData()
         }
       } catch (err) {

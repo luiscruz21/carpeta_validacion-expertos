@@ -178,7 +178,7 @@ export const upsertEvaluador = (dni, data) => {
     if (k === cleanDni) return
     const item = evaluadores[k]
     const itemNorm = (item.nombre || '').toLowerCase().replace(/^(dr\.|dra\.|ing\.|lic\.|mg\.)\s*/i, '').trim()
-    if (itemNorm === normName) {
+    if (itemNorm === normName && normName !== 'experto validador' && normName !== '') {
       delete evaluadores[k]
     }
   })
@@ -311,7 +311,7 @@ export const getConsolidatedTable = () => {
       respondidas: isFullyCompleted ? Math.max(totalAnswered, 100) : totalAnswered
     }
 
-    if (nameMap.has(normName)) {
+    if (normName !== 'experto validador' && nameMap.has(normName)) {
       const existingIdx = nameMap.get(normName)
       if (cleanDni && !cleanDni.startsWith('EXP-')) {
         result[existingIdx] = item
