@@ -5,6 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { generateDocxReport } from './generateDocxReport.js'
 import { generateCronbachDocxReport } from './generateCronbachDocxReport.js'
+import * as dbManager from './db_manager.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
