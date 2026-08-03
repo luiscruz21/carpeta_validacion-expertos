@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { generateDocxReport } from './generateDocxReport.js'
+import { generateBlankDocxReport } from './generateBlankDocxReport.js'
 import { generateCronbachDocxReport } from './generateCronbachDocxReport.js'
 import * as dbManager from './db_manager.js'
 import { readTable, writeTable } from './db_manager.js'
@@ -165,6 +166,24 @@ const handleDescargarDocxHandler = async (req, res) => {
 app.get('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 app.post('/api/investigador/descargar-informe-docx', handleDescargarDocxHandler)
 
+const handleDescargarBlancoDocxHandler = async (req, res) => {
+  try {
+    const perfil = await readTable('investigador', {})
+    let preguntas = await readTable('preguntas', {})
+
+    const docBuffer = await generateBlankDocxReport(perfil, preguntas)
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    res.setHeader('Content-Disposition', 'attachment; filename="EXPEDIENTE_DE_VALIDACION_EN_BLANCO.docx"')
+    return res.send(docBuffer)
+  } catch (err) {
+    console.error("Error generando informe Word en blanco:", err)
+    return res.status(500).json({ success: false, mensaje: "Error al generar informe en blanco: " + err.message })
+  }
+}
+
+app.get('/api/investigador/descargar-informe-blanco-docx', handleDescargarBlancoDocxHandler)
+
 const handleDescargarCronbachDocxHandler = async (req, res) => {
   try {
     const invites = await readTable('invitaciones', {})
@@ -196,7 +215,7 @@ app.post('/api/investigador/editar-evaluador', async (req, res) => {
   const cleanTarget = codigoTarget.trim().toUpperCase()
   const cleanDni = (datosEvaluador.dni || cleanTarget).trim().toUpperCase()
 
-  if (cleanTarget !== cleanDni && cleanTarget.startsWith('EXP-')) {
+  if (cleanTarget !== cleanDni) {
     await dbManager.deleteEvaluador(cleanTarget)
   }
 
@@ -299,9 +318,6 @@ app.post('/api/evaluacion/save', async (req, res) => {
   // Como estamos usando la nueva arquitectura, vamos a usar upsertEvaluador de db_manager
   // En lugar de tocar evals e invites a mano
   let targetKey = cleanCode
-  if (payload.inviteCode && payload.inviteCode.trim().toUpperCase().startsWith('EXP-')) {
-    targetKey = payload.inviteCode.trim().toUpperCase()
-  }
 
   const existingEval = await dbManager.getEvaluadorByDni(targetKey) || await dbManager.getEvaluadorByDni(cleanCode) || {}
   

@@ -3819,12 +3819,34 @@ function App() {
                   </button>
 
                   <button
-                    type="button"
                     onClick={handleDescargarInformeDocx}
                     disabled={syncing}
                     className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-2 border border-amber-300 cursor-pointer"
                   >
                     <FileText className="w-4 h-4" /> 📄 Descargar Reporte Consolidado Word (.docx)
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const queryParam = '?blank=true'
+                      const res = await fetch('/api/investigador/descargar-informe-blanco-docx' + queryParam)
+                      if (res.ok) {
+                        const blob = await res.blob()
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = 'EXPEDIENTE_DE_VALIDACION_EN_BLANCO.docx'
+                        document.body.appendChild(a)
+                        a.click()
+                        a.remove()
+                        window.URL.revokeObjectURL(url)
+                      } else {
+                        alert("Error al descargar el informe en blanco.")
+                      }
+                    }}
+                    disabled={syncing}
+                    className="bg-slate-100 hover:bg-white text-slate-900 font-black px-4 py-2.5 rounded-xl text-xs shadow-lg transition-all flex items-center gap-2 border border-slate-300 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 text-emerald-600" /> 🖨️ Descargar Expediente en Blanco (Word)
                   </button>
                 </div>
               </div>
@@ -4196,7 +4218,7 @@ function App() {
                     matrizSubTab === 'VI' ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  Variable Independiente (VI)
+                  Variable Independiente (VI): {perfilInvestigador?.variableIndependiente || 'Cargando...'}
                 </button>
                 <button
                   onClick={() => setMatrizSubTab('VD')}
@@ -4204,7 +4226,7 @@ function App() {
                     matrizSubTab === 'VD' ? 'bg-indigo-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  Variable Dependiente (VD)
+                  Variable Dependiente (VD): {perfilInvestigador?.variableDependiente || 'Cargando...'}
                 </button>
               </div>
             </div>
