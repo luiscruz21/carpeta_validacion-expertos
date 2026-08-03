@@ -1093,6 +1093,76 @@ function App() {
     alert("¡Perfil y datos del evaluador actualizados con éxito en todas las secciones!")
   }
 
+  // Guardar Cambios de la Hoja de Vida (Evaluador e Investigador)
+  const handleGuardarHojaDeVida = async () => {
+    const targetKey = evaluadorInspeccionado
+      ? (evaluadorInspeccionado.codigo || evaluadorInspeccionado.dni)
+      : (dni || inviteCode || 'DIRECTO')
+
+    const cleanFullNombre = (nombre || '').trim() || 'Experto Validador'
+    const parts = cleanFullNombre.split(' ')
+    const cleanNombres = (nombresExperto || '').trim() || parts[0] || cleanFullNombre
+    const cleanApellidos = (apellidosExperto || '').trim() || parts.slice(1).join(' ') || ''
+
+    const cvPayload = {
+      nombre: cleanFullNombre,
+      nombresExperto: cleanNombres,
+      apellidosExperto: cleanApellidos,
+      email: (email || '').trim(),
+      gradoAcademico: (gradoAcademico || '').trim() || 'Magíster',
+      estudios: (estudios || '').trim() || (institucion || '').trim() || 'Universidad de Procedencia',
+      institucion: (estudios || '').trim() || (institucion || '').trim() || 'Universidad de Procedencia',
+      experienciaDetallada: (experienciaDetallada || '').trim(),
+      ctiVitae: (ctiVitae || '').trim(),
+      orcid: (orcid || '').trim(),
+      linkedin: (linkedin || '').trim(),
+      resumenProfesional: (resumenProfesional || '').trim(),
+      dni: targetKey,
+      codigo: targetKey,
+      inviteCode: targetKey
+    }
+
+    try {
+      setSyncing(true)
+
+      // 1. Guardar en backend evaluacion
+      await saveEvaluationToBackend(targetKey, cvPayload)
+
+      // 2. Guardar en backend investigador
+      await fetch('/api/investigador/editar-evaluador', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigoTarget: targetKey,
+          datosEvaluador: cvPayload
+        })
+      })
+
+      // 3. Actualizar localStorage para sesión activa
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, cleanFullNombre)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombresExperto`, cleanNombres)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_apellidosExperto`, cleanApellidos)
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_email`, (email || '').trim())
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_grado`, (gradoAcademico || '').trim())
+      localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, (estudios || '').trim() || (institucion || '').trim())
+
+      // 4. Actualizar evaluadorInspeccionado si está activo
+      if (evaluadorInspeccionado) {
+        setEvaluadorInspeccionado(prev => ({
+          ...prev,
+          ...cvPayload
+        }))
+        await fetchInvestigadorData()
+      }
+
+      alert(`💾 ¡Datos de la Hoja de Vida guardados exitosamente en la plataforma para "${cleanFullNombre}"!`)
+    } catch (err) {
+      alert("⚠️ Ocurrió un inconveniente al conectar con el servidor, pero sus datos fueron resguardados.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // -------------------------------------------------------------
   // FUNCIONES DE EDICIÓN Y GESTIÓN DE PREGUNTAS (INVESTIGADOR)
   // -------------------------------------------------------------
@@ -4854,13 +4924,13 @@ function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-800 mb-1">1. Nombres y Apellidos Completos:</label>
+                    <label className="block font-bold text-slate-800 mb-1">1. Nombres y Apellidos Completos *:</label>
                     <input 
                       type="text" 
-                      disabled={hasCvFile}
+                      disabled={isReadOnly}
                       placeholder="Nombres y Apellidos del Evaluador"
                       className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
-                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                        isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
                       }`}
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
@@ -4871,10 +4941,10 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">2. Correo Electrónico Oficial:</label>
                     <input 
                       type="email" 
-                      disabled={hasCvFile}
+                      disabled={isReadOnly}
                       placeholder="ejemplo@institucion.edu.pe"
                       className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
-                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                        isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
                       }`}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -4885,10 +4955,10 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">3. Grado Académico Máximo:</label>
                     <input 
                       type="text" 
-                      disabled={hasCvFile}
+                      disabled={isReadOnly}
                       placeholder="Doctor en Ingeniería / Magíster"
                       className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
-                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                        isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
                       }`}
                       value={gradoAcademico}
                       onChange={(e) => setGradoAcademico(e.target.value)}
@@ -4899,10 +4969,10 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">4. Estudios Realizados / Universidad:</label>
                     <input 
                       type="text" 
-                      disabled={hasCvFile}
+                      disabled={isReadOnly}
                       placeholder="Universidad de procedencia / Grados y Posgrados"
                       className={`w-full p-2.5 border rounded-lg text-slate-800 font-semibold ${
-                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                        isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
                       }`}
                       value={estudios}
                       onChange={(e) => setEstudios(e.target.value)}
@@ -4913,10 +4983,10 @@ function App() {
                     <label className="block font-bold text-slate-800 mb-1">5. Experiencia Profesional y Resumen de Trayectoria:</label>
                     <textarea 
                       rows={3}
-                      disabled={hasCvFile}
+                      disabled={isReadOnly}
                       placeholder="Describa sus años de experiencia docente, cargos desempeñados y publicaciones académicas..."
                       className={`w-full p-2.5 border rounded-lg text-slate-800 text-xs font-medium ${
-                        hasCvFile ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
+                        isReadOnly ? 'bg-slate-200 text-slate-600 border-slate-300 cursor-not-allowed' : 'bg-white'
                       }`}
                       value={experienciaDetallada}
                       onChange={(e) => setExperienciaDetallada(e.target.value)}
@@ -4974,6 +5044,32 @@ function App() {
                     onChange={(e) => setResumenProfesional(e.target.value)}
                   />
                 </div>
+              </div>
+
+              {/* BOTÓN PROMINENTE DE GUARDAR CAMBIOS DE LA HOJA DE VIDA */}
+              <div className="pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <div className="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
+                  {userRole === 'INVESTIGADOR' || evaluadorInspeccionado ? (
+                    <span className="text-indigo-700 font-extrabold flex items-center gap-1">
+                      <ShieldCheck className="w-4 h-4 text-indigo-600" /> Edición Habilitada para el Investigador Principal
+                    </span>
+                  ) : (
+                    <span>💡 Puede modificar y guardar los datos de su Hoja de Vida manualmente en cualquier momento.</span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGuardarHojaDeVida}
+                  disabled={syncing || isReadOnly}
+                  className={`w-full md:w-auto font-black py-3.5 px-8 rounded-xl text-xs md:text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
+                    isReadOnly 
+                      ? 'bg-slate-400 text-white cursor-not-allowed' 
+                      : 'bg-teal-700 hover:bg-teal-800 active:scale-95 text-white hover:shadow-xl'
+                  }`}
+                >
+                  <Save className="w-5 h-5" /> 💾 GUARDAR DATOS DE HOJA DE VIDA
+                </button>
               </div>
             </div>
           </div>

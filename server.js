@@ -312,8 +312,14 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
   const cleanDni = datosEvaluador.dni || existingEval.dni || existingInvite.dni || keyToUse
   const cleanCargo = datosEvaluador.cargo || existingEval.cargo || existingInvite.cargo || "Especialista Informante"
   const cleanGrado = datosEvaluador.gradoAcademico || existingEval.gradoAcademico || existingInvite.gradoAcademico || "Magíster"
-  const cleanInstitucion = datosEvaluador.institucion || existingEval.institucion || existingInvite.institucion || "Universidad de Procedencia"
+  const cleanInstitucion = datosEvaluador.institucion || datosEvaluador.estudios || existingEval.institucion || existingEval.estudios || existingInvite.institucion || "Universidad de Procedencia"
   const cleanEmail = datosEvaluador.email || existingEval.email || existingInvite.email || ""
+  const cleanEstudios = datosEvaluador.estudios || datosEvaluador.institucion || existingEval.estudios || existingEval.institucion || cleanInstitucion
+  const cleanExperienciaDetallada = datosEvaluador.experienciaDetallada !== undefined ? datosEvaluador.experienciaDetallada : (existingEval.experienciaDetallada || "")
+  const cleanCtiVitae = datosEvaluador.ctiVitae !== undefined ? datosEvaluador.ctiVitae : (existingEval.ctiVitae || "")
+  const cleanOrcid = datosEvaluador.orcid !== undefined ? datosEvaluador.orcid : (existingEval.orcid || "")
+  const cleanLinkedin = datosEvaluador.linkedin !== undefined ? datosEvaluador.linkedin : (existingEval.linkedin || "")
+  const cleanResumenProfesional = datosEvaluador.resumenProfesional !== undefined ? datosEvaluador.resumenProfesional : (existingEval.resumenProfesional || "")
 
   const updatedEval = {
     ...existingEval,
@@ -325,8 +331,14 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
     cargo: cleanCargo,
     gradoAcademico: cleanGrado,
     institucion: cleanInstitucion,
+    estudios: cleanEstudios,
     dni: cleanDni,
     email: cleanEmail,
+    experienciaDetallada: cleanExperienciaDetallada,
+    ctiVitae: cleanCtiVitae,
+    orcid: cleanOrcid,
+    linkedin: cleanLinkedin,
+    resumenProfesional: cleanResumenProfesional,
     lastUpdated: new Date().toISOString()
   }
 
@@ -339,8 +351,12 @@ app.post('/api/investigador/editar-evaluador', (req, res) => {
     cargo: cleanCargo,
     gradoAcademico: cleanGrado,
     institucion: cleanInstitucion,
+    estudios: cleanEstudios,
     email: cleanEmail,
-    dni: cleanDni
+    dni: cleanDni,
+    ctiVitae: cleanCtiVitae,
+    orcid: cleanOrcid,
+    linkedin: cleanLinkedin
   }
 
   // Guardar ÚNICAMENTE bajo la clave canónica del código para EVITAR DUPLICAR entradas
