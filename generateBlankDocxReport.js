@@ -302,7 +302,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     let currentDimension = null;
     let currentIndicador = null;
 
-    list.forEach(p => {
+    list.forEach((p, idx) => {
       if (p.dimension && p.dimension !== currentDimension) {
         currentDimension = p.dimension;
         questionRows.push(new TableRow({
@@ -321,8 +321,8 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
           children: [
             new TableCell({
               columnSpan: 6,
-              shading: { fill: "F8FAFC" },
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: `Indicador: ${currentIndicador}`, italic: true, bold: true, size: 14, font: "Arial" })]})]
+              shading: { fill: "BEE3F8" }, // Distinctive light blue color to highlight the indicator row
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: `Indicador: ${currentIndicador}`, italic: true, bold: true, size: 14, font: "Arial", color: "1A365D" })]})]
             })
           ]
         }))
@@ -331,7 +331,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       questionRows.push(
         new TableRow({
           children: [
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${p.id}: ${p.texto || ''}`, size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${idx + 1}. ${p.texto || ''}`, size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),

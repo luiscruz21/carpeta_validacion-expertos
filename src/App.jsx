@@ -4461,8 +4461,7 @@ function App() {
                     return currentList.map((p, idx) => {
                       const currentResp = respuestas[p.id] || {}
                       const isComplete = !!(currentResp.likert && currentResp.claridad && currentResp.coherencia && currentResp.relevancia && currentResp.suficiencia)
-                      const itemNum = instrumentoSubTab === 'VI' ? (idx + 1) : (50 + idx + 1)
-
+                      const itemNum = idx + 1
                       // REGLA DE BLOQUEO SECUENCIAL:
                       // Solo aplica a Evaluadores durante el llenado inicial (no a Investigadores ni en modo lectura).
                       // El ítem 0 de la pestaña activa siempre está desbloqueado.
@@ -4506,7 +4505,7 @@ function App() {
                                     ? 'bg-slate-300 text-slate-700 border-slate-400' 
                                     : 'bg-slate-900 text-amber-300 border-slate-700'
                                 }`}>
-                                  Ítem {itemNum} / 100
+                                  Ítem {itemNum} / 50
                                 </span>
 
                                 {/* BADGE DE ESTADO */}
