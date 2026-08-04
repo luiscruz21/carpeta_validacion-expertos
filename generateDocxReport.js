@@ -578,7 +578,7 @@ export async function generateDocxReport(
           new TableCell({
             rowSpan: 4,
             width: { size: 22, type: WidthType.PERCENTAGE },
-            children: [new Paragraph({ children: [new TextRun({ text: p.texto || `Item ${p.id}`, size: 13, font: "Arial" })] })]
+            children: [new Paragraph({ children: [new TextRun({ text: `${allPreguntas.indexOf(p) < 50 ? allPreguntas.indexOf(p) + 1 : allPreguntas.indexOf(p) - 50 + 1}. ${(p.texto || '').replace(/^(?:VI_|VD_)?\d+[\.\-]?\s*/i, '')}`, size: 13, font: "Arial" })] })]
           })
         )
       }

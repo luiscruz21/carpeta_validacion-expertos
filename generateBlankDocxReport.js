@@ -331,7 +331,7 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
       questionRows.push(
         new TableRow({
           children: [
-            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${idx + 1}. ${p.texto || ''}`, size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${idx + 1}. ${(p.texto || '').replace(/^(?:VI_|VD_)?\d+[\.\-]?\s*/i, '')}`, size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
             new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),

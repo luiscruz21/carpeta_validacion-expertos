@@ -4555,7 +4555,7 @@ function App() {
                                     ? 'font-bold text-slate-900' 
                                     : 'font-black text-red-700 bg-red-50/90 p-3 rounded-lg border-2 border-red-300 shadow-sm'
                               }`}>
-                                {p.texto}
+                                  {p.texto ? p.texto.replace(/^(?:VI_|VD_)?\d+[\.\-]?\s*/i, '') : ''}
                               </p>
                             </div>
                             
