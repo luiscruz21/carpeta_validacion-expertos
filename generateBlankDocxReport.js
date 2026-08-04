@@ -287,42 +287,64 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
   const questionRows = []
   questionRows.push(new TableRow({ children: headerCells }))
 
-  allPreguntas.forEach((p, index) => {
-    if (index === 0) {
-       questionRows.push(new TableRow({
-         children: [
-           new TableCell({
-             columnSpan: 6,
-             shading: { fill: "E2E8F0" },
-             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva con Deep Learning`, bold: true, size: 16, font: "Arial" })]})]
-           })
-         ]
-       }))
-    } else if (index === viList.length && vdList.length > 0) {
-       questionRows.push(new TableRow({
-         children: [
-           new TableCell({
-             columnSpan: 6,
-             shading: { fill: "E2E8F0" },
-             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `VARIABLE DEPENDIENTE (VD): Gestión de Riesgos`, bold: true, size: 16, font: "Arial" })]})]
-           })
-         ]
-       }))
-    }
+  const addVariableGroup = (list, variableTitle) => {
+    if (list.length === 0) return;
+    questionRows.push(new TableRow({
+      children: [
+        new TableCell({
+          columnSpan: 6,
+          shading: { fill: "1A365D" },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: variableTitle, bold: true, color: "FFFFFF", size: 16, font: "Arial" })]})]
+        })
+      ]
+    }))
 
-    questionRows.push(
-      new TableRow({
-        children: [
-          new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${p.id}: ${p.texto || ''}`, size: 16, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
-          new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[ 1 ]   [ 2 ]   [ 3 ]   [ 4 ]   [ 5 ]", size: 14, font: "Arial" })] })] }),
-        ]
-      })
-    )
-  })
+    let currentDimension = null;
+    let currentIndicador = null;
+
+    list.forEach(p => {
+      if (p.dimension && p.dimension !== currentDimension) {
+        currentDimension = p.dimension;
+        questionRows.push(new TableRow({
+          children: [
+            new TableCell({
+              columnSpan: 6,
+              shading: { fill: "E2E8F0" },
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: `Dimensión: ${currentDimension}`, bold: true, size: 14, font: "Arial" })]})]
+            })
+          ]
+        }))
+      }
+      if (p.indicador && p.indicador !== currentIndicador) {
+        currentIndicador = p.indicador;
+        questionRows.push(new TableRow({
+          children: [
+            new TableCell({
+              columnSpan: 6,
+              shading: { fill: "F8FAFC" },
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, children: [new TextRun({ text: `Indicador: ${currentIndicador}`, italic: true, bold: true, size: 14, font: "Arial" })]})]
+            })
+          ]
+        }))
+      }
+
+      questionRows.push(
+        new TableRow({
+          children: [
+            new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${p.id}: ${p.texto || ''}`, size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[  ] Sí   [  ] No", size: 14, font: "Arial" })] })] }),
+            new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "[ 1 ]   [ 2 ]   [ 3 ]   [ 4 ]   [ 5 ]", size: 14, font: "Arial" })] })] }),
+          ]
+        })
+      )
+    })
+  }
+
+  addVariableGroup(viList, "VARIABLE INDEPENDIENTE (VI): Arquitectura Predictiva con Deep Learning");
+  addVariableGroup(vdList, "VARIABLE DEPENDIENTE (VD): Gestión de Riesgos");
 
   const instrumentTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -419,6 +441,80 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
         new TextRun({ text: "DNI: ____________________", size: 18, font: "Arial" })
       ]
     })
+  )
+
+  // VII. CERTIFICADO DE VALIDEZ DE CONTENIDO
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({ text: "VII. CERTIFICADO DE VALIDEZ DE CONTENIDO DEL INSTRUMENTO", bold: true, size: 24, color: "1A365D", font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 300, before: 300 },
+      children: [
+        new TextRun({
+          text: `El que suscribe, ______________________________________________________________________, habiendo analizado el instrumento de recolección de datos para la investigación titulada: "${perfilInvestigador.tituloTesis || '________________________________________________'}", elaborada por el(la) investigador(a) principal: ${perfilInvestigador.nombres ? perfilInvestigador.nombres + ' ' + perfilInvestigador.apellidos : '__________________________________'}, certifico que el instrumento reúne los requisitos de validez de contenido necesarios.`,
+          size: 20,
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 300 },
+      children: [
+        new TextRun({ text: "Por tanto, dejo constancia que el instrumento es APLICABLE para la ejecución de la investigación, tras haber evaluado los criterios de claridad, coherencia, relevancia y suficiencia metodológica.", size: 20, font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      spacing: { before: 600, after: 600 },
+      children: [
+        new TextRun({ text: "Fecha: _______ de ________________ del 20___", size: 20, font: "Arial" })
+      ]
+    }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 800 }, children: [new TextRun({ text: "_______________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "FIRMA DEL EXPERTO", bold: true, size: 20, font: "Arial" })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DNI: ____________________", size: 18, font: "Arial" })] })
+  )
+
+  // VIII. HOJA DE VIDA DEL EXPERTO EVALUADOR
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({ text: "VIII. HOJA DE VIDA DEL EXPERTO EVALUADOR", bold: true, size: 24, color: "1A365D", font: "Arial" })
+      ]
+    }),
+    new Paragraph({ spacing: { after: 200, before: 300 }, children: [new TextRun({ text: "1. DATOS PERSONALES", bold: true, size: 18, font: "Arial", color: "2B6CB0" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Nombres y Apellidos: __________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "DNI / Documento de Identidad: _________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Colegio Profesional / N° Colegiatura: __________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Teléfono / Celular: _________________________ Correo: _________________________________", size: 20, font: "Arial" })] }),
+    
+    new Paragraph({ spacing: { after: 200, before: 400 }, children: [new TextRun({ text: "2. FORMACIÓN ACADÉMICA", bold: true, size: 18, font: "Arial", color: "2B6CB0" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Título Profesional: ___________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Institución: _______________________________________________ Año: ____________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150, before: 150 }, children: [new TextRun({ text: "Grado de Magíster en: ________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Institución: _______________________________________________ Año: ____________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150, before: 150 }, children: [new TextRun({ text: "Grado de Doctor en: __________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Institución: _______________________________________________ Año: ____________________", size: 20, font: "Arial" })] }),
+
+    new Paragraph({ spacing: { after: 200, before: 400 }, children: [new TextRun({ text: "3. EXPERIENCIA PROFESIONAL RECIENTE", bold: true, size: 18, font: "Arial", color: "2B6CB0" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Cargo Actual: _______________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Institución: _________________________________________________________________________ ", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150, before: 150 }, children: [new TextRun({ text: "Cargo Previo: _______________________________________________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "Institución: _________________________________________________________________________ ", size: 20, font: "Arial" })] }),
+    
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 800 }, children: [new TextRun({ text: "_______________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "FIRMA DEL EXPERTO", bold: true, size: 20, font: "Arial" })] })
   )
 
   // Crear Documento Word
