@@ -2735,7 +2735,7 @@ function App() {
                     </label>
                     <input 
                       type="text" 
-                      placeholder="Ej. 09091855 / 21868177"
+                      placeholder="Ej. 12345678"
                       className="w-full p-3.5 border-2 border-sky-300 rounded-xl text-center font-black text-slate-900 tracking-wider text-lg bg-white focus:outline-none focus:border-sky-600"
                       value={codigoInvitacionInput || recuperarKeyInput}
                       onChange={(e) => {
@@ -2876,7 +2876,7 @@ function App() {
                         </label>
                         <input 
                           type="text" 
-                          placeholder="Ej. 09091855"
+                          placeholder="Ej. 12345678"
                           className="w-full p-2.5 border rounded-lg text-slate-900 font-mono font-bold bg-slate-50 focus:outline-none focus:border-sky-600 focus:bg-white"
                           value={dni}
                           onChange={(e) => setDni(e.target.value)}
@@ -3211,7 +3211,7 @@ function App() {
                     value={investigadorNombres}
                     onChange={(e) => setInvestigadorNombres(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
-                    placeholder="Ej. Luis Alfonso"
+                    placeholder="Ej. Juan Carlos"
                   />
                 </div>
 
@@ -3225,7 +3225,7 @@ function App() {
                     value={investigadorApellidos}
                     onChange={(e) => setInvestigadorApellidos(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
-                    placeholder="Ej. Cruz Gálvez"
+                    placeholder="Ej. Pérez Silva"
                   />
                 </div>
 
@@ -3239,7 +3239,7 @@ function App() {
                     value={investigadorDni}
                     onChange={(e) => setInvestigadorDni(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
-                    placeholder="Ej. 09091855"
+                    placeholder="Ej. 12345678"
                   />
                 </div>
 
@@ -3253,7 +3253,7 @@ function App() {
                     value={investigadorEmail}
                     onChange={(e) => setInvestigadorEmail(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-purple-500"
-                    placeholder="Ej. luiscruz21@gmail.com"
+                    placeholder="Ej. juanperez@gmail.com"
                   />
                 </div>
 
