@@ -101,14 +101,14 @@ function App() {
   const [qDescripcion, setQDescripcion] = useState('')
   const [qTexto, setQTexto] = useState('')
 
-  // Datos del Experto Validador (Por defecto Dr. Luis Alfonso Cruz Gálvez - 09091855)
-  const [nombresExperto, setNombresExperto] = useState('Luis Alfonso')
-  const [apellidosExperto, setApellidosExperto] = useState('Cruz Gálvez')
-  const [nombre, setNombre] = useState('Dr. Luis Alfonso Cruz Gálvez')
+  // Datos del Experto Validador (Por defecto)
+  const [nombresExperto, setNombresExperto] = useState('')
+  const [apellidosExperto, setApellidosExperto] = useState('')
+  const [nombre, setNombre] = useState('')
   const [dni, setDni] = useState('09091855')
-  const [cargo, setCargo] = useState('Investigador Principal')
-  const [gradoAcademico, setGradoAcademico] = useState('Doctor en Educación / Magíster en Ingeniería')
-  const [institucion, setInstitucion] = useState('Universidad Nacional de Ingeniería (UNI)')
+  const [cargo, setCargo] = useState('')
+  const [gradoAcademico, setGradoAcademico] = useState('')
+  const [institucion, setInstitucion] = useState('')
   const [experiencia, setExperiencia] = useState('')
   const [isExtranjero, setIsExtranjero] = useState(false)
   const [recuperarKeyInput, setRecuperarKeyInput] = useState('')
@@ -833,9 +833,29 @@ function App() {
       if (localInv || cleanCode === '09091855'  || cleanCode.startsWith('EXT-')) {
         setInviteCode(cleanCode)
         setInviteValidado(true)
+
+        // Limpiar estado por si hubo otra evaluación previa cargada
+        setNombre('')
+        setNombresExperto('')
+        setApellidosExperto('')
+        setCargo('')
+        setGradoAcademico('')
+        setInstitucion('')
+        setEmail('')
+        setRespuestas({})
+        setFirmaExpertoImg('')
+        setIsFinalizado(false)
+
         if (localInv) {
-          if (localInv.nombreExperto && localInv.nombreExperto !== "Experto Validador") setNombre(localInv.nombreExperto)
-          if (localInv.cargo) setCargo(localInv.cargo)
+          if (localInv.nombreExperto && localInv.nombreExperto !== "Experto Validador") {
+            setNombre(localInv.nombreExperto)
+            const parts = localInv.nombreExperto.split(' ')
+            if (parts.length >= 2) {
+              setNombresExperto(parts[0])
+              setApellidosExperto(parts.slice(1).join(' '))
+            }
+          }
+          if (localInv.cargo && localInv.cargo !== "Especialista Informante") setCargo(localInv.cargo)
         }
       } else {
         setInvitationError('DNI no encontrado. Verifique su documento o solicite al Investigador Principal que lo registre en el sistema.')
