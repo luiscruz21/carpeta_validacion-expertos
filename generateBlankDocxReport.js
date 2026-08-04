@@ -368,28 +368,22 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     instrumentTable
   )
 
-  // DICTAMEN FINAL Y FIRMA
+  // VI. CERTIFICADO Y DICTAMEN DE VALIDEZ DE CONTENIDO
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
       pageBreakBefore: true,
       spacing: { before: 300, after: 150 },
       children: [
-        new TextRun({
-          text: "VI. CONSTANCIA Y DICTAMEN DE VALIDACIÓN",
-          bold: true,
-          size: 24,
-          color: "1A365D",
-          font: "Arial"
-        })
+        new TextRun({ text: "VI. CERTIFICADO Y DICTAMEN DE VALIDEZ DE CONTENIDO", bold: true, size: 24, color: "1A365D", font: "Arial" })
       ]
     }),
     new Paragraph({
       alignment: AlignmentType.JUSTIFY,
-      spacing: { after: 200 },
+      spacing: { after: 200, before: 300 },
       children: [
         new TextRun({
-          text: "El que suscribe, en su calidad de experto, habiendo analizado la estructura teórica, matriz de operacionalización e instrumento de recolección de datos, emite el siguiente dictamen de validez de contenido:",
+          text: `El que suscribe, ______________________________________________________________________, habiendo analizado el instrumento de recolección de datos para la investigación titulada: "${perfilInvestigador.tituloTesis || '________________________________________________'}", elaborada por el(la) investigador(a) principal: ${perfilInvestigador.nombres ? perfilInvestigador.nombres + ' ' + perfilInvestigador.apellidos : '__________________________________'}, certifico que el instrumento reúne los requisitos de validez de contenido necesarios.`,
           size: 20,
           font: "Arial"
         })
@@ -398,19 +392,31 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     new Paragraph({
       spacing: { before: 100, after: 100 },
       children: [
-        new TextRun({ text: "[   ] APLICABLE", size: 20, font: "Arial" })
+        new TextRun({ text: "VALORACIÓN GLOBAL DEL INSTRUMENTO:", bold: true, size: 18, font: "Arial", color: "92400E" })
+      ]
+    }),
+    new Paragraph({
+      spacing: { after: 300 },
+      children: [
+        new TextRun({ text: "[   ] Deficiente       [   ] Regular       [   ] Bueno       [   ] Muy Bueno       [   ] Excelente", size: 18, font: "Arial" })
       ]
     }),
     new Paragraph({
       spacing: { before: 100, after: 100 },
       children: [
-        new TextRun({ text: "[   ] APLICABLE DESPUÉS DE CORREGIR", size: 20, font: "Arial" })
+        new TextRun({ text: "DICTAMEN DE APLICABILIDAD:", bold: true, size: 18, font: "Arial", color: "1A365D" })
       ]
     }),
     new Paragraph({
-      spacing: { before: 100, after: 300 },
+      spacing: { after: 150 },
       children: [
-        new TextRun({ text: "[   ] NO APLICABLE", size: 20, font: "Arial" })
+        new TextRun({ text: "Por tanto, dejo constancia que el instrumento es:", size: 20, font: "Arial" })
+      ]
+    }),
+    new Paragraph({
+      spacing: { after: 300 },
+      children: [
+        new TextRun({ text: "[   ] APLICABLE            [   ] APLICABLE DESPUÉS DE CORREGIR            [   ] NO APLICABLE", size: 18, font: "Arial" })
       ]
     }),
     new Paragraph({
@@ -421,76 +427,27 @@ export async function generateBlankDocxReport(perfilInvestigador = {}, preguntas
     }),
     new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "____________________________________________________________________________________________________________________", size: 16, font: "Arial" })]}),
     new Paragraph({ spacing: { after: 150 }, children: [new TextRun({ text: "____________________________________________________________________________________________________________________", size: 16, font: "Arial" })]}),
-    new Paragraph({ spacing: { after: 500 }, children: [new TextRun({ text: "____________________________________________________________________________________________________________________", size: 16, font: "Arial" })]}),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 500 },
-      children: [
-        new TextRun({ text: "_______________________________________", size: 20, font: "Arial" })
-      ]
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [
-        new TextRun({ text: "FIRMA DEL EXPERTO", bold: true, size: 20, font: "Arial" })
-      ]
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [
-        new TextRun({ text: "DNI: ____________________", size: 18, font: "Arial" })
-      ]
-    })
-  )
-
-  // VII. CERTIFICADO DE VALIDEZ DE CONTENIDO
-  children.push(
-    new Paragraph({
-      heading: HeadingLevel.HEADING_1,
-      pageBreakBefore: true,
-      spacing: { before: 300, after: 150 },
-      children: [
-        new TextRun({ text: "VII. CERTIFICADO DE VALIDEZ DE CONTENIDO DEL INSTRUMENTO", bold: true, size: 24, color: "1A365D", font: "Arial" })
-      ]
-    }),
-    new Paragraph({
-      alignment: AlignmentType.JUSTIFY,
-      spacing: { after: 300, before: 300 },
-      children: [
-        new TextRun({
-          text: `El que suscribe, ______________________________________________________________________, habiendo analizado el instrumento de recolección de datos para la investigación titulada: "${perfilInvestigador.tituloTesis || '________________________________________________'}", elaborada por el(la) investigador(a) principal: ${perfilInvestigador.nombres ? perfilInvestigador.nombres + ' ' + perfilInvestigador.apellidos : '__________________________________'}, certifico que el instrumento reúne los requisitos de validez de contenido necesarios.`,
-          size: 20,
-          font: "Arial"
-        })
-      ]
-    }),
-    new Paragraph({
-      alignment: AlignmentType.JUSTIFY,
-      spacing: { after: 300 },
-      children: [
-        new TextRun({ text: "Por tanto, dejo constancia que el instrumento es APLICABLE para la ejecución de la investigación, tras haber evaluado los criterios de claridad, coherencia, relevancia y suficiencia metodológica.", size: 20, font: "Arial" })
-      ]
-    }),
     new Paragraph({
       alignment: AlignmentType.RIGHT,
-      spacing: { before: 600, after: 600 },
+      spacing: { before: 400, after: 500 },
       children: [
         new TextRun({ text: "Fecha: _______ de ________________ del 20___", size: 20, font: "Arial" })
       ]
     }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 800 }, children: [new TextRun({ text: "_______________________________________", size: 20, font: "Arial" })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 500 }, children: [new TextRun({ text: "_______________________________________", size: 20, font: "Arial" })] }),
     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "FIRMA DEL EXPERTO", bold: true, size: 20, font: "Arial" })] }),
     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "DNI: ____________________", size: 18, font: "Arial" })] })
   )
 
-  // VIII. HOJA DE VIDA DEL EXPERTO EVALUADOR
+
+  // VII. HOJA DE VIDA DEL EXPERTO EVALUADOR
   children.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
       pageBreakBefore: true,
       spacing: { before: 300, after: 150 },
       children: [
-        new TextRun({ text: "VIII. HOJA DE VIDA DEL EXPERTO EVALUADOR", bold: true, size: 24, color: "1A365D", font: "Arial" })
+        new TextRun({ text: "VII. HOJA DE VIDA DEL EXPERTO EVALUADOR", bold: true, size: 24, color: "1A365D", font: "Arial" })
       ]
     }),
     new Paragraph({ spacing: { after: 200, before: 300 }, children: [new TextRun({ text: "1. DATOS PERSONALES", bold: true, size: 18, font: "Arial", color: "2B6CB0" })] }),
