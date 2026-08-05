@@ -325,7 +325,7 @@ app.post('/api/evaluacion/save', async (req, res) => {
   let finalCargo = payload.cargo || existingEval.cargo || "Especialista Informante"
   let finalDni = payload.dni || existingEval.dni || cleanCode
 
-  const isReset = payload.isNuevoRegistro || (payload.respuestas && Object.keys(payload.respuestas).length === 0)
+  const isReset = payload.isNuevoRegistro === true
   const mergedRespuestas = isReset ? (payload.respuestas || {}) : {
     ...(existingEval.respuestas || {}),
     ...(payload.respuestas || {})

@@ -790,7 +790,8 @@ function App() {
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_grado`, ev.gradoAcademico || '')
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_institucion`, ev.institucion || '')
 
-          setEvaluadorInspeccionado(ev)
+          // ¡NUNCA setear evaluadorInspeccionado para un Evaluador! Eso bloquea el auto-guardado
+          setEvaluadorInspeccionado(null)
           setShowRegistroModal(false)
           setInviteValidado(false)
           setActiveTab('CARTA')
@@ -1774,6 +1775,9 @@ function App() {
       }
       if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
         saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      } else if (userRole === 'EVALUADOR') {
+        const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+        saveEvaluationToBackend(currentKey, { respuestas: nextResp })
       }
       return nextResp
     })
@@ -1790,6 +1794,9 @@ function App() {
       }
       if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
         saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      } else if (userRole === 'EVALUADOR') {
+        const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+        saveEvaluationToBackend(currentKey, { respuestas: nextResp })
       }
       return nextResp
     })
@@ -1806,6 +1813,9 @@ function App() {
       }
       if (userRole === 'INVESTIGADOR' && evaluadorInspeccionado) {
         saveEvaluationToBackend(evaluadorInspeccionado.codigo, { respuestas: nextResp })
+      } else if (userRole === 'EVALUADOR') {
+        const currentKey = (inviteCode || dni || '').trim().toUpperCase()
+        saveEvaluationToBackend(currentKey, { respuestas: nextResp })
       }
       return nextResp
     })
@@ -4468,12 +4478,27 @@ function App() {
                       // El ítem N (idx > 0) requiere que el ítem N-1 esté 100% COMPLETO.
                       let isLocked = false
                       let prevItemNum = itemNum - 1
-                      if (!isReadOnly && userRole === 'EVALUADOR' && evaluadorInspeccionado === null && idx > 0) {
-                        const prevQuestion = currentList[idx - 1]
-                        const prevResp = respuestas[prevQuestion?.id] || {}
-                        const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
-                        if (!isPrevComplete) {
-                          isLocked = true
+                      let prevTabName = ''
+                      if (!isReadOnly && userRole === 'EVALUADOR' && evaluadorInspeccionado === null) {
+                        if (idx > 0) {
+                          const prevQuestion = currentList[idx - 1]
+                          const prevResp = respuestas[prevQuestion?.id] || {}
+                          const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
+                          if (!isPrevComplete) {
+                            isLocked = true
+                          }
+                        } else if (idx === 0 && instrumentoSubTab === 'VD') {
+                          const viList = preguntasData['VI'] || []
+                          if (viList.length > 0) {
+                            const lastVI = viList[viList.length - 1]
+                            const prevResp = respuestas[lastVI?.id] || {}
+                            const isPrevComplete = !!(prevResp.likert && prevResp.claridad && prevResp.coherencia && prevResp.relevancia && prevResp.suficiencia)
+                            if (!isPrevComplete) {
+                              isLocked = true
+                              prevItemNum = viList.length
+                              prevTabName = ' de la Variable Independiente (VI)'
+                            }
+                          }
                         }
                       }
 
@@ -4494,7 +4519,7 @@ function App() {
                               {isLocked && (
                                 <div className="bg-amber-100 border-2 border-amber-400 p-2.5 rounded-xl flex items-center gap-2 text-amber-950 font-black text-xs shadow-sm mb-1 animate-pulse">
                                   <Lock className="w-4 h-4 text-amber-700 shrink-0" />
-                                  <span>🔒 Ítem {itemNum} Bloqueado: Debe completar al 100% el Ítem {prevItemNum} (Likert y 4 criterios) para habilitar esta pregunta.</span>
+                                  <span>🔒 Ítem {itemNum} Bloqueado: Debe completar al 100% el Ítem {prevItemNum}{prevTabName} (Likert y 4 criterios) para habilitar esta pregunta.</span>
                                 </div>
                               )}
 
