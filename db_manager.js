@@ -177,7 +177,9 @@ export const getConsolidatedTable = async () => {
   
   return Object.values(evaluadores).map(ev => {
     const resp = tableResp[ev.dni] || {};
-    const answeredCount = resp.respuestas ? Object.keys(resp.respuestas).length : 0;
+    const answeredCount = resp.respuestas 
+      ? Object.keys(resp.respuestas).filter(k => k.startsWith('VI_') || k.startsWith('VD_')).length 
+      : 0;
     
     return {
       ...ev,

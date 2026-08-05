@@ -332,6 +332,7 @@ app.post('/api/evaluacion/save', async (req, res) => {
   }
 
   const totalAnswered = Object.keys(mergedRespuestas).filter(k => {
+    if (!k.startsWith('VI_') && !k.startsWith('VD_')) return false;
     const r = mergedRespuestas[k]
     return r && (r.likert || r.claridad || r.coherencia || r.relevancia || r.suficiencia)
   }).length
