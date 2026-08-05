@@ -102,6 +102,12 @@ export async function generateDocxReport(
     }
   }
 
+  // APLICAR FILTRO ESTRICTO: Solo incluir evaluadores que han completado 100/100 preguntas
+  selectedList = selectedList.filter(e => {
+    const validKeys = Object.keys(e.respuestas || {}).filter(k => k.startsWith('VI_') || k.startsWith('VD_'));
+    return validKeys.length >= 100;
+  });
+
   const K_total = selectedList.length > 0 ? selectedList.length : 1
   
   // REGLA DE EVALUADORES IMPARES: Si K es par (ej. K=2 o K=4), N_eval = K - 1. Si K es impar (ej. 1, 3, 5), N_eval = K.

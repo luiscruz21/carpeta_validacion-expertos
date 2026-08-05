@@ -2423,7 +2423,9 @@ function App() {
 
   // Exportar Consolidado Completo V de Aiken (Investigador)
   const handleExportConsolidadoInvestigador = () => {
-    const evaluadoresList = Object.values(evaluacionesData)
+    const evaluadoresList = Object.values(evaluacionesData).filter(e => 
+      e.finalizado || (e.respuestas && Object.keys(e.respuestas).filter(k => k.startsWith('VI_') || k.startsWith('VD_')).length >= 100)
+    )
     const nEvaluadores = evaluadoresList.length || 1
 
     const headers = [
@@ -3925,8 +3927,10 @@ function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-bold text-center">
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
-                  <p className="text-sky-300 uppercase text-[10px]">Evaluadores Registrados</p>
-                  <p className="text-2xl font-black text-white mt-1">{invitacionesList.length}</p>
+                  <p className="text-sky-300 uppercase text-[10px]">Evaluadores Completados</p>
+                  <p className="text-2xl font-black text-white mt-1">
+                    {invitacionesList.filter(i => i.estado === 'Completado' || i.respondidas >= 100).length}
+                  </p>
                 </div>
 
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">

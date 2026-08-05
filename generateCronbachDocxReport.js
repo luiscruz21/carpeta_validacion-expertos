@@ -89,7 +89,10 @@ export async function generateCronbachDocxReport(
     ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
     : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
 
-  const evalsList = Object.values(evaluacionesMap)
+  const evalsList = Object.values(evaluacionesMap).filter(e => {
+    const validKeys = Object.keys(e.respuestas || {}).filter(k => k.startsWith('VI_') || k.startsWith('VD_'));
+    return e.finalizado || validKeys.length >= 100;
+  });
   const respuestasList = evalsList.map(e => e.respuestas || {}).filter(r => Object.keys(r).length > 0)
 
   const viList = preguntasData.VI || []
