@@ -139,8 +139,8 @@ app.get('/api/investigador/resumen', async (req, res) => {
 // DOCX HANDLERS
 const handleDescargarDocxHandler = async (req, res) => {
   try {
-    const invites = await readTable('invitaciones', {})
-    const evals = await readTable('evaluaciones', {})
+    const invites = await readTable('tabla_evaluadores', {})
+    const evals = await readTable('tabla_evaluaciones_respuestas', {})
     const perfil = await readTable('investigador', {})
     let preguntas = await readTable('preguntas', {})
 
@@ -186,8 +186,8 @@ app.get('/api/investigador/descargar-informe-blanco-docx', handleDescargarBlanco
 
 const handleDescargarCronbachDocxHandler = async (req, res) => {
   try {
-    const invites = await readTable('invitaciones', {})
-    const evals = await readTable('evaluaciones', {})
+    const invites = await readTable('tabla_evaluadores', {})
+    const evals = await readTable('tabla_evaluaciones_respuestas', {})
     const perfil = await readTable('investigador', {})
     let preguntas = await readTable('preguntas', {})
 
