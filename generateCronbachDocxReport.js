@@ -83,16 +83,21 @@ export async function generateCronbachDocxReport(
   evaluacionesMap = {},
   invitacionesMap = {},
   perfilInvestigador = {},
-  preguntasData = {}
+  preguntasData = {},
+  selectedKeys = []
 ) {
   const nombreInvestigador = (perfilInvestigador.nombres && perfilInvestigador.apellidos)
     ? `${perfilInvestigador.nombres} ${perfilInvestigador.apellidos}`.trim()
     : (perfilInvestigador.nombre || 'Dr. Luis Alfonso Cruz Gálvez')
 
-  const evalsList = Object.values(evaluacionesMap).filter(e => {
+  let evalsList = Object.values(evaluacionesMap).filter(e => {
     const validKeys = Object.keys(e.respuestas || {}).filter(k => k.startsWith('VI_') || k.startsWith('VD_'));
     return e.finalizado || validKeys.length >= 100;
   });
+
+  if (Array.isArray(selectedKeys) && selectedKeys.length > 0) {
+    evalsList = evalsList.filter(e => selectedKeys.includes(e.dni) || selectedKeys.includes(e.codigoTarget) || selectedKeys.includes(e.codigo))
+  }
   const respuestasList = evalsList.map(e => e.respuestas || {}).filter(r => Object.keys(r).length > 0)
 
   const viList = preguntasData.VI || []
@@ -171,7 +176,7 @@ export async function generateCronbachDocxReport(
       spacing: { after: 150 },
       children: [
         new TextRun({
-          text: "El Coeficiente Alfa de Cronbach (Cronbach, 1951) cuantifica la consistencia interna y confiabilidad del instrumento mediante la covarianza entre los reactivos formulados en la escala Likert (1 a 5). Su expresión matemática es:",
+          text: `El Coeficiente Alfa de Cronbach (Cronbach, 1951) cuantifica la consistencia interna y confiabilidad del instrumento mediante la covarianza entre los reactivos formulados en la escala Likert (1 a 5). Este análisis se calculó estadísticamente filtrando la matriz de datos para evaluar exclusivamente a los ${evalsList.length} evaluadores seleccionados: ${evalsList.map(e => e.nombre || e.nombreExperto || "Experto").join(', ')}. Su expresión matemática es:`,
           size: 19,
           font: "Arial"
         })

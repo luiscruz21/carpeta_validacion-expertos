@@ -746,7 +746,7 @@ export async function generateDocxReport(
       spacing: { after: 150 },
       children: [
         new TextRun({
-          text: `Se determinó la consistencia interna mediante el Coeficiente Alfa de Cronbach (α) sobre los 100 ítems formulados en escala Likert:`,
+          text: `Se determinó la consistencia interna mediante el Coeficiente Alfa de Cronbach (α) sobre los 100 ítems formulados en escala Likert. El análisis matemático de varianzas (ítems vs. sujetos) se calculó filtrando estrictamente los datos para considerar exclusivamente a los ${selectedList.length} evaluadores seleccionados: ${selectedList.map(e => e.nombre).join(', ')}.`,
           size: 20,
           font: "Arial"
         })
@@ -763,6 +763,17 @@ export async function generateDocxReport(
           size: 22,
           font: "Arial"
         })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 150 },
+      children: [
+        new TextRun({ text: "Desglose matemático del cálculo basado en los evaluadores seleccionados:\n", bold: true, size: 19, font: "Arial" }),
+        new TextRun({ text: `Fórmula: α = [ K / (K - 1) ] × [ 1 - ( Σ σ²_i / σ²_X ) ]\n`, italic: true, size: 19, font: "Arial" }),
+        new TextRun({ text: `• K = ${cronbachGlobal.k} (Número de ítems evaluados).\n`, size: 19, font: "Arial" }),
+        new TextRun({ text: `• Σ σ²_i = ${cronbachGlobal.sumVarItems} (Sumatoria de varianzas de ítems individuales).\n`, size: 19, font: "Arial" }),
+        new TextRun({ text: `• σ²_X = ${cronbachGlobal.varTotal} (Varianza del puntaje total de los sujetos).`, size: 19, font: "Arial" })
       ]
     })
   )

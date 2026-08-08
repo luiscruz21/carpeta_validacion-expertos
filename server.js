@@ -191,7 +191,15 @@ const handleDescargarCronbachDocxHandler = async (req, res) => {
     const perfil = await readTable('investigador', {})
     let preguntas = await readTable('preguntas', {})
 
-    const docBuffer = await generateCronbachDocxReport(evals, invites, perfil, preguntas)
+    const rawSel = req.query.evaluadores || (req.body && req.body.evaluadores)
+    let selectedKeys = []
+    if (typeof rawSel === 'string') {
+      selectedKeys = rawSel.split(',').map(s => s.trim()).filter(Boolean)
+    } else if (Array.isArray(rawSel)) {
+      selectedKeys = rawSel
+    }
+
+    const docBuffer = await generateCronbachDocxReport(evals, invites, perfil, preguntas, selectedKeys)
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     res.setHeader('Content-Disposition', 'attachment; filename="INFORME_CONFIABILIDAD_ALFA_DE_CRONBACH.docx"')
@@ -232,6 +240,80 @@ app.post('/api/investigador/editar-evaluador', async (req, res) => {
 app.get('/api/invitaciones', async (req, res) => {
   const result = await dbManager.getConsolidatedTable()
   return res.json({ success: true, invitaciones: result })
+})
+
+// POST Métricas de Confiabilidad (Aiken y Cronbach) para el dashboard frontend
+app.post('/api/investigador/metricas', async (req, res) => {
+  try {
+    const { evaluadores = [] } = req.body
+    
+    const allEvals = await readTable('tabla_evaluaciones_respuestas', {})
+    let evalsList = Object.values(allEvals).filter(e => {
+      const validKeys = Object.keys(e.respuestas || {}).filter(k => k.startsWith('VI_') || k.startsWith('VD_'));
+      return e.finalizado || validKeys.length >= 100;
+    })
+    
+    // Filtrar evaluadores seleccionados
+    if (evaluadores && evaluadores.length > 0) {
+      evalsList = evalsList.filter(e => evaluadores.includes(e.dni) || evaluadores.includes(e.codigoTarget) || evaluadores.includes(e.codigo))
+    }
+
+    if (evalsList.length === 0) {
+      return res.json({ success: true, aikenGlobal: '0.00', cronbachGlobal: { alpha: 0.00, nivel: "N/A" } })
+    }
+
+    const preguntasData = await readTable('preguntas', {})
+    const viList = preguntasData.VI || []
+    const vdList = preguntasData.VD || []
+    const allPreguntas = [...viList, ...vdList]
+
+    // 1. Cronbach Global
+    const { calculateCronbachAlpha } = await import('./generateCronbachDocxReport.js')
+    const respuestasListForCronbach = evalsList.map(e => e.respuestas || {}).filter(r => Object.keys(r).length > 0)
+    const cronbachGlobal = calculateCronbachAlpha(allPreguntas, respuestasListForCronbach)
+
+    // 2. V de Aiken Global
+    let totalSumV = 0
+    let totalCountV = 0
+    const K_total = evalsList.length
+    const N_eval = K_total % 2 === 0 && K_total > 1 ? K_total - 1 : K_total
+
+    const criterios = ['Claridad', 'Coherencia', 'Relevancia', 'Suficiencia']
+
+    for (const p of allPreguntas) {
+      for (const crit of criterios) {
+        let acuerdosSumN = 0
+        for (let j = 0; j < K_total; j++) {
+          const ev = evalsList[j]
+          const rObj = ev && ev.respuestas ? ev.respuestas[p.id] : null
+          
+          let score = 1
+          if (rObj) {
+            const keyCrit = crit.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            if (rObj[keyCrit] === 'No') score = 0
+            else if (rObj.likert && rObj.likert < 3) score = 0
+          }
+          if (j < N_eval) acuerdosSumN += score
+        }
+        const aikenV = Number((acuerdosSumN / (N_eval || 1)).toFixed(2))
+        totalSumV += aikenV
+        totalCountV++
+      }
+    }
+
+    const aikenGlobal = totalCountV > 0 ? (totalSumV / totalCountV).toFixed(3) : '0.000'
+
+    return res.json({
+      success: true,
+      aikenGlobal,
+      cronbachGlobal,
+      n_evaluadores: evalsList.length
+    })
+
+  } catch (error) {
+    console.error("Error al calcular metricas:", error)
+    return res.status(500).json({ success: false, mensaje: error.message })
+  }
 })
 
 app.post('/api/invitaciones/crear', async (req, res) => {

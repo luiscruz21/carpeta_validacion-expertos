@@ -125,8 +125,13 @@ function App() {
   const [pinSuccessMsg, setPinSuccessMsg] = useState('')
   const [pinErrorMsg, setPinErrorMsg] = useState('')
 
-  // Selección de evaluadores a incluir en el informe Word (.docx)
+  // Selección de evaluadores a incluir en el informe Word (.docx) y en las Métricas de Confiabilidad
   const [selectedEvaluadoresDocx, setSelectedEvaluadoresDocx] = useState([])
+  const [metricasGlobales, setMetricasGlobales] = useState({
+    aikenGlobal: '0.000',
+    cronbachGlobal: { alpha: 0.000, nivel: "N/A" },
+    n_evaluadores: 0
+  })
 
   // Respuestas del Evaluador (INICIALIZAN VACÍAS)
   const [respuestas, setRespuestas] = useState({})
@@ -488,6 +493,32 @@ function App() {
       setSyncing(false)
     }
   }
+
+  const fetchMetricasGlobales = async () => {
+    try {
+      const res = await fetch('/api/investigador/metricas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evaluadores: selectedEvaluadoresDocx })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setMetricasGlobales({
+          aikenGlobal: data.aikenGlobal,
+          cronbachGlobal: data.cronbachGlobal,
+          n_evaluadores: data.n_evaluadores
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching metricas:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (userRole === 'INVESTIGADOR') {
+      fetchMetricasGlobales()
+    }
+  }, [selectedEvaluadoresDocx, invitacionesList])
 
   useEffect(() => {
     if (activeTab === 'PANEL_INVESTIGADOR' || userRole === 'INVESTIGADOR') {
@@ -959,9 +990,12 @@ function App() {
     try {
       setSyncing(true)
       const selectedCodes = selectedEvaluadoresDocx.length > 0 ? selectedEvaluadoresDocx : (invitacionesList || []).map(i => i.codigo)
-      const queryParam = selectedCodes.length > 0 ? `?evaluadores=${encodeURIComponent(selectedCodes.join(','))}` : ''
       
-      const res = await fetch('/api/investigador/descargar-informe-docx' + queryParam)
+      const res = await fetch('/api/investigador/descargar-informe-docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evaluadores: selectedCodes })
+      })
 
       if (!res.ok) {
         throw new Error('Error al generar el informe en el servidor')
@@ -986,7 +1020,13 @@ function App() {
   const handleDescargarInformeCronbachDocx = async () => {
     try {
       setSyncing(true)
-      const res = await fetch('/api/investigador/descargar-informe-cronbach')
+      const selectedCodes = selectedEvaluadoresDocx.length > 0 ? selectedEvaluadoresDocx : (invitacionesList || []).map(i => i.codigo)
+      
+      const res = await fetch('/api/investigador/descargar-informe-cronbach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evaluadores: selectedCodes })
+      })
 
       if (!res.ok) {
         throw new Error('Error al generar el informe de Alfa de Cronbach en el servidor')
@@ -3392,51 +3432,7 @@ function App() {
               </div>
             </div>
 
-            {/* SECCIÓN SELECCIÓN DE EVALUADORES PARA INFORME WORD (.DOCX) */}
-            <div className="bg-sky-50/80 border border-sky-200 rounded-xl p-4 mb-6 shadow-sm">
-              <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
-                <h4 className="text-xs font-black text-sky-950 uppercase flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-sky-700" /> Seleccionar Evaluadores / Jueces a Incluir en el Informe Word (.docx):
-                </h4>
-                <span className="text-[11px] bg-sky-200 text-sky-900 font-bold px-2.5 py-0.5 rounded-full border border-sky-300">
-                  {selectedEvaluadoresDocx.length === 0 ? 'Todos los evaluadores incluidos (Por defecto)' : `${selectedEvaluadoresDocx.length} de ${invitacionesList.length} evaluador(es) seleccionado(s)`}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2.5 mt-2">
-                {invitacionesList.map(inv => {
-                  const isChecked = selectedEvaluadoresDocx.length === 0 || selectedEvaluadoresDocx.includes(inv.codigo) || selectedEvaluadoresDocx.includes(inv.dni)
-                  return (
-                    <label key={inv.codigo} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all ${
-                      isChecked ? 'bg-white border-sky-500 text-sky-950 shadow-sm ring-1 ring-sky-400' : 'bg-slate-50 border-slate-300 text-slate-400 opacity-60'
-                    }`}>
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) => {
-                          const code = inv.codigo
-                          if (selectedEvaluadoresDocx.length === 0) {
-                            const allCodes = invitacionesList.map(i => i.codigo)
-                            if (e.target.checked) {
-                              setSelectedEvaluadoresDocx(allCodes)
-                            } else {
-                              setSelectedEvaluadoresDocx(allCodes.filter(c => c !== code))
-                            }
-                          } else {
-                            if (e.target.checked) {
-                              setSelectedEvaluadoresDocx([...selectedEvaluadoresDocx, code])
-                            } else {
-                              setSelectedEvaluadoresDocx(selectedEvaluadoresDocx.filter(c => c !== code))
-                            }
-                          }
-                        }}
-                        className="rounded text-sky-600 focus:ring-sky-500 w-3.5 h-3.5"
-                      />
-                      <span>{inv.nombreExperto} ({inv.dni || inv.codigo})</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
+
 
             {/* SECCIÓN REGISTRO Y GESTIÓN DE CLAVES DE ACCESO DE INVESTIGADORES */}
             <div id="form-cambiar-pin" className="bg-slate-900 text-white rounded-xl p-5 mb-8 shadow-lg border border-slate-700">
@@ -3927,28 +3923,80 @@ function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-bold text-center">
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
-                  <p className="text-sky-300 uppercase text-[10px]">Evaluadores Completados</p>
+                  <p className="text-sky-300 uppercase text-[10px]">Evaluadores Seleccionados</p>
                   <p className="text-2xl font-black text-white mt-1">
-                    {invitacionesList.filter(i => i.estado === 'Completado' || i.respondidas >= 100).length}
+                    {metricasGlobales.n_evaluadores}
                   </p>
                 </div>
 
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
                   <p className="text-emerald-300 uppercase text-[10px]">Validez V de Aiken</p>
-                  <p className="text-2xl font-black text-emerald-400 mt-1">V ≥ 0.985</p>
-                  <span className="text-[10px] text-emerald-200">Excelente Validez</span>
+                  <p className="text-2xl font-black text-emerald-400 mt-1">V = {metricasGlobales.aikenGlobal}</p>
+                  <span className="text-[10px] text-emerald-200">
+                    {Number(metricasGlobales.aikenGlobal) >= 0.80 ? 'Excelente Validez' : 'Aceptable'}
+                  </span>
                 </div>
 
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
                   <p className="text-amber-300 uppercase text-[10px]">Alfa de Cronbach (α)</p>
-                  <p className="text-2xl font-black text-amber-400 mt-1">α = 0.985</p>
-                  <span className="text-[10px] text-amber-200">Excelente Confiabilidad</span>
+                  <p className="text-2xl font-black text-amber-400 mt-1">α = {Number(metricasGlobales.cronbachGlobal.alpha || 0).toFixed(3)}</p>
+                  <span className="text-[10px] text-amber-200">{metricasGlobales.cronbachGlobal.nivel}</span>
                 </div>
 
                 <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 shadow">
                   <p className="text-purple-300 uppercase text-[10px]">Dictamen Final</p>
-                  <p className="text-base font-black text-purple-300 mt-2">APROBADO</p>
-                  <span className="text-[10px] text-purple-200">Listo para Tesis</span>
+                  <p className="text-base font-black text-purple-300 mt-2">
+                    {Number(metricasGlobales.aikenGlobal) >= 0.80 && Number(metricasGlobales.cronbachGlobal.alpha || 0) >= 0.80 ? 'APROBADO' : 'OBSERVADO'}
+                  </p>
+                  <span className="text-[10px] text-purple-200">
+                    {Number(metricasGlobales.aikenGlobal) >= 0.80 && Number(metricasGlobales.cronbachGlobal.alpha || 0) >= 0.80 ? 'Listo para Tesis' : 'Requiere Revisión'}
+                  </span>
+                </div>
+              </div>
+
+              {/* SECCIÓN SELECCIÓN DE EVALUADORES PARA MÉTRICAS E INFORME WORD */}
+              <div className="mt-6 bg-slate-800/50 border border-sky-800/50 rounded-xl p-4 shadow-sm">
+                <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+                  <h4 className="text-xs font-black text-sky-200 uppercase flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-sky-400" /> Evaluadores Completados a Incluir en el Cálculo y Reportes:
+                  </h4>
+                  <span className="text-[11px] bg-sky-900/50 text-sky-200 font-bold px-2.5 py-0.5 rounded-full border border-sky-700">
+                    {selectedEvaluadoresDocx.length === 0 ? 'Todos incluidos (Por defecto)' : `${selectedEvaluadoresDocx.length} evaluador(es) seleccionado(s)`}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2.5 mt-3">
+                  {invitacionesList.filter(i => i.estado === 'Completado' || i.respondidas >= 100).map(inv => {
+                    const isChecked = selectedEvaluadoresDocx.length === 0 || selectedEvaluadoresDocx.includes(inv.codigo) || selectedEvaluadoresDocx.includes(inv.dni)
+                    return (
+                      <label key={inv.codigo} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all ${
+                        isChecked ? 'bg-sky-900 border-sky-500 text-sky-100 shadow-sm ring-1 ring-sky-400' : 'bg-slate-800 border-slate-600 text-slate-400 opacity-60'
+                      }`}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const code = inv.codigo
+                            if (selectedEvaluadoresDocx.length === 0) {
+                              const allCodes = invitacionesList.filter(i => i.estado === 'Completado' || i.respondidas >= 100).map(i => i.codigo)
+                              if (e.target.checked) {
+                                setSelectedEvaluadoresDocx(allCodes)
+                              } else {
+                                setSelectedEvaluadoresDocx(allCodes.filter(c => c !== code))
+                              }
+                            } else {
+                              if (e.target.checked) {
+                                setSelectedEvaluadoresDocx([...selectedEvaluadoresDocx, code])
+                              } else {
+                                setSelectedEvaluadoresDocx(selectedEvaluadoresDocx.filter(c => c !== code))
+                              }
+                            }
+                          }}
+                          className="rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500 w-3.5 h-3.5"
+                        />
+                        <span>{inv.nombreExperto} ({inv.dni || inv.codigo})</span>
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
             </div>
