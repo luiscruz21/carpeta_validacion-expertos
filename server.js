@@ -141,8 +141,16 @@ const handleDescargarDocxHandler = async (req, res) => {
   try {
     const invites = await readTable('tabla_evaluadores', {})
     const evals = await readTable('tabla_evaluaciones_respuestas', {})
+    const hojas = await readTable('tabla_hojas_de_vida', {})
     const perfil = await readTable('investigador', {})
     let preguntas = await readTable('preguntas', {})
+
+    // Inyectar la firma (que se guarda en la tabla de hojas de vida) para que se grafique en el Word
+    Object.keys(hojas).forEach(key => {
+      if (evals[key] && hojas[key].firmaExpertoImg) {
+        evals[key].firmaExpertoImg = hojas[key].firmaExpertoImg;
+      }
+    })
 
     const rawSel = req.query.evaluadores || (req.body && req.body.evaluadores)
     let selectedKeys = []
@@ -188,8 +196,16 @@ const handleDescargarCronbachDocxHandler = async (req, res) => {
   try {
     const invites = await readTable('tabla_evaluadores', {})
     const evals = await readTable('tabla_evaluaciones_respuestas', {})
+    const hojas = await readTable('tabla_hojas_de_vida', {})
     const perfil = await readTable('investigador', {})
     let preguntas = await readTable('preguntas', {})
+
+    // Inyectar la firma (que se guarda en la tabla de hojas de vida) para que se grafique en el Word
+    Object.keys(hojas).forEach(key => {
+      if (evals[key] && hojas[key].firmaExpertoImg) {
+        evals[key].firmaExpertoImg = hojas[key].firmaExpertoImg;
+      }
+    })
 
     const rawSel = req.query.evaluadores || (req.body && req.body.evaluadores)
     let selectedKeys = []
