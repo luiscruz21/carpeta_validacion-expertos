@@ -56,10 +56,10 @@ export async function generateDocxReport(
     let cargo = ev.cargo || inv.cargo || "Especialista Informante"
     let grado = ev.gradoAcademico || inv.gradoAcademico || "Magíster"
     let institucion = ev.institucion || ev.estudios || "Universidad de Procedencia"
-    let firmaImg = ev.firmaExpertoImg || ""
-    let valoracionGlobal = ev.valoracionGlobal || "Sin valoración"
-    let observaciones = ev.observaciones || "Ninguna"
-    let dictamenFinal = ev.dictamenFinal || "APLICABLE"
+    let firmaImg = ev.firmaExpertoImg || inv.firmaExpertoImg || ""
+    let valoracionGlobal = ev.valoracionGlobal || inv.valoracionGlobal || "Sin valoración"
+    let dictamenFinal = ev.dictamenFinal || inv.dictamenFinal || "APLICABLE"
+    let observaciones = ev.observaciones || inv.observaciones || "Ninguna"
     const respuestas = ev.respuestas || {}
 
     // Incluir sin ninguna exclusión forzada por DNI o rol
