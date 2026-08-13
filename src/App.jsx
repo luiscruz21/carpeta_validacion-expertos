@@ -3782,7 +3782,7 @@ function App() {
                   </button>
                 </div>
 
-                <form onSubmit={handleGuardarEditarEvaluadorModal} className="p-6 space-y-4 text-xs text-slate-700 overflow-y-auto">
+                <form onSubmit={handleGuardarEditarEvaluadorModal} className="p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1 min-h-0">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-extrabold text-slate-900 mb-1">Nombres y Apellidos:</label>
