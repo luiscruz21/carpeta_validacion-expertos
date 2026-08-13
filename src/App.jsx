@@ -1328,6 +1328,9 @@ function App() {
       orcid: (orcid || '').trim(),
       linkedin: (linkedin || '').trim(),
       resumenProfesional: (resumenProfesional || '').trim(),
+      valoracionGlobal,
+      dictamenFinal,
+      observaciones: (observaciones || '').trim(),
       dni: targetKey,
       codigo: targetKey,
       inviteCode: targetKey
@@ -5492,7 +5495,7 @@ function App() {
                       : 'bg-teal-700 hover:bg-teal-800 active:scale-95 text-white hover:shadow-xl'
                   }`}
                 >
-                  <Save className="w-5 h-5" /> 💾 GUARDAR DATOS DE HOJA DE VIDA
+                  <Save className="w-5 h-5" /> 💾 GUARDAR CAMBIOS (CERTIFICADO Y HOJA DE VIDA)
                 </button>
               </div>
             </div>
