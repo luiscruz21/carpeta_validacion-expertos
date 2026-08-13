@@ -1055,6 +1055,9 @@ function App() {
   const [evalGradoModal, setEvalGradoModal] = useState('')
   const [evalInstitucionModal, setEvalInstitucionModal] = useState('')
   const [evalEmailModal, setEvalEmailModal] = useState('')
+  const [evalValoracionGlobalModal, setEvalValoracionGlobalModal] = useState('')
+  const [evalDictamenFinalModal, setEvalDictamenFinalModal] = useState('APLICABLE')
+  const [evalObservacionesModal, setEvalObservacionesModal] = useState('')
 
   const handleAbrirEditarEvaluadorModal = (inv) => {
     const evalData = evaluacionesData[inv.codigo] || Object.values(evaluacionesData).find(e => 
@@ -1069,6 +1072,9 @@ function App() {
     setEvalGradoModal(evalData.gradoAcademico || 'Magíster')
     setEvalInstitucionModal(evalData.institucion || 'Universidad de Procedencia')
     setEvalEmailModal(evalData.email || '')
+    setEvalValoracionGlobalModal(evalData.valoracionGlobal || '')
+    setEvalDictamenFinalModal(evalData.dictamenFinal || 'APLICABLE')
+    setEvalObservacionesModal(evalData.observaciones || '')
   }
 
   const handleGuardarEditarEvaluadorModal = async (e) => {
@@ -1095,7 +1101,10 @@ function App() {
         cargo: cleanCargo,
         gradoAcademico: cleanGrado,
         institucion: cleanInstitucion,
-        email: cleanEmail
+        email: cleanEmail,
+        valoracionGlobal: evalValoracionGlobalModal,
+        dictamenFinal: evalDictamenFinalModal,
+        observaciones: evalObservacionesModal
       }
     }
 
@@ -1118,6 +1127,9 @@ function App() {
           gradoAcademico: cleanGrado,
           institucion: cleanInstitucion,
           email: cleanEmail,
+          valoracionGlobal: evalValoracionGlobalModal,
+          dictamenFinal: evalDictamenFinalModal,
+          observaciones: evalObservacionesModal,
           codigo: editingEvalModal.codigo
         }
 
@@ -1139,6 +1151,9 @@ function App() {
           setGradoAcademico(cleanGrado)
           setInstitucion(cleanInstitucion)
           setEmail(cleanEmail)
+          setValoracionGlobal(evalValoracionGlobalModal)
+          setDictamenFinal(evalDictamenFinalModal)
+          setObservaciones(evalObservacionesModal)
 
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombre`, combinedNombre)
           localStorage.setItem(`${LOCAL_STORAGE_KEY}_nombresExperto`, nombres)
@@ -3846,7 +3861,48 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Valoración Global:</label>
+                      <select
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-bold text-slate-900 bg-white"
+                        value={evalValoracionGlobalModal}
+                        onChange={(e) => setEvalValoracionGlobalModal(e.target.value)}
+                      >
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Excelente">Excelente</option>
+                        <option value="Muy Bueno">Muy Bueno</option>
+                        <option value="Bueno">Bueno</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Deficiente">Deficiente</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-extrabold text-slate-900 mb-1">Dictamen Final:</label>
+                      <select
+                        className="w-full border border-slate-300 rounded-lg p-2.5 font-bold text-slate-900 bg-white"
+                        value={evalDictamenFinalModal}
+                        onChange={(e) => setEvalDictamenFinalModal(e.target.value)}
+                      >
+                        <option value="">-- Seleccionar --</option>
+                        <option value="Aprobado">Aprobado (Aplicable)</option>
+                        <option value="Aprobado con Observaciones">Aprobado con Observaciones</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block font-extrabold text-slate-900 mb-1">Observaciones / Recomendaciones Generales:</label>
+                    <textarea
+                      rows="3"
+                      className="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900"
+                      value={evalObservacionesModal}
+                      onChange={(e) => setEvalObservacionesModal(e.target.value)}
+                      placeholder="Observaciones finales del evaluador..."
+                    ></textarea>
+                  </div>
+
+                  <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 mt-4">
                     <button
                       type="button"
                       onClick={() => setEditingEvalModal(null)}

@@ -75,6 +75,9 @@ export const upsertEvaluador = async (dni, data) => {
     gradoAcademico: (data.gradoAcademico || existing.gradoAcademico || "Magíster").trim(),
     institucion: (data.institucion || data.estudios || existing.institucion || "Universidad de Procedencia").trim(),
     email: (data.email || existing.email || "").trim(),
+    valoracionGlobal: data.valoracionGlobal !== undefined ? data.valoracionGlobal : existing.valoracionGlobal,
+    dictamenFinal: data.dictamenFinal !== undefined ? data.dictamenFinal : existing.dictamenFinal,
+    observaciones: data.observaciones !== undefined ? data.observaciones : existing.observaciones,
     creadoEn: existing.creadoEn || new Date().toISOString(),
     actualizadoEn: new Date().toISOString()
   };

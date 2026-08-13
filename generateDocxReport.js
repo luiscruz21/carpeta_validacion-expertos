@@ -849,11 +849,11 @@ export async function generateDocxReport(
               new TableCell({
                 width: { size: 30, type: WidthType.PERCENTAGE },
                 shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
-                children: [new Paragraph({ children: [new TextRun({ text: "Valoración Global (1-100%)", bold: true, size: 18, font: "Arial" })] })]
+                children: [new Paragraph({ children: [new TextRun({ text: "Valoración Global", bold: true, size: 18, font: "Arial" })] })]
               }),
               new TableCell({
                 width: { size: 70, type: WidthType.PERCENTAGE },
-                children: [new Paragraph({ children: [new TextRun({ text: `${exp.valoracionGlobal || 'Sin valoración'}%`, bold: true, size: 18, font: "Arial" })] })]
+                children: [new Paragraph({ children: [new TextRun({ text: `${exp.valoracionGlobal || 'Sin valoración'}`, bold: true, size: 18, font: "Arial" })] })]
               })
             ]
           }),
