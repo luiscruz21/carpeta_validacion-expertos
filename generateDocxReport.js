@@ -57,6 +57,9 @@ export async function generateDocxReport(
     let grado = ev.gradoAcademico || inv.gradoAcademico || "Magíster"
     let institucion = ev.institucion || ev.estudios || "Universidad de Procedencia"
     let firmaImg = ev.firmaExpertoImg || ""
+    let valoracionGlobal = ev.valoracionGlobal || "Sin valoración"
+    let observaciones = ev.observaciones || "Ninguna"
+    let dictamenFinal = ev.dictamenFinal || "APLICABLE"
     const respuestas = ev.respuestas || {}
 
     // Incluir sin ninguna exclusión forzada por DNI o rol
@@ -69,6 +72,9 @@ export async function generateDocxReport(
         institucion,
         dni,
         firmaImg,
+        valoracionGlobal,
+        observaciones,
+        dictamenFinal,
         respuestas
       })
     }
@@ -86,6 +92,9 @@ export async function generateDocxReport(
       grado: ev.gradoAcademico || "Magíster",
       institucion: ev.institucion || "Universidad de Procedencia",
       firmaImg: ev.firmaExpertoImg || "",
+      valoracionGlobal: ev.valoracionGlobal || "Sin valoración",
+      observaciones: ev.observaciones || "Ninguna",
+      dictamenFinal: ev.dictamenFinal || "APLICABLE",
       respuestas: ev.respuestas || {}
     }
   })
@@ -777,6 +786,140 @@ export async function generateDocxReport(
       ]
     })
   )
+  // SECCIÓN 5: CERTIFICADOS DE VALIDACIÓN (VALORACIÓN GLOBAL Y DICTAMEN)
+  children.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: 300, after: 150 },
+      children: [
+        new TextRun({
+          text: "SECCIÓN V: CERTIFICADOS Y DICTAMEN FINAL DE LOS EVALUADORES",
+          bold: true,
+          size: 24,
+          color: "1A365D",
+          font: "Arial"
+        })
+      ]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.JUSTIFY,
+      spacing: { after: 300 },
+      children: [
+        new TextRun({
+          text: "A continuación se presentan las constancias de valoración global y el dictamen final emitido por cada uno de los expertos evaluadores participantes en la validación del instrumento de investigación.",
+          size: 19,
+          font: "Arial"
+        })
+      ]
+    })
+  )
+
+  for (let i = 0; i < N_eval; i++) {
+    const exp = selectedList[i]
+    const nombreLimpio = cleanNombre(exp.nombre)
+    const codigoValidadorTag = exp.codigo ? exp.codigo : `J${i + 1} (${exp.dni})`
+    
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 150 },
+        children: [
+          new TextRun({ text: `CERTIFICADO DE VALIDACIÓN: JUEZ ${i + 1}`, bold: true, size: 20, color: "2B6CB0", font: "Arial" })
+        ]
+      }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
+                children: [new Paragraph({ children: [new TextRun({ text: "Experto Evaluador", bold: true, size: 18, font: "Arial" })] })]
+              }),
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: `${exp.nombre}\n${exp.cargo || ''}\n${exp.institucion || ''}`, size: 18, font: "Arial" })] })]
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
+                children: [new Paragraph({ children: [new TextRun({ text: "Valoración Global (1-100%)", bold: true, size: 18, font: "Arial" })] })]
+              }),
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: `${exp.valoracionGlobal || 'Sin valoración'}%`, bold: true, size: 18, font: "Arial" })] })]
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
+                children: [new Paragraph({ children: [new TextRun({ text: "Dictamen Final", bold: true, size: 18, font: "Arial" })] })]
+              }),
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: exp.dictamenFinal || 'APLICABLE', bold: true, color: "2F855A", size: 18, font: "Arial" })] })]
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
+                children: [new Paragraph({ children: [new TextRun({ text: "Observaciones / Recomendaciones", bold: true, size: 18, font: "Arial" })] })]
+              }),
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: exp.observaciones || 'Ninguna', size: 16, font: "Arial" })] })]
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "EDF2F7", type: ShadingType.CLEAR },
+                children: [new Paragraph({ children: [new TextRun({ text: "Firma del Experto", bold: true, size: 18, font: "Arial" })] })]
+              }),
+              new TableCell({
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                children: [
+                  exp.firmaImg && exp.firmaImg.startsWith('data:image') ?
+                    new Paragraph({
+                      children: [
+                        new ImageRun({
+                          data: Buffer.from(exp.firmaImg.split(',')[1] || '', 'base64'),
+                          transformation: { width: 140, height: 50 }
+                        }),
+                        new TextRun({ text: `\nFirma Digital Registrada - Validador [${codigoValidadorTag}]`, bold: true, size: 14, color: "2B6CB0", font: "Arial" })
+                      ]
+                    }) :
+                    new Paragraph({
+                      children: [
+                        new TextRun({ text: "____________________________________\n", bold: true, color: "4A5568", size: 18, font: "Arial" }),
+                        new TextRun({ text: `${nombreLimpio}\n`, bold: true, size: 16, font: "Arial" }),
+                        new TextRun({ text: `${exp.cargo || 'Especialista Informante'}\n`, italic: true, size: 14, color: "718096", font: "Arial" }),
+                        new TextRun({ text: `Firma Digital Registrada - Validador [${codigoValidadorTag}]`, bold: true, size: 14, color: "2B6CB0", font: "Arial" })
+                      ]
+                    })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      new Paragraph({ spacing: { after: 300 }, children: [] })
+    )
+  }
 
   // Crear Documento Word
   const doc = new Document({
