@@ -3764,8 +3764,8 @@ function App() {
           {/* MODAL PARA EDITAR DATOS Y PERFIL DE EVALUADOR POR EL INVESTIGADOR */}
           {editingEvalModal && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden">
-                <div className="bg-slate-900 text-white p-5 flex justify-between items-center">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[95vh]">
+                <div className="bg-slate-900 text-white p-5 flex justify-between items-center shrink-0">
                   <div>
                     <h3 className="text-base font-black flex items-center gap-2 text-amber-400">
                       <Edit3 className="w-5 h-5 text-amber-400" /> Editar Perfil y Datos del Evaluador
@@ -3782,7 +3782,7 @@ function App() {
                   </button>
                 </div>
 
-                <form onSubmit={handleGuardarEditarEvaluadorModal} className="p-6 space-y-4 text-xs text-slate-700">
+                <form onSubmit={handleGuardarEditarEvaluadorModal} className="p-6 space-y-4 text-xs text-slate-700 overflow-y-auto">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-extrabold text-slate-900 mb-1">Nombres y Apellidos:</label>
