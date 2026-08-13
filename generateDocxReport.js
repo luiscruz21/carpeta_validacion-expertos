@@ -646,7 +646,18 @@ export async function generateDocxReport(
       // CÁLCULO ESTADÍSTICO DE AIKEN V Y LAWSHE CVR SOBRE N_eval JUECES IMPARES
       const promLikert = (totalLikertN / N_eval).toFixed(2)
       const aikenV = Number((acuerdosSumN / N_eval).toFixed(2))
-      const sigP = "0.00"
+      
+      // Cálculo de probabilidad (P-value) aproximada para V de Aiken (unilateral, c=5)
+      let pValue = 0.000;
+      if (aikenV === 1.00) pValue = 0.008; // 1/125
+      else if (aikenV >= 0.90) pValue = 0.024;
+      else if (aikenV >= 0.80) pValue = 0.056;
+      else if (aikenV >= 0.70) pValue = 0.104;
+      else if (aikenV >= 0.60) pValue = 0.176;
+      else if (aikenV >= 0.50) pValue = 0.312;
+      else pValue = 0.500;
+      
+      const sigP = pValue.toFixed(2)
       const decisionAiken = aikenV >= 0.80 ? "Válido" : "Aceptable"
       
       const halfN = N_eval / 2
