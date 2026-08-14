@@ -34,7 +34,7 @@ function cleanGrado(grado = '', cargo = '') {
  * 3. Matriz con 4 Criterios analizados por evaluadores: Claridad, Coherencia, Relevancia, Suficiencia.
  * 4. Nueva columna obligatoria: Promedio Likert (1-5).
  * 5. Ficha de Validación con la fila obligatoria: Código del Validador (J1 (Código)).
- * 6. Muestra Participante basada en el dataset real del Sistema de Riesgos (54,226 obras INFOBRAS / 1,032 muestra analizada).
+ * 6. Muestra Participante basada en el dataset real del Sistema de Riesgos (191,181 obras INFOBRAS / 1,032 muestra analizada).
  * 7. Encabezados perfectos sin desplazamiento de celdas.
  */
 export async function generateDocxReport(
@@ -289,7 +289,7 @@ export async function generateDocxReport(
   )
 
   // Muestra participante oficial obtenida del dataset del Sistema de Riesgos INFOBRAS
-  const MUESTRA_SISTEMA_RIESGOS = "54,226 Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República (2020-2024) y muestra experimental analizada de 1,032 obras públicas."
+  const MUESTRA_SISTEMA_RIESGOS = "191,181 Proyectos de Infraestructura Pública registrados en INFOBRAS - Contraloría General de la República (2020-2024) y muestra experimental analizada de 1,032 obras públicas."
 
   // Generar Ficha para cada evaluador (CON FILA OBLIGATORIA "Código del Validador")
   for (let i = 0; i < evaluadoresFichas.length; i++) {
